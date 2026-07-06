@@ -4,7 +4,7 @@ import { ArrowRight } from "lucide-react";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { PageHero } from "@/components/page-hero";
-import { HowItWorks } from "@/components/sections/how-it-works";
+import { ConceptTimeline } from "@/components/sections/concept-timeline";
 import { Mechanic } from "@/components/sections/mechanic";
 import { Faq } from "@/components/sections/faq";
 import { Button } from "@/components/ui/button";
@@ -34,7 +34,7 @@ export default function CommentCaMarchePage() {
             </Button>
           </div>
         </PageHero>
-        <HowItWorks />
+        <ConceptTimeline />
         <Mechanic />
         <Faq />
       </main>
