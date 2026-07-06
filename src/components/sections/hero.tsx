@@ -74,19 +74,18 @@ export function Hero() {
 
   return (
     <section className="relative min-h-dvh overflow-hidden peri-mesh grain">
-      {/* athletic photo, blended into the periwinkle like the reference */}
-      <div className="absolute inset-0">
+      {/* duotone périwinkle : dégradé de marque + photo en mix-blend-luminosity */}
+      <div className="absolute inset-0 bg-gradient-to-br from-peri via-peri-deep to-ink">
         <Image
-          src="https://images.unsplash.com/photo-1546519638-68e109498ffc?auto=format&fit=crop&w=1900&q=80"
+          src="https://images.unsplash.com/photo-1549576490-b0b4831ef60a?auto=format&fit=crop&w=1900&q=80"
           alt=""
           fill
           priority
           sizes="100vw"
-          className="object-cover object-center opacity-70"
+          className="object-cover object-center opacity-85 grayscale contrast-110 mix-blend-luminosity"
         />
-        <div className="absolute inset-0 bg-peri-deep/35 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-[radial-gradient(130%_110%_at_0%_45%,rgba(16,18,43,0.82),rgba(16,18,43,0.35)_45%,rgba(16,18,43,0.15)_70%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/35 via-ink/15 to-ink/60" />
+        <div className="absolute inset-0 bg-[radial-gradient(120%_100%_at_0%_100%,rgba(16,18,43,0.72),rgba(16,18,43,0.28)_45%,transparent_72%)]" />
+        <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_100%_80%,rgba(16,18,43,0.6),rgba(16,18,43,0.25)_50%,transparent_70%)]" />
       </div>
 
       <div className="relative z-10 ff-container flex min-h-dvh flex-col justify-end pb-10 pt-32">
@@ -106,11 +105,11 @@ export function Hero() {
         />
 
         <div className="mt-8 grid grid-cols-12 items-end gap-x-8 gap-y-10">
-          <h1 className="col-span-12 display text-[clamp(3.25rem,9.5vw,8.25rem)] leading-[0.95] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)] lg:col-span-8">
-            <span className="block">
+          <h1 className="col-span-12 display text-[clamp(3.25rem,8.6vw,8.5rem)] leading-[0.92] tracking-[-0.01em] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)] lg:col-span-8">
+            <span className="block whitespace-nowrap">
               <WordsPullUp words={[{ text: "Burn" }, { text: "Calories," }]} delayOffset={0.15} />
             </span>
-            <span className="block">
+            <span className="block whitespace-nowrap">
               <WordsPullUp
                 words={[{ text: "Not" }, { text: "Cash.", serif: true }]}
                 delayOffset={0.35}
@@ -118,12 +117,12 @@ export function Hero() {
             </span>
           </h1>
 
-          <div className="col-span-12 flex flex-col gap-7 lg:col-span-4 lg:pb-3">
+          <div className="col-span-12 flex flex-col justify-end gap-6 lg:col-span-4 lg:pb-2">
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
               transition={{ duration: 0.8, delay: 0.55, ease: EASE }}
-              className="max-w-md text-lg leading-relaxed text-white/85"
+              className="max-w-md text-lg leading-relaxed text-white [text-shadow:0_1px_18px_rgba(16,18,43,0.55)]"
             >
               Les places de cours invendues près de chez vous, à prix qui fond.
               Plus l&apos;heure du cours approche, plus c&apos;est cadeau.
