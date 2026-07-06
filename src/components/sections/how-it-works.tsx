@@ -6,7 +6,6 @@ export function HowItWorks() {
   return (
     <section className="ff-container py-24 md:py-32">
       <SectionHeading
-        eyebrow="4 étapes, zéro friction"
         title={<>Découvrir. Réserver.<br />Se pointer. Profiter.</>}
         intro="La simplicité de Too Good To Go, appliquée au sport. Aucune application à installer : tout se passe dans le navigateur."
       />

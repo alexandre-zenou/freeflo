@@ -12,9 +12,8 @@ export function LiveOffers() {
     <section className="ff-container py-24 md:py-28">
       <div className="flex flex-wrap items-end justify-between gap-6">
         <SectionHeading
-          eyebrow="En ce moment, autour de vous"
           title={<>Ça part maintenant.</>}
-          intro="Des places réelles, un prix qui bouge en direct. Regardez la jauge chauffer."
+          intro="Des places réelles autour de vous, un prix qui bouge en direct. Regardez la jauge chauffer."
         />
         <Button asChild variant="outline">
           <Link href="/offres">Voir toutes les offres <ArrowRight className="h-4 w-4" /></Link>

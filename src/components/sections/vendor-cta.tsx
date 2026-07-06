@@ -11,7 +11,7 @@ export function VendorCta() {
       <div className="grid gap-14 lg:grid-cols-[1fr_1fr]">
         <div>
           <SectionHeading
-            eyebrow="Vous gérez un centre de sport ?"
+            lead="Vous gérez un centre de sport ?"
             title={<>Remplissez vos créneaux vides. <span className="serif-em text-peri-deep">Gratuitement.</span></>}
             intro="Chaque place non vendue est une perte sèche. Listez-la sur FREEFLO en 2 minutes et récupérez de la valeur, sans abonnement ni engagement."
           />

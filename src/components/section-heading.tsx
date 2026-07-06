@@ -2,6 +2,7 @@ import { cn } from "@/lib/utils";
 
 export function SectionHeading({
   eyebrow,
+  lead,
   title,
   intro,
   align = "left",
@@ -9,6 +10,8 @@ export function SectionHeading({
   onDark = false,
 }: {
   eyebrow?: string;
+  /** Serif-italic editorial lead-in — an alternative to the uppercase eyebrow. */
+  lead?: string;
   title: React.ReactNode;
   intro?: React.ReactNode;
   align?: "left" | "center";
@@ -25,6 +28,9 @@ export function SectionHeading({
     >
       {eyebrow && (
         <p className={cn("eyebrow mb-4", onDark ? "text-peri" : "text-peri-deep")}>{eyebrow}</p>
+      )}
+      {lead && !eyebrow && (
+        <p className={cn("serif-em mb-3 text-2xl", onDark ? "text-peri" : "text-peri-deep")}>{lead}</p>
       )}
       <h2
         className={cn(
