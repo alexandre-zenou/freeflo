@@ -89,7 +89,8 @@ export function Hero() {
       </div>
 
       <div className="relative z-10 ff-container flex min-h-dvh flex-col pb-10 pt-32">
-        <div className="my-auto">
+        <div aria-hidden className="flex-[1.2]" />
+        <div>
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
@@ -105,20 +106,23 @@ export function Hero() {
           className="mt-5 h-px w-16 origin-left bg-white/30"
         />
 
-        <div className="mt-8 grid grid-cols-12 items-end gap-x-8 gap-y-10">
-          <h1 className="col-span-12 display text-[clamp(3.25rem,8.6vw,8.5rem)] leading-[0.92] tracking-[-0.01em] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)] lg:col-span-8">
-            <span className="block whitespace-nowrap">
-              <WordsPullUp words={[{ text: "Burn" }, { text: "Calories," }]} delayOffset={0.15} />
-            </span>
-            <span className="block whitespace-nowrap">
-              <WordsPullUp
-                words={[{ text: "Not" }, { text: "Cash.", serif: true }]}
-                delayOffset={0.35}
-              />
-            </span>
-          </h1>
+        <h1 className="mt-8 display text-[clamp(3.25rem,8.6vw,8.5rem)] leading-[0.92] tracking-[-0.01em] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)]">
+          <span className="block whitespace-nowrap">
+            <WordsPullUp words={[{ text: "Burn" }, { text: "Calories," }]} delayOffset={0.15} />
+          </span>
+          <span className="block whitespace-nowrap">
+            <WordsPullUp
+              words={[{ text: "Not" }, { text: "Cash.", serif: true }]}
+              delayOffset={0.35}
+            />
+          </span>
+        </h1>
+        </div>
+        <div aria-hidden className="flex-1" />
 
-          <div className="col-span-12 flex flex-col justify-end gap-6 lg:col-span-4 lg:pb-2">
+        {/* paragraphe + CTA en bas à droite, au-dessus du bandeau live */}
+        <div className="flex lg:justify-end">
+          <div className="flex flex-col gap-6">
             <motion.p
               initial={{ y: 20, opacity: 0 }}
               animate={{ y: 0, opacity: 1 }}
@@ -144,8 +148,6 @@ export function Hero() {
               </Button>
             </motion.div>
           </div>
-        </div>
-
         </div>
 
         {/* live baseline strip — product proof without the floating card */}
