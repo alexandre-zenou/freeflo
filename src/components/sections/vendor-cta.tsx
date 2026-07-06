@@ -1,5 +1,5 @@
 import Link from "next/link";
-import { ArrowRight, Check } from "lucide-react";
+import { ArrowRight } from "lucide-react";
 import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { Button } from "@/components/ui/button";
@@ -34,16 +34,15 @@ export function VendorCta() {
           </dl>
         </div>
 
-        <Reveal stagger={0.1} className="grid gap-4 self-center sm:grid-cols-2">
-          {vendorValue.map((v) => (
-            <div key={v.title} className="rounded-2xl bg-paper p-6 shadow-soft ring-1 ring-line">
-              <span className="grid h-9 w-9 place-items-center rounded-full bg-peri-tint text-peri-deep">
-                <Check className="h-4 w-4" />
-              </span>
-              <h3 className="mt-4 font-medium text-ink">{v.title}</h3>
-              <p className="mt-2 text-sm leading-relaxed text-ink-soft">{v.text}</p>
-            </div>
-          ))}
+        <Reveal stagger={0.1} className="self-center">
+          <ul className="divide-y divide-line border-y border-line">
+            {vendorValue.map((v) => (
+              <li key={v.title} className="grid gap-2 py-6 sm:grid-cols-[190px_1fr] sm:gap-8">
+                <h3 className="font-medium leading-snug text-ink">{v.title}</h3>
+                <p className="text-sm leading-relaxed text-ink-soft">{v.text}</p>
+              </li>
+            ))}
+          </ul>
         </Reveal>
       </div>
     </section>
