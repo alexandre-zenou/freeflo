@@ -33,7 +33,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           <div className="relative aspect-[16/10] overflow-hidden rounded-3xl ring-1 ring-line">
             <Image src={offer.image} alt={`${offer.title} — ${offer.gym}`} fill priority sizes="(max-width:1024px) 100vw, 700px" className="object-cover" />
             <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-ink backdrop-blur">
-              {cat.emoji} {cat.label}
+              {cat.label}
             </span>
             {live.discountPct > 0 && (
               <span className="absolute right-4 top-4 rounded-full bg-ember px-3 py-1 text-sm font-semibold text-white">

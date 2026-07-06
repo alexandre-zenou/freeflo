@@ -33,7 +33,7 @@ export function OfferCard({ offer, priority = false }: { offer: Offer; priority?
 
         <div className="absolute left-3 top-3 flex items-center gap-2">
           <span className="rounded-full bg-white/90 px-2.5 py-1 text-xs font-medium text-ink backdrop-blur">
-            {cat.emoji} {cat.label}
+            {cat.label}
           </span>
         </div>
 

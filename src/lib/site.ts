@@ -36,7 +36,6 @@ export const nav = {
 export interface Category {
   slug: string;
   label: string;
-  emoji: string;
   image: string;
 }
 
@@ -44,14 +43,14 @@ const U = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=80`;
 
 export const categories: Category[] = [
-  { slug: "yoga", label: "Yoga", emoji: "🧘", image: U("photo-1544367567-0f2fcb009e0b") },
-  { slug: "pilates", label: "Pilates", emoji: "🤸", image: U("photo-1518611012118-696072aa579a") },
-  { slug: "boxe", label: "Boxe", emoji: "🥊", image: U("photo-1549060279-7e168fcee0c2") },
-  { slug: "hiit", label: "HIIT", emoji: "🔥", image: U("photo-1517836357463-d25dfeac3438") },
-  { slug: "cycling", label: "Cycling", emoji: "🚴", image: U("photo-1534258936925-c58bed479fcb") },
-  { slug: "natation", label: "Natation", emoji: "🏊", image: U("photo-1519315901367-f34ff9154487") },
-  { slug: "danse", label: "Danse", emoji: "💃", image: U("photo-1508700115892-45ecd05ae2ad") },
-  { slug: "coaching", label: "Coaching perso", emoji: "🏋️", image: U("photo-1571019613454-1cb2f99b2d8b") },
+  { slug: "yoga", label: "Yoga", image: U("photo-1544367567-0f2fcb009e0b") },
+  { slug: "pilates", label: "Pilates", image: U("photo-1518611012118-696072aa579a") },
+  { slug: "boxe", label: "Boxe", image: U("photo-1549060279-7e168fcee0c2") },
+  { slug: "hiit", label: "HIIT", image: U("photo-1517836357463-d25dfeac3438") },
+  { slug: "cycling", label: "Cycling", image: U("photo-1534258936925-c58bed479fcb") },
+  { slug: "natation", label: "Natation", image: U("photo-1519315901367-f34ff9154487") },
+  { slug: "danse", label: "Danse", image: U("photo-1508700115892-45ecd05ae2ad") },
+  { slug: "coaching", label: "Coaching perso", image: U("photo-1571019613454-1cb2f99b2d8b") },
 ];
 
 export function categoryOf(slug: string): Category {

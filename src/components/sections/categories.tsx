@@ -21,7 +21,7 @@ export function Categories() {
               <Image src={c.image} alt="" fill sizes="256px" className="object-cover transition-transform duration-700 hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
               <span className="absolute bottom-3 left-4 text-lg font-medium text-white">
-                {c.emoji} {c.label}
+                {c.label}
               </span>
             </Link>
           ))}

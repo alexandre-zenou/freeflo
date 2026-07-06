@@ -81,7 +81,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                   cat === c.slug ? "bg-ink text-bone" : "bg-secondary text-ink-soft hover:text-ink",
                 )}
               >
-                {c.emoji} {c.label}
+                {c.label}
               </button>
             ))}
           </div>

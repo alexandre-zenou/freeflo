@@ -29,9 +29,9 @@ const chart = [40, 55, 48, 70, 62, 88, 96];
 const days = ["L", "M", "M", "J", "V", "S", "D"];
 
 const todayOffers = [
-  { title: "Vinyasa Flow — 18h30", cat: "🧘", stock: "6 / 12", price: 13.2, base: 24, status: "live" },
-  { title: "Pilates doux — 12h00", cat: "🤸", stock: "0 / 8", price: 0, base: 22, status: "sold" },
-  { title: "Yoga débutant — 20h00", cat: "🧘", stock: "9 / 10", price: 24, base: 24, status: "full" },
+  { title: "Vinyasa Flow — 18h30", cat: "Yoga", stock: "6 / 12", price: 13.2, base: 24, status: "live" },
+  { title: "Pilates doux — 12h00", cat: "Pilates", stock: "0 / 8", price: 0, base: 22, status: "sold" },
+  { title: "Yoga débutant — 20h00", cat: "Yoga", stock: "9 / 10", price: 24, base: 24, status: "full" },
 ];
 
 const orders = [
@@ -56,7 +56,7 @@ export function VendorDashboard() {
       <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
         <div>
           <p className="eyebrow text-peri-deep">Espace pro · démo</p>
-          <h1 className="display text-3xl text-ink sm:text-4xl">Bonjour, Studio Bloom 👋</h1>
+          <h1 className="display text-3xl text-ink sm:text-4xl">Bonjour, Studio Bloom</h1>
         </div>
         <button className="inline-flex items-center gap-2 rounded-full bg-ember px-5 py-3 text-sm font-medium text-white ember-glow transition-colors hover:bg-ember-deep">
           <Plus className="h-4 w-4" /> Créer une offre
@@ -136,7 +136,10 @@ export function VendorDashboard() {
               </div>
               {todayOffers.map((o) => (
                 <div key={o.title} className="grid grid-cols-2 items-center gap-4 border-b border-line px-5 py-4 last:border-0 sm:grid-cols-[2fr_1fr_1fr_1fr]">
-                  <span className="font-medium text-ink">{o.cat} {o.title}</span>
+                  <span className="font-medium text-ink">
+                    {o.title}
+                    <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-normal text-ink-soft">{o.cat}</span>
+                  </span>
                   <span className="text-sm text-ink-soft">{o.stock}</span>
                   <span className="text-sm">
                     {o.status === "sold" ? (
