@@ -4,6 +4,7 @@ import { Reveal } from "@/components/reveal";
 import { SectionHeading } from "@/components/section-heading";
 import { Button } from "@/components/ui/button";
 import { vendorValue, stats } from "@/lib/site";
+import { cn } from "@/lib/utils";
 
 export function VendorCta() {
   return (
@@ -24,11 +25,18 @@ export function VendorCta() {
             </Button>
           </div>
 
-          <dl className="mt-12 grid grid-cols-2 gap-6 border-t border-line pt-8">
+          <dl className="mt-12 grid grid-cols-2 gap-6">
             {stats.map((s) => (
-              <div key={s.label}>
-                <dt className="font-display text-4xl font-medium text-ink">{s.value}</dt>
-                <dd className="mt-1 text-sm text-ink-soft">{s.label}</dd>
+              <div key={s.label} className="border-t border-ink/20 pt-4">
+                <dt
+                  className={cn(
+                    "display text-3xl font-light sm:text-4xl",
+                    s.value.startsWith("-") ? "text-ember-deep" : "text-ink",
+                  )}
+                >
+                  {s.value}
+                </dt>
+                <dd className="mt-1 max-w-[24ch] text-sm text-ink-soft">{s.label}</dd>
               </div>
             ))}
           </dl>
