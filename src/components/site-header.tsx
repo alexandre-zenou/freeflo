@@ -74,7 +74,7 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
       {open && (
         <div className="border-t border-line bg-bone md:hidden">
           <div className="ff-container flex flex-col gap-1 py-4">
-            {[...nav.primary, nav.vendorCta].map((l) => (
+            {[...nav.primary, nav.auth[0], nav.vendorCta].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}

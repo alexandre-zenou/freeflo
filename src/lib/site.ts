@@ -28,8 +28,8 @@ export const nav = {
   ],
   vendorCta: { label: "Inscrire mon centre", href: "/inscrire-son-centre" },
   auth: [
-    { label: "Connexion", href: "/offres" },
-    { label: "Inscription", href: "/offres" },
+    { label: "Connexion", href: "/connexion" },
+    { label: "Inscription", href: "/connexion?mode=signup" },
   ],
 } as const;
 

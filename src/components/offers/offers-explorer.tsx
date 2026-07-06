@@ -21,7 +21,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>("urgence");
-  const [view, setView] = useState<"list" | "map">("list");
+  const [view, setView] = useState<"list" | "map">("map");
   const [hover, setHover] = useState<string | null>(null);
 
   const list = useMemo(() => {
