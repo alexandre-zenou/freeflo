@@ -1,12 +1,76 @@
+"use client";
+
+import { useRef } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { motion, useInView, useReducedMotion } from "framer-motion";
 import { ArrowRight, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { OfferCard } from "@/components/offer-card";
-import { offers, site } from "@/lib/site";
+import { offers, site, categoryOf, type Offer } from "@/lib/site";
+import { useLivePrice } from "@/components/use-live-price";
+import { formatEuro } from "@/lib/format";
+
+/**
+ * Cinematic poster hero — blend of 21st.dev "Hero — Luxury Editorial" (dzekuza,
+ * id 14846: kicker, thin rule, ghost CTAs) and "PrismaHero" (rahil1202, id 12200:
+ * bottom-anchored composition, per-word pull-up reveal), re-skinned to FREEFLO.
+ * The floating offer card is replaced by a live price strip on the baseline.
+ */
+const EASE = [0.16, 1, 0.3, 1] as const;
+
+function WordsPullUp({
+  words,
+  delayOffset = 0,
+}: {
+  words: { text: string; serif?: boolean }[];
+  delayOffset?: number;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const isInView = useInView(ref, { once: true });
+  const reduced = useReducedMotion();
+
+  return (
+    <span ref={ref} className="inline-flex flex-wrap">
+      {words.map((w, i) => (
+        <motion.span
+          key={`${w.text}-${i}`}
+          initial={reduced ? false : { y: 26, opacity: 0 }}
+          animate={isInView ? { y: 0, opacity: 1 } : undefined}
+          transition={{ duration: 0.7, delay: delayOffset + i * 0.09, ease: EASE }}
+          className={
+            (w.serif ? "serif-em" : "") +
+            (i < words.length - 1 ? " mr-[0.22em]" : "") +
+            " inline-block"
+          }
+        >
+          {w.text}
+        </motion.span>
+      ))}
+    </span>
+  );
+}
+
+/** One ticking price in the baseline strip — the dégressivité, live, sans carte. */
+function LiveTick({ offer }: { offer: Offer }) {
+  const live = useLivePrice(offer.basePrice, offer.placesLeft, offer.startsInHours);
+  return (
+    <Link
+      href={`/offres/${offer.id}`}
+      className="group flex items-baseline gap-2 text-sm text-white/70 transition-colors hover:text-white"
+    >
+      <span>{categoryOf(offer.category).label}</span>
+      <span className="font-medium tabular-nums text-white">{formatEuro(live.currentPrice)}</span>
+      {live.discountPct > 0 && (
+        <span className="font-medium tabular-nums text-ember">−{live.discountPct}%</span>
+      )}
+    </Link>
+  );
+}
+
+const tickerIds = ["the-new-me-pilates", "boxe-republique", "hiit-bastille"];
 
 export function Hero() {
-  const featured = offers.find((o) => o.id === "the-new-me-pilates")!;
+  const ticker = offers.filter((o) => tickerIds.includes(o.id));
 
   return (
     <section className="relative min-h-dvh overflow-hidden peri-mesh grain">
@@ -22,32 +86,54 @@ export function Hero() {
         />
         <div className="absolute inset-0 bg-peri-deep/35 mix-blend-multiply" />
         <div className="absolute inset-0 bg-[radial-gradient(130%_110%_at_0%_45%,rgba(16,18,43,0.82),rgba(16,18,43,0.35)_45%,rgba(16,18,43,0.15)_70%)]" />
-        <div className="absolute inset-0 bg-gradient-to-b from-ink/35 via-ink/15 to-ink/45" />
-        <div className="absolute inset-x-0 bottom-0 h-40 bg-gradient-to-b from-transparent to-bone" />
+        <div className="absolute inset-0 bg-gradient-to-b from-ink/35 via-ink/15 to-ink/60" />
       </div>
 
-      <div className="relative z-10 ff-container flex min-h-dvh flex-col justify-center pt-28 pb-16">
-        <div className="grid items-center gap-10 lg:grid-cols-[1.15fr_0.85fr]">
-          <div>
-            <p className="rise eyebrow mb-6 text-white/80" style={{ animationDelay: "0.05s" }}>
-              {site.city} · Le sport de dernière minute
-            </p>
-            <h1 className="display text-[clamp(2.75rem,6.4vw,5.5rem)] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)]">
-              <span className="rise block whitespace-nowrap" style={{ animationDelay: "0.15s" }}>
-                Burn Calories,
-              </span>
-              <span className="rise block whitespace-nowrap" style={{ animationDelay: "0.28s" }}>
-                Not <span className="serif-em">Cash.</span>
-              </span>
-            </h1>
-            <p
-              className="rise mt-7 max-w-md text-lg leading-relaxed text-white/85"
-              style={{ animationDelay: "0.42s" }}
+      <div className="relative z-10 ff-container flex min-h-dvh flex-col justify-end pb-10 pt-32">
+        <motion.p
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
+          className="eyebrow text-white/80"
+        >
+          {site.city} · Le sport de dernière minute
+        </motion.p>
+        <motion.div
+          initial={{ scaleX: 0 }}
+          animate={{ scaleX: 1 }}
+          transition={{ duration: 0.8, delay: 0.3, ease: EASE }}
+          className="mt-5 h-px w-16 origin-left bg-white/30"
+        />
+
+        <div className="mt-8 grid grid-cols-12 items-end gap-x-8 gap-y-10">
+          <h1 className="col-span-12 display text-[clamp(3.25rem,9.5vw,8.25rem)] leading-[0.95] text-white [text-shadow:0_2px_40px_rgba(16,18,43,0.45)] lg:col-span-8">
+            <span className="block">
+              <WordsPullUp words={[{ text: "Burn" }, { text: "Calories," }]} delayOffset={0.15} />
+            </span>
+            <span className="block">
+              <WordsPullUp
+                words={[{ text: "Not" }, { text: "Cash.", serif: true }]}
+                delayOffset={0.35}
+              />
+            </span>
+          </h1>
+
+          <div className="col-span-12 flex flex-col gap-7 lg:col-span-4 lg:pb-3">
+            <motion.p
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.55, ease: EASE }}
+              className="max-w-md text-lg leading-relaxed text-white/85"
             >
               Les places de cours invendues près de chez vous, à prix qui fond.
               Plus l&apos;heure du cours approche, plus c&apos;est cadeau.
-            </p>
-            <div className="rise mt-9 flex flex-wrap items-center gap-3" style={{ animationDelay: "0.52s" }}>
+            </motion.p>
+            <motion.div
+              initial={{ y: 20, opacity: 0 }}
+              animate={{ y: 0, opacity: 1 }}
+              transition={{ duration: 0.8, delay: 0.7, ease: EASE }}
+              className="flex flex-wrap items-center gap-3"
+            >
               <Button asChild size="lg" variant="ghostline">
                 <Link href="/offres">
                   Trouver mon cours de sport <ArrowRight className="h-4 w-4" />
@@ -56,25 +142,35 @@ export function Hero() {
               <Button asChild size="lg" variant="link" className="text-white hover:text-white/80">
                 <Link href="/comment-ca-marche">Comment ça marche</Link>
               </Button>
-            </div>
-
-            <div
-              className="rise mt-10 flex items-center gap-2 text-sm text-white/75"
-              style={{ animationDelay: "0.62s" }}
-            >
-              <MapPin className="h-4 w-4" />
-              <span className="flex h-2 w-2">
-                <span className="h-2 w-2 rounded-full bg-ember pulse-dot" />
-              </span>
-              <span>142 places libérées aujourd&apos;hui autour de vous</span>
-            </div>
-          </div>
-
-          {/* live floating card — the price fonds down while you watch */}
-          <div className="rise mx-auto w-full max-w-sm lg:ml-auto" style={{ animationDelay: "0.7s" }}>
-            <OfferCard offer={featured} priority />
+            </motion.div>
           </div>
         </div>
+
+        {/* live baseline strip — product proof without the floating card */}
+        <motion.div
+          initial={{ opacity: 0 }}
+          animate={{ opacity: 1 }}
+          transition={{ duration: 0.9, delay: 0.9, ease: EASE }}
+          className="mt-14 flex flex-wrap items-center gap-x-8 gap-y-3 border-t border-white/25 pt-5"
+        >
+          <span className="flex items-center gap-2 text-sm text-white/75">
+            <MapPin className="h-4 w-4" />
+            <span className="flex h-2 w-2">
+              <span className="h-2 w-2 rounded-full bg-ember pulse-dot" />
+            </span>
+            142 places libérées aujourd&apos;hui autour de vous
+          </span>
+          <span className="hidden flex-1 sm:block" />
+          {ticker.map((o) => (
+            <LiveTick key={o.id} offer={o} />
+          ))}
+          <Link
+            href="/offres"
+            className="flex items-center gap-1 text-sm text-white/60 transition-colors hover:text-white"
+          >
+            Voir tout <ArrowRight className="h-3.5 w-3.5" />
+          </Link>
+        </motion.div>
       </div>
     </section>
   );
