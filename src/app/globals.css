@@ -1,0 +1,211 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+/*
+  FREEFLO — éditorial athlétique.
+  Marque : périwinkle calme. Accent : ember (le prix chauffe quand le compte à rebours brûle).
+  Type : Hanken Grotesk (display large, fin) + Instrument Serif italic (éditorial).
+*/
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+
+  --font-sans: var(--font-hanken);
+  --font-display: var(--font-hanken);
+  --font-serif: var(--font-instrument);
+
+  /* palette */
+  --color-bone: var(--bone);
+  --color-paper: var(--paper);
+  --color-ink: var(--ink);
+  --color-ink-soft: var(--ink-soft);
+  --color-peri: var(--peri);
+  --color-peri-deep: var(--peri-deep);
+  --color-peri-tint: var(--peri-tint);
+  --color-ember: var(--ember);
+  --color-ember-deep: var(--ember-deep);
+  --color-line: var(--line);
+  --color-line-strong: var(--line-strong);
+
+  --shadow-soft: 0 1px 2px rgba(18, 20, 43, 0.04), 0 12px 34px -16px rgba(18, 20, 43, 0.20);
+  --shadow-lift: 0 2px 8px rgba(18, 20, 43, 0.06), 0 34px 64px -26px rgba(18, 20, 43, 0.34);
+  --shadow-ember: 0 10px 40px -12px rgba(255, 104, 68, 0.45);
+
+  /* shadcn-compatible tokens (button etc.) */
+  --color-card: var(--card);
+  --color-card-foreground: var(--card-foreground);
+  --color-popover: var(--popover);
+  --color-popover-foreground: var(--popover-foreground);
+  --color-primary: var(--primary);
+  --color-primary-foreground: var(--primary-foreground);
+  --color-secondary: var(--secondary);
+  --color-secondary-foreground: var(--secondary-foreground);
+  --color-muted: var(--muted);
+  --color-muted-foreground: var(--muted-foreground);
+  --color-accent: var(--accent);
+  --color-accent-foreground: var(--accent-foreground);
+  --color-destructive: var(--destructive);
+  --color-border: var(--border);
+  --color-input: var(--input);
+  --color-ring: var(--ring);
+
+  --radius-sm: 0.4rem;
+  --radius-md: 0.6rem;
+  --radius-lg: 0.9rem;
+  --radius-xl: 1.4rem;
+  --radius-2xl: 2rem;
+}
+
+:root {
+  --bone: #f3f2ee;         /* warm off-white paper */
+  --paper: #fbfaf7;        /* card surface */
+  --ink: #16182b;          /* deep navy-ink text */
+  --ink-soft: #565a75;     /* muted ink */
+  --peri: #8b9ddb;         /* signature periwinkle */
+  --peri-deep: #4f61a8;    /* deep periwinkle for depth */
+  --peri-tint: #dfe4f5;    /* pale periwinkle wash */
+  --ember: #ff6a45;        /* urgency accent — discount heat */
+  --ember-deep: #e8431c;
+  --line: rgba(22, 24, 43, 0.12);
+  --line-strong: rgba(22, 24, 43, 0.24);
+
+  --background: var(--bone);
+  --foreground: var(--ink);
+  --card: var(--paper);
+  --card-foreground: var(--ink);
+  --popover: var(--paper);
+  --popover-foreground: var(--ink);
+  --primary: var(--ink);
+  --primary-foreground: #fbfaf7;
+  --secondary: #e8eaf4;
+  --secondary-foreground: var(--ink);
+  --muted: #e8eaf4;
+  --muted-foreground: var(--ink-soft);
+  --accent: var(--peri-tint);
+  --accent-foreground: var(--peri-deep);
+  --destructive: #e8431c;
+  --border: var(--line);
+  --input: var(--line);
+  --ring: var(--peri);
+  --radius: 0.9rem;
+}
+
+@layer base {
+  * {
+    border-color: var(--border);
+  }
+  html {
+    scroll-behavior: smooth;
+    -webkit-font-smoothing: antialiased;
+    text-rendering: optimizeLegibility;
+  }
+  body {
+    background-color: var(--background);
+    color: var(--foreground);
+    font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    font-feature-settings: "ss01", "cv01";
+  }
+  ::selection {
+    background: var(--ink);
+    color: var(--bone);
+  }
+}
+
+@layer utilities {
+  /* Editorial oversized display, thin & wide — the Canva signature */
+  .display {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 300;
+    letter-spacing: -0.035em;
+    line-height: 0.92;
+  }
+  .display-tight {
+    letter-spacing: -0.045em;
+    line-height: 0.9;
+  }
+  .serif-em {
+    font-family: var(--font-serif), Georgia, serif;
+    font-style: italic;
+    font-weight: 400;
+    letter-spacing: 0;
+  }
+  .eyebrow {
+    font-size: 0.72rem;
+    letter-spacing: 0.24em;
+    text-transform: uppercase;
+    font-weight: 500;
+  }
+  .ff-container {
+    width: 100%;
+    max-width: 1240px;
+    margin-inline: auto;
+    padding-inline: clamp(1.25rem, 4vw, 3rem);
+  }
+  /* atmospheric periwinkle mesh for hero/backgrounds */
+  .peri-mesh {
+    background:
+      radial-gradient(60% 55% at 78% 8%, rgba(139, 157, 219, 0.55), transparent 60%),
+      radial-gradient(50% 60% at 12% 92%, rgba(223, 228, 245, 0.9), transparent 65%),
+      radial-gradient(80% 70% at 50% 120%, rgba(79, 97, 168, 0.28), transparent 60%),
+      var(--peri);
+  }
+  .grain {
+    position: relative;
+  }
+  .grain::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+    opacity: 0.5;
+    mix-blend-mode: soft-light;
+    background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='120' height='120'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='2'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)' opacity='0.5'/%3E%3C/svg%3E");
+  }
+  .hairline {
+    border-color: var(--line);
+  }
+  .ember-glow {
+    box-shadow: var(--shadow-ember);
+  }
+}
+
+/* Reveal-on-scroll (progressively enhanced by GSAP; visible by default) */
+[data-reveal] {
+  opacity: 1;
+}
+.js [data-reveal] {
+  opacity: 0;
+  transform: translateY(22px);
+}
+
+@keyframes ff-rise {
+  from { opacity: 0; transform: translateY(22px); }
+  to { opacity: 1; transform: none; }
+}
+.rise {
+  animation: ff-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+}
+
+@keyframes ff-pulse {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0.35; }
+}
+.pulse-dot {
+  animation: ff-pulse 1.6s ease-in-out infinite;
+}
+
+@keyframes ff-marquee {
+  from { transform: translateX(0); }
+  to { transform: translateX(-50%); }
+}
+.marquee-track {
+  animation: ff-marquee 32s linear infinite;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
+  .js [data-reveal] { opacity: 1; transform: none; }
+}
