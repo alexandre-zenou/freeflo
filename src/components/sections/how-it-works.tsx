@@ -11,14 +11,14 @@ export function HowItWorks() {
         intro="La simplicité de Too Good To Go, appliquée au sport. Aucune application à installer : tout se passe dans le navigateur."
       />
 
-      <Reveal stagger={0.12} className="mt-14 grid gap-px overflow-hidden rounded-3xl bg-line sm:grid-cols-2 lg:grid-cols-4">
+      <Reveal stagger={0.12} className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((s) => (
-          <div key={s.n} className="group bg-paper p-8 transition-colors hover:bg-peri-tint/40">
-            <span className="font-display text-5xl font-light text-peri transition-colors group-hover:text-peri-deep">
-              {s.n}
-            </span>
-            <h3 className="mt-6 text-xl font-medium text-ink">{s.title}</h3>
-            <p className="mt-3 text-sm leading-relaxed text-ink-soft">{s.text}</p>
+          <div key={s.n} className="border-t border-ink/20 pt-5">
+            <div className="flex items-baseline gap-3">
+              <span className="serif-em text-3xl text-peri-deep">{s.n}</span>
+              <h3 className="text-xl font-medium text-ink">{s.title}</h3>
+            </div>
+            <p className="mt-4 max-w-[26ch] text-sm leading-relaxed text-ink-soft">{s.text}</p>
           </div>
         ))}
       </Reveal>
