@@ -77,7 +77,7 @@ export function Hero() {
       {/* duotone périwinkle : dégradé de marque + photo en mix-blend-luminosity */}
       <div className="absolute inset-0 bg-gradient-to-br from-peri via-peri-deep to-ink">
         <Image
-          src="https://images.unsplash.com/photo-1549576490-b0b4831ef60a?auto=format&fit=crop&w=1900&q=80"
+          src="https://images.unsplash.com/photo-1517130038641-a774d04afb3c?auto=format&fit=crop&w=1900&q=80"
           alt=""
           fill
           priority
