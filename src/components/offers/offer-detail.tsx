@@ -9,6 +9,7 @@ import { categoryOf } from "@/lib/site";
 import { useLivePrice } from "@/components/use-live-price";
 import { UrgencyMeter } from "@/components/urgency-meter";
 import { BookingFlow } from "@/components/offers/booking-flow";
+import { LeafletMap } from "@/components/offers/leaflet-map";
 import { OfferCard } from "@/components/offer-card";
 import { Button } from "@/components/ui/button";
 import { formatEuro, slotLabel } from "@/lib/format";
@@ -64,15 +65,13 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
 
             {/* mini map + address */}
             <div className="mt-8 overflow-hidden rounded-2xl ring-1 ring-line">
-              <div className="relative h-40 bg-peri-tint">
-                <svg className="absolute inset-0 h-full w-full" preserveAspectRatio="none" viewBox="0 0 100 100">
-                  <path d="M-5 60 C 25 52, 40 74, 60 64 S 90 50, 108 60" stroke="#8b9ddb" strokeWidth="6" fill="none" opacity="0.7" />
-                  <line x1="50" y1="0" x2="50" y2="100" stroke="#fff" strokeWidth="1.4" opacity="0.7" />
-                  <line x1="0" y1="40" x2="100" y2="40" stroke="#fff" strokeWidth="1.2" opacity="0.6" />
-                </svg>
-                <span className="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-full">
-                  <span className="block h-3 w-3 rounded-full bg-ember ring-4 ring-ember/25" />
-                </span>
+              <div className="h-52">
+                <LeafletMap
+                  points={[{ id: offer.id, lat: offer.lat, lng: offer.lng }]}
+                  center={[offer.lat, offer.lng]}
+                  zoom={15}
+                  interactive={false}
+                />
               </div>
               <p className="flex items-center gap-2 bg-paper px-4 py-3 text-sm text-ink">
                 <MapPin className="h-4 w-4 text-peri-deep" /> {offer.address}

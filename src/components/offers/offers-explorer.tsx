@@ -1,10 +1,13 @@
 "use client";
 
 import { useMemo, useState } from "react";
+import { useRouter } from "next/navigation";
 import { Map, List, SlidersHorizontal } from "lucide-react";
 import { OfferCard } from "@/components/offer-card";
-import { MapDemo } from "@/components/offers/map-demo";
+import { LeafletMap, type MapPoint } from "@/components/offers/leaflet-map";
 import { categories, type Offer } from "@/lib/site";
+import { computePrice } from "@/lib/pricing";
+import { formatEuro } from "@/lib/format";
 import { cn } from "@/lib/utils";
 
 type Sort = "urgence" | "proximite" | "prix";
@@ -15,6 +18,7 @@ const sorts: { key: Sort; label: string }[] = [
 ];
 
 export function OffersExplorer({ offers }: { offers: Offer[] }) {
+  const router = useRouter();
   const [cat, setCat] = useState<string | null>(null);
   const [sort, setSort] = useState<Sort>("urgence");
   const [view, setView] = useState<"list" | "map">("list");
@@ -29,6 +33,15 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
     });
     return sorted;
   }, [offers, cat, sort]);
+
+  const points: MapPoint[] = useMemo(
+    () =>
+      list.map((o) => {
+        const p = computePrice(o.basePrice, o.placesLeft, o.startsInHours);
+        return { id: o.id, lat: o.lat, lng: o.lng, label: formatEuro(p.currentPrice), hot: p.heat > 0.6 };
+      }),
+    [list],
+  );
 
   return (
     <div>
@@ -121,7 +134,19 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
               ))}
             </div>
             <div className="order-1 lg:order-2 lg:sticky lg:top-40 lg:self-start">
-              <MapDemo offers={list} activeId={hover} onHover={setHover} />
+              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line lg:aspect-auto lg:h-[70vh] lg:min-h-[560px]">
+                <LeafletMap
+                  points={points}
+                  activeId={hover}
+                  onHover={setHover}
+                  onSelect={(id) => router.push(`/offres/${id}`)}
+                  showUser
+                  fitBounds
+                />
+                <div className="pointer-events-none absolute bottom-3 left-3 z-[400] rounded-full bg-white/85 px-3 py-1 text-xs text-ink-soft backdrop-blur">
+                  {list.length} cours dans un rayon de 3 km
+                </div>
+              </div>
             </div>
           </div>
         )}

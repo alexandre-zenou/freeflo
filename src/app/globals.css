@@ -205,6 +205,65 @@
   animation: ff-marquee 32s linear infinite;
 }
 
+/* ---- Leaflet ---- */
+.leaflet-container {
+  font-family: var(--font-sans), sans-serif;
+  background: #e8eaf4;
+  z-index: 0;
+}
+.leaflet-container a { color: var(--peri-deep); }
+.leaflet-control-attribution {
+  font-size: 10px;
+  background: rgba(251, 250, 247, 0.8) !important;
+}
+/* Custom markers live in @layer utilities so Turbopack dev emits them reliably
+   (unlayered rules after @layer blocks get dropped in dev; they build fine but
+   don't hot-reload). No conflict with leaflet.css — these selectors are ours. */
+@layer utilities {
+  /* price marker */
+  .ff-pin {
+    transform: translate(-50%, -100%);
+    cursor: pointer;
+  }
+  .ff-pin__pill {
+    display: inline-flex;
+    align-items: center;
+    white-space: nowrap;
+    padding: 3px 9px;
+    border-radius: 999px;
+    font-size: 12px;
+    font-weight: 600;
+    background: #fff;
+    color: var(--ink);
+    box-shadow: 0 4px 16px rgba(18, 20, 43, 0.28);
+    transition: transform 0.15s ease;
+  }
+  .ff-pin__pill--hot { background: var(--ember); color: #fff; }
+  .ff-pin__pill--active {
+    outline: 2px solid var(--ink);
+    outline-offset: 1px;
+    transform: scale(1.1);
+  }
+  /* single-location dot (detail) */
+  .ff-dot {
+    transform: translate(-50%, -50%);
+    width: 18px;
+    height: 18px;
+    border-radius: 999px;
+    background: var(--ember);
+    box-shadow: 0 0 0 6px rgba(255, 106, 69, 0.25);
+  }
+  /* "you are here" */
+  .ff-here {
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 999px;
+    background: var(--ink);
+    box-shadow: 0 0 0 5px rgba(22, 24, 43, 0.18);
+  }
+}
+
 @media (prefers-reduced-motion: reduce) {
   * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .js [data-reveal] { opacity: 1; transform: none; }

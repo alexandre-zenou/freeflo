@@ -76,9 +76,13 @@ export interface Offer {
   image: string;
   coach: string;
   description: string;
-  /** Position sur la carte stylisée (pourcentages 0–100). */
-  map: { x: number; y: number };
+  /** Coordonnées réelles (Paris) pour la carte Leaflet. */
+  lat: number;
+  lng: number;
 }
+
+/** Point « vous êtes ici » de la démo — centre de Paris (Marais). */
+export const userLocation = { lat: 48.8592, lng: 2.3549 } as const;
 
 export const offers: Offer[] = [
   {
@@ -99,7 +103,8 @@ export const offers: Offer[] = [
     coach: "Camille",
     description:
       "Un reformer exigeant et fluide pour gainer tout le corps. Serviette et chaussettes antidérapantes fournies.",
-    map: { x: 34, y: 58 },
+    lat: 48.8412,
+    lng: 2.3177,
   },
   {
     id: "boxe-republique",
@@ -119,7 +124,8 @@ export const offers: Offer[] = [
     coach: "Sofiane",
     description:
       "Gants de location dispo. Un cours qui envoie : shadow, sac, corde. Tous niveaux, ambiance club.",
-    map: { x: 62, y: 40 },
+    lat: 48.8656,
+    lng: 2.3705,
   },
   {
     id: "hot-yoga-marais",
@@ -139,7 +145,8 @@ export const offers: Offer[] = [
     coach: "Léa",
     description:
       "Un flow dynamique face à la lumière dorée. Tapis et blocs sur place. Respiration, mobilité, lâcher-prise.",
-    map: { x: 58, y: 52 },
+    lat: 48.8556,
+    lng: 2.3639,
   },
   {
     id: "hiit-bastille",
@@ -159,7 +166,8 @@ export const offers: Offer[] = [
     coach: "Marion",
     description:
       "Intervalles courts, intensité haute, zéro temps mort. Prévoyez de l'eau. On sort rincé et fier.",
-    map: { x: 68, y: 60 },
+    lat: 48.8535,
+    lng: 2.3720,
   },
   {
     id: "cycling-opera",
@@ -179,7 +187,8 @@ export const offers: Offer[] = [
     coach: "Dylan",
     description:
       "45 min de ride chorégraphié, lumières et son de club. Chaussures de location incluses.",
-    map: { x: 46, y: 30 },
+    lat: 48.8735,
+    lng: 2.3345,
   },
   {
     id: "natation-technique",
@@ -199,7 +208,8 @@ export const offers: Offer[] = [
     coach: "Nadia",
     description:
       "Un coach dans l'eau, 6 nageurs max. On corrige la respiration et le geste. Bonnet obligatoire.",
-    map: { x: 72, y: 46 },
+    lat: 48.8637,
+    lng: 2.3720,
   },
   {
     id: "danse-heels",
@@ -219,7 +229,8 @@ export const offers: Offer[] = [
     coach: "Inès",
     description:
       "Une choré qui claque, en talons ou en baskets. Zéro jugement, 100% énergie.",
-    map: { x: 54, y: 22 },
+    lat: 48.8703,
+    lng: 2.3670,
   },
   {
     id: "coaching-perso",
@@ -239,7 +250,8 @@ export const offers: Offer[] = [
     coach: "Thomas",
     description:
       "Séance en tête-à-tête, programme sur mesure. Idéal reprise ou objectif précis.",
-    map: { x: 50, y: 66 },
+    lat: 48.8570,
+    lng: 2.3560,
   },
 ];
 
