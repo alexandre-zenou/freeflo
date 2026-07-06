@@ -8,7 +8,7 @@ export function HowItWorks() {
       <SectionHeading
         eyebrow="4 étapes, zéro friction"
         title={<>Découvrir. Réserver.<br />Se pointer. Profiter.</>}
-        intro="La simplicité de Too Good To Go, appliquée au sport. Aucune app à installer pour le MVP : tout se passe dans le navigateur."
+        intro="La simplicité de Too Good To Go, appliquée au sport. Aucune application à installer : tout se passe dans le navigateur."
       />
 
       <Reveal stagger={0.12} className="mt-14 grid gap-px overflow-hidden rounded-3xl bg-line sm:grid-cols-2 lg:grid-cols-4">
