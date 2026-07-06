@@ -88,12 +88,13 @@ export function Hero() {
         <div className="absolute inset-0 bg-[radial-gradient(95%_120%_at_100%_80%,rgba(16,18,43,0.6),rgba(16,18,43,0.25)_50%,transparent_70%)]" />
       </div>
 
-      <div className="relative z-10 ff-container flex min-h-dvh flex-col justify-end pb-10 pt-32">
+      <div className="relative z-10 ff-container flex min-h-dvh flex-col pb-10 pt-32">
+        <div className="my-auto">
         <motion.p
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           transition={{ duration: 0.8, delay: 0.1, ease: EASE }}
-          className="eyebrow text-white/80"
+          className="eyebrow text-white [text-shadow:0_1px_14px_rgba(16,18,43,0.6)]"
         >
           {site.city} · Le sport de dernière minute
         </motion.p>
@@ -143,6 +144,8 @@ export function Hero() {
               </Button>
             </motion.div>
           </div>
+        </div>
+
         </div>
 
         {/* live baseline strip — product proof without the floating card */}
