@@ -68,6 +68,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
               <div className="h-52">
                 <LeafletMap
                   points={[{ id: offer.id, lat: offer.lat, lng: offer.lng }]}
+                  districts={[{ label: offer.arrondissement, lat: offer.lat + 0.0016, lng: offer.lng }]}
                   center={[offer.lat, offer.lng]}
                   zoom={15}
                   interactive={false}

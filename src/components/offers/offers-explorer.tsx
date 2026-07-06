@@ -2,7 +2,7 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Map, List, SlidersHorizontal } from "lucide-react";
+import { Map as MapIcon, List, SlidersHorizontal } from "lucide-react";
 import { OfferCard } from "@/components/offer-card";
 import { LeafletMap, type MapPoint } from "@/components/offers/leaflet-map";
 import { categories, type Offer } from "@/lib/site";
@@ -42,6 +42,20 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
       }),
     [list],
   );
+
+  // one label per arrondissement present, placed just above that district's pins
+  const districts = useMemo(() => {
+    const groups = new Map<string, { lat: number; lng: number; n: number }>();
+    list.forEach((o) => {
+      const g = groups.get(o.arrondissement) ?? { lat: 0, lng: 0, n: 0 };
+      groups.set(o.arrondissement, { lat: g.lat + o.lat, lng: g.lng + o.lng, n: g.n + 1 });
+    });
+    return [...groups.entries()].map(([arr, g]) => ({
+      label: arr,
+      lat: g.lat / g.n + 0.007,
+      lng: g.lng / g.n,
+    }));
+  }, [list]);
 
   return (
     <div>
@@ -101,7 +115,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                 onClick={() => setView("map")}
                 className={cn("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm", view === "map" ? "bg-bone text-ink shadow-soft" : "text-ink-soft")}
               >
-                <Map className="h-4 w-4" /> Carte
+                <MapIcon className="h-4 w-4" /> Carte
               </button>
             </div>
           </div>
@@ -137,6 +151,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
               <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line lg:aspect-auto lg:h-[70vh] lg:min-h-[560px]">
                 <LeafletMap
                   points={points}
+                  districts={districts}
                   activeId={hover}
                   onHover={setHover}
                   onSelect={(id) => router.push(`/offres/${id}`)}

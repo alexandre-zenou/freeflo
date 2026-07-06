@@ -14,12 +14,20 @@ export interface MapPoint {
   hot?: boolean;
 }
 
-const CARTO = "https://{s}.basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png";
+export interface District {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
+// Voyager basemap: light + premium, with soft-green parks and blue water.
+const CARTO = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const ATTR =
   '&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>';
 
 export function LeafletMap({
   points,
+  districts = [],
   activeId,
   onHover,
   onSelect,
@@ -31,6 +39,7 @@ export function LeafletMap({
   className,
 }: {
   points: MapPoint[];
+  districts?: District[];
   activeId?: string | null;
   onHover?: (id: string | null) => void;
   onSelect?: (id: string) => void;
@@ -44,10 +53,14 @@ export function LeafletMap({
   const elRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<LMap | null>(null);
   const markersRef = useRef<Record<string, LMarker>>({});
+  const districtRef = useRef<LMarker[]>([]);
 
   const sig = useMemo(
-    () => points.map((p) => `${p.id}:${p.label ?? ""}:${p.hot ? 1 : 0}`).join("|"),
-    [points],
+    () =>
+      points.map((p) => `${p.id}:${p.label ?? ""}:${p.hot ? 1 : 0}`).join("|") +
+      "||" +
+      districts.map((d) => d.label).join(","),
+    [points, districts],
   );
 
   // build map + markers (rebuilds markers when points change)
@@ -81,6 +94,22 @@ export function LeafletMap({
       }
 
       const map = mapRef.current!;
+
+      // clear + redraw district (arrondissement) labels, below the pins
+      districtRef.current.forEach((m) => m.remove());
+      districtRef.current = districts.map((d) =>
+        L.marker([d.lat, d.lng], {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="ff-arr">${d.label}</div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: -1000,
+        }).addTo(map),
+      );
 
       // clear existing offer markers
       Object.values(markersRef.current).forEach((m) => m.remove());
