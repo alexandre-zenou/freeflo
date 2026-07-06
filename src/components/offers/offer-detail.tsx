@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ArrowLeft, Star, MapPin, Clock, Users, ShieldCheck, Sparkles } from "lucide-react";
+import { ArrowLeft, Star, MapPin, Clock, Users, ShieldCheck } from "lucide-react";
 import type { Offer } from "@/lib/site";
 import { categoryOf } from "@/lib/site";
 import { useLivePrice } from "@/components/use-live-price";
@@ -55,11 +55,11 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
 
             <p className="mt-6 max-w-prose leading-relaxed text-ink/80">{offer.description}</p>
 
-            <div className="mt-8 grid gap-3 sm:grid-cols-2">
+            <div className="mt-8 flex flex-wrap gap-x-6 gap-y-3 border-y border-line py-5">
               {included.map((f) => (
-                <div key={f} className="flex items-center gap-2 rounded-xl bg-paper px-4 py-3 text-sm ring-1 ring-line">
-                  <Sparkles className="h-4 w-4 text-peri-deep" /> {f}
-                </div>
+                <span key={f} className="text-sm text-ink-soft">
+                  {f}
+                </span>
               ))}
             </div>
 
