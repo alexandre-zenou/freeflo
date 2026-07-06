@@ -108,7 +108,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
         </div>
       </div>
 
-      <div className="ff-container py-8">
+      <div className="ff-container pt-8 pb-24 md:pb-32">
         <p className="mb-6 text-sm text-ink-soft">
           <span className="font-medium text-ink">{list.length} cours</span> disponibles près de vous
         </p>
@@ -121,7 +121,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
           </div>
         ) : (
           <div className="grid gap-6 lg:grid-cols-[1.05fr_0.95fr]">
-            <div className="order-2 grid max-h-[70vh] gap-4 overflow-y-auto pr-1 sm:grid-cols-2 lg:order-1 lg:grid-cols-2">
+            <div className="order-2 grid gap-4 sm:grid-cols-2 lg:order-1 lg:grid-cols-2">
               {list.map((o) => (
                 <div
                   key={o.id}
