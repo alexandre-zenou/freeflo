@@ -4,6 +4,7 @@ import { Ticket, TrendingUp, Wallet, Star, ArrowRight } from "lucide-react";
 import { computePrice } from "@/lib/pricing";
 import { formatEuro } from "@/lib/format";
 import { cn } from "@/lib/utils";
+import { ActivityFeed } from "@/components/vendor/activity-feed";
 import {
   payouts,
   revenueChart,
@@ -103,6 +104,7 @@ export function OverviewTab({
       </div>
 
       <div className="grid gap-4 lg:grid-cols-[1.4fr_1fr]">
+        <div className="flex flex-col gap-4">
         {/* créneaux du jour — l'état de remplissage en un regard */}
         <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
           <h3 className="font-medium text-ink">Créneaux du jour</h3>
@@ -130,6 +132,10 @@ export function OverviewTab({
               );
             })}
           </ul>
+        </div>
+
+        {/* fil d'activité — le studio vit, même quand on ne regarde pas */}
+        <ActivityFeed />
         </div>
 
         <div className="flex flex-col gap-4">

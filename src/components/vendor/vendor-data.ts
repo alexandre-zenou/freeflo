@@ -22,11 +22,66 @@ export const initialVendorOffers: VendorOffer[] = [
   { id: "v-debutant", title: "Yoga débutant — 20h00", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52 },
 ];
 
-export const vendorOrders = [
+export interface VendorOrder {
+  name: string;
+  offer: string;
+  ref: string;
+  state: "à préparer" | "retiré";
+}
+
+export const vendorOrders: VendorOrder[] = [
   { name: "Thomas L.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-193", state: "à préparer" },
   { name: "Amélie R.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-194", state: "à préparer" },
+  { name: "Léa S.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-196", state: "à préparer" },
+  { name: "Sofia M.", offer: "Yoga débutant — 20h00", ref: "FLO-STU-195", state: "à préparer" },
   { name: "Karim B.", offer: "Pilates doux — 12h00", ref: "FLO-STU-188", state: "retiré" },
   { name: "Julie M.", offer: "Pilates doux — 12h00", ref: "FLO-STU-187", state: "retiré" },
+];
+
+/* ——— Avis (cohérents avec le KPI : 4,9 · 512 avis) ——— */
+
+export const ratingBreakdown = [
+  { stars: 5, count: 465 },
+  { stars: 4, count: 35 },
+  { stars: 3, count: 8 },
+  { stars: 2, count: 2 },
+  { stars: 1, count: 2 },
+] as const;
+
+export const recentReviews = [
+  {
+    name: "Amélie R.",
+    course: "Vinyasa Flow",
+    rating: 5,
+    date: "il y a 2 jours",
+    text: "Réservé à −45% une heure avant, accueil au QR nickel. Le cours était complet et l'énergie incroyable.",
+    reply: null,
+  },
+  {
+    name: "Thomas L.",
+    course: "Pilates doux",
+    rating: 5,
+    date: "il y a 4 jours",
+    text: "Première fois chez Studio Bloom grâce à FREEFLO — j'ai repris une carte de 10 depuis.",
+    reply: "Merci Thomas, à très vite au studio !",
+  },
+  {
+    name: "Inès K.",
+    course: "Yoga débutant",
+    rating: 4,
+    date: "il y a 6 jours",
+    text: "Très bon cours, vestiaires un peu petits quand on arrive à 3 en même temps.",
+    reply: null,
+  },
+] as const;
+
+/** Fil d'activité — minutes relatives « au chargement », le composant fait vivre le temps. */
+export const activitySeed = [
+  { minutesAgo: 2, text: "Thomas L. a réservé Vinyasa Flow — 18h30", kind: "sale" },
+  { minutesAgo: 9, text: "Vinyasa Flow est passé en sprint final (−50%)", kind: "melt" },
+  { minutesAgo: 21, text: "Nouvel avis 5★ d'Amélie R. sur Vinyasa Flow", kind: "review" },
+  { minutesAgo: 34, text: "Sofia M. a réservé Yoga débutant — 20h00", kind: "sale" },
+  { minutesAgo: 58, text: "Virement quotidien de 168 € envoyé", kind: "payout" },
 ] as const;
 
 export const payouts = [

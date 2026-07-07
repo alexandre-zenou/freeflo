@@ -7,18 +7,19 @@ import {
   ClipboardList,
   Settings,
   Plus,
-  Check,
-  Clock,
+  Star,
   TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OverviewTab } from "@/components/vendor/overview-tab";
 import { OffersTab } from "@/components/vendor/offers-tab";
 import { StatsTab } from "@/components/vendor/stats-tab";
+import { OrdersTab } from "@/components/vendor/orders-tab";
+import { ReviewsTab } from "@/components/vendor/reviews-tab";
+import { SettingsTab } from "@/components/vendor/settings-tab";
 import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import {
   initialVendorOffers,
-  vendorOrders,
   type VendorOffer,
 } from "@/components/vendor/vendor-data";
 
@@ -27,6 +28,7 @@ const tabs = [
   { key: "offers", label: "Mes offres", icon: <Ticket className="h-4 w-4" /> },
   { key: "stats", label: "Statistiques", icon: <TrendingUp className="h-4 w-4" /> },
   { key: "orders", label: "Commandes", icon: <ClipboardList className="h-4 w-4" /> },
+  { key: "reviews", label: "Avis", icon: <Star className="h-4 w-4" /> },
   { key: "settings", label: "Paramètres", icon: <Settings className="h-4 w-4" /> },
 ] as const;
 
@@ -100,42 +102,9 @@ export function VendorDashboard() {
           )}
 
           {tab === "stats" && <StatsTab />}
-
-          {tab === "orders" && (
-            <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
-              {vendorOrders.map((o) => (
-                <div key={o.ref} className="flex items-center gap-4 border-b border-line px-5 py-4 last:border-0">
-                  <span className={cn("grid h-9 w-9 place-items-center rounded-full", o.state === "à préparer" ? "bg-ember/12 text-ember-deep" : "bg-peri-tint text-peri-deep")}>
-                    {o.state === "à préparer" ? <Clock className="h-4 w-4" /> : <Check className="h-4 w-4" />}
-                  </span>
-                  <div className="min-w-0 flex-1">
-                    <p className="font-medium text-ink">{o.name}</p>
-                    <p className="truncate text-sm text-ink-soft">{o.offer}</p>
-                  </div>
-                  <span className="hidden font-mono text-xs text-ink-soft sm:block">{o.ref}</span>
-                  <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", o.state === "à préparer" ? "bg-ember/12 text-ember-deep" : "bg-secondary text-ink-soft")}>
-                    {o.state}
-                  </span>
-                </div>
-              ))}
-            </div>
-          )}
-
-          {tab === "settings" && (
-            <div className="grid gap-4 sm:grid-cols-2">
-              {[
-                { t: "Informations du centre", d: "Nom, adresse, catégories, photos." },
-                { t: "Coordonnées bancaires", d: "IBAN vérifié · virements quotidiens actifs." },
-                { t: "Informations légales", d: "SIRET validé · CGU pros signées." },
-                { t: "Boutons réseaux sociaux", d: "Intégrez la réservation sur Instagram (V2)." },
-              ].map((s) => (
-                <div key={s.t} className="rounded-2xl bg-paper p-6 ring-1 ring-line">
-                  <h3 className="font-medium text-ink">{s.t}</h3>
-                  <p className="mt-2 text-sm text-ink-soft">{s.d}</p>
-                </div>
-              ))}
-            </div>
-          )}
+          {tab === "orders" && <OrdersTab />}
+          {tab === "reviews" && <ReviewsTab />}
+          {tab === "settings" && <SettingsTab />}
         </div>
       </div>
 
