@@ -14,7 +14,7 @@ import {
 const kpis = [
   { icon: Ticket, label: "Paniers vendus (mois)", value: "148", delta: "+22%" },
   { icon: TrendingUp, label: "CA généré (mois)", value: "3 240 €", delta: "+18%" },
-  { icon: Wallet, label: "Virement de demain", value: "126 €", delta: "quotidien" },
+  { icon: Wallet, label: "Valeur récupérée (mois)", value: "2 430 €", delta: "+31%" },
   { icon: Star, label: "Note moyenne", value: "4,9", delta: "512 avis" },
 ];
 

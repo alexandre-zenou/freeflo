@@ -9,10 +9,12 @@ import {
   Plus,
   Check,
   Clock,
+  TrendingUp,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OverviewTab } from "@/components/vendor/overview-tab";
 import { OffersTab } from "@/components/vendor/offers-tab";
+import { StatsTab } from "@/components/vendor/stats-tab";
 import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import {
   initialVendorOffers,
@@ -23,6 +25,7 @@ import {
 const tabs = [
   { key: "overview", label: "Tableau de bord", icon: <LayoutDashboard className="h-4 w-4" /> },
   { key: "offers", label: "Mes offres", icon: <Ticket className="h-4 w-4" /> },
+  { key: "stats", label: "Statistiques", icon: <TrendingUp className="h-4 w-4" /> },
   { key: "orders", label: "Commandes", icon: <ClipboardList className="h-4 w-4" /> },
   { key: "settings", label: "Paramètres", icon: <Settings className="h-4 w-4" /> },
 ] as const;
@@ -95,6 +98,8 @@ export function VendorDashboard() {
               onCreate={() => setDrawerOpen(true)}
             />
           )}
+
+          {tab === "stats" && <StatsTab />}
 
           {tab === "orders" && (
             <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
