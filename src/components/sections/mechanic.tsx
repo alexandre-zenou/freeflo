@@ -1,8 +1,10 @@
 "use client";
 
 import { useEffect, useRef, useState } from "react";
+import { ChevronDown } from "lucide-react";
 import { SectionHeading } from "@/components/section-heading";
 import { UrgencyMeter } from "@/components/urgency-meter";
+import { MeltCurve } from "@/components/melt-curve";
 import { computePrice, TIERS, type StockBand } from "@/lib/pricing";
 import { formatEuro, formatCountdown } from "@/lib/format";
 import { cn } from "@/lib/utils";
@@ -22,6 +24,7 @@ export function Mechanic() {
   const [hours, setHours] = useState(48);
   const [band, setBand] = useState<StockBand>("last");
   const [playing, setPlaying] = useState(true);
+  const [showGrid, setShowGrid] = useState(false);
   const dir = useRef(-1);
 
   useEffect(() => {
@@ -124,8 +127,35 @@ export function Mechanic() {
             </p>
           </div>
 
-          {/* the grid, straight from the cahier */}
-          <div className="overflow-x-auto rounded-3xl bg-white/[0.03] p-2 ring-1 ring-white/10">
+          {/* la courbe de fonte — le moteur dessiné, synchronisé avec la carte */}
+          <div>
+            <div className="rounded-3xl bg-white/[0.03] p-5 ring-1 ring-white/10 sm:p-6">
+              <div className="flex items-baseline justify-between gap-3">
+                <h3 className="text-sm font-medium text-bone">Votre prix, heure par heure</h3>
+                <span className="text-xs text-white/45">glissez sur la courbe</span>
+              </div>
+              <div className="mt-3">
+                <MeltCurve
+                  base={BASE}
+                  band={band}
+                  places={placesFor(band)}
+                  hours={hours}
+                  onScrub={(h) => { setPlaying(false); setHours(h); }}
+                />
+              </div>
+            </div>
+
+            <button
+              onClick={() => setShowGrid((s) => !s)}
+              aria-expanded={showGrid}
+              className="mt-4 flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-bone"
+            >
+              <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", showGrid && "rotate-180")} />
+              {showGrid ? "Masquer la grille complète" : "Voir la grille complète"}
+            </button>
+
+            {showGrid && (
+          <div className="mt-4 overflow-x-auto rounded-3xl bg-white/[0.03] p-2 ring-1 ring-white/10">
             <table className="w-full border-collapse text-sm">
               <thead>
                 <tr className="text-left text-white/55">
@@ -166,6 +196,8 @@ export function Mechanic() {
                 })}
               </tbody>
             </table>
+          </div>
+            )}
           </div>
         </div>
       </div>
