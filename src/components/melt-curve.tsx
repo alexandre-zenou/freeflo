@@ -14,7 +14,7 @@ const W = 640;
 const H = 300;
 const PAD_T = 30;
 const PAD_B = 40;
-const PAD_L = 16;
+const PAD_L = 64; // place pour l'ordonnée des prix
 const PAD_R = 16;
 const MAX_HOURS = 48;
 
@@ -70,6 +70,9 @@ export function MeltCurve({
   const now = computePrice(base, places, hours);
   const hot = now.heat > 0.6;
 
+  // Ordonnée : un tick par prix de palier réellement atteint (dédupliqués).
+  const priceTicks = [...new Set([base, ...segments.map((s) => s.price)])];
+
   const scrub = (clientX: number) => {
     const svg = svgRef.current;
     if (!svg) return;
@@ -101,6 +104,16 @@ export function MeltCurve({
           <stop offset="100%" stopColor="#8b9ddb" stopOpacity="0.02" />
         </linearGradient>
       </defs>
+
+      {/* ordonnée des prix — un tick par palier atteint */}
+      {priceTicks.map((p) => (
+        <g key={p}>
+          <line x1={PAD_L} y1={y(p)} x2={W - PAD_R} y2={y(p)} stroke="rgba(255,255,255,0.07)" />
+          <text x={PAD_L - 8} y={y(p) + 4} textAnchor="end" fontSize="11" fill="rgba(255,255,255,0.55)">
+            {formatEuro(p)}
+          </text>
+        </g>
+      ))}
 
       {/* bornes de paliers — pas d'étiquette sur « 2 h », trop proche de « cours » */}
       {BOUNDARIES.map((b) => (
@@ -135,13 +148,7 @@ export function MeltCurve({
         </text>
       ))}
 
-      {/* prix de départ / plancher */}
-      <text x={PAD_L + 4} y={y(base) - 8} fontSize="11" fill="rgba(255,255,255,0.5)">
-        {formatEuro(base)}
-      </text>
-      <text x={x(2) - 8} y={y(minPrice) + 4} textAnchor="end" fontSize="11" fill="rgba(255,255,255,0.5)">
-        plancher {formatEuro(minPrice)}
-      </text>
+      {/* l'axe couvre départ et plancher — pas d'étiquettes redondantes */}
 
       {/* le point « maintenant », porté par le slider */}
       {hot && <circle cx={x(hours)} cy={y(now.currentPrice)} r="12" fill="#ff6a45" opacity="0.25" />}
