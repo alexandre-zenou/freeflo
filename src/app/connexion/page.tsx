@@ -21,7 +21,7 @@ export default function ConnexionPage() {
           {/* brand panel */}
           <div className="relative hidden overflow-hidden peri-mesh grain lg:block">
             <Image
-              src="https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=1200&q=80"
+              src="/categories/hiit.jpg"
               alt=""
               fill
               sizes="50vw"

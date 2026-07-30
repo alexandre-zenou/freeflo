@@ -39,9 +39,6 @@ export interface Category {
   image: string;
 }
 
-const U = (id: string) =>
-  `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=80`;
-
 /**
  * Catalogue des sports — chaque catégorie porte un visuel fourni par le client
  * (direction artistique Canva : rouge / jaune saturé, studio).
@@ -122,7 +119,7 @@ export const offers: Offer[] = [
     distanceKm: 1.6,
     rating: 4.8,
     reviews: 388,
-    image: U("photo-1549060279-7e168fcee0c2"),
+    image: "/categories/boxe.jpg",
     coach: "Sofiane",
     description:
       "Gants de location dispo. Un cours qui envoie : shadow, sac, corde. Tous niveaux, ambiance club.",
@@ -143,7 +140,7 @@ export const offers: Offer[] = [
     distanceKm: 2.2,
     rating: 4.9,
     reviews: 512,
-    image: U("photo-1544367567-0f2fcb009e0b"),
+    image: "/categories/yoga.jpg",
     coach: "Léa",
     description:
       "Un flow dynamique face à la lumière dorée. Tapis et blocs sur place. Respiration, mobilité, lâcher-prise.",
@@ -164,7 +161,7 @@ export const offers: Offer[] = [
     distanceKm: 1.1,
     rating: 4.7,
     reviews: 176,
-    image: U("photo-1517836357463-d25dfeac3438"),
+    image: "/categories/hiit.jpg",
     coach: "Marion",
     description:
       "Intervalles courts, intensité haute, zéro temps mort. Prévoyez de l'eau. On sort rincé et fier.",
@@ -185,7 +182,7 @@ export const offers: Offer[] = [
     distanceKm: 3.4,
     rating: 4.8,
     reviews: 297,
-    image: U("photo-1534258936925-c58bed479fcb"),
+    image: "/categories/cycling.jpg",
     coach: "Dylan",
     description:
       "45 min de ride chorégraphié, lumières et son de club. Chaussures de location incluses.",
