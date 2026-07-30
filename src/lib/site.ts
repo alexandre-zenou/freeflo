@@ -37,20 +37,31 @@ export interface Category {
   slug: string;
   label: string;
   image: string;
+  /**
+   * `true` = visuel d'attente (Unsplash), pas encore fourni par le client.
+   * Les tuiles concernées reçoivent une harmonisation chaude pour s'aligner
+   * sur la direction artistique du client. À retirer dès la vraie photo livrée.
+   */
+  placeholder?: boolean;
 }
 
 const U = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=80`;
 
+/**
+ * Direction artistique du client (Canva) : rouge / jaune saturé, studio.
+ * Les catégories couvertes par ses visuels pointent en local ; les autres
+ * restent sur Unsplash en attendant les images manquantes.
+ */
 export const categories: Category[] = [
-  { slug: "yoga", label: "Yoga", image: U("photo-1544367567-0f2fcb009e0b") },
-  { slug: "pilates", label: "Pilates", image: U("photo-1518611012118-696072aa579a") },
-  { slug: "boxe", label: "Boxe", image: U("photo-1549060279-7e168fcee0c2") },
-  { slug: "hiit", label: "HIIT", image: U("photo-1517836357463-d25dfeac3438") },
-  { slug: "cycling", label: "Cycling", image: U("photo-1534258936925-c58bed479fcb") },
-  { slug: "natation", label: "Natation", image: U("photo-1519315901367-f34ff9154487") },
-  { slug: "danse", label: "Danse", image: U("photo-1508700115892-45ecd05ae2ad") },
-  { slug: "coaching", label: "Coaching perso", image: U("photo-1571019613454-1cb2f99b2d8b") },
+  { slug: "yoga", label: "Yoga", image: "/categories/yoga.jpg" },
+  { slug: "pilates", label: "Pilates", image: "/categories/pilates.jpg" },
+  { slug: "boxe", label: "Boxe", image: "/categories/boxe.jpg" },
+  { slug: "hiit", label: "HIIT", image: "/categories/hiit.jpg" },
+  { slug: "cycling", label: "Cycling", image: "/categories/cycling.jpg" },
+  { slug: "natation", label: "Natation", image: U("photo-1519315901367-f34ff9154487"), placeholder: true },
+  { slug: "danse", label: "Danse", image: U("photo-1508700115892-45ecd05ae2ad"), placeholder: true },
+  { slug: "coaching", label: "Coaching perso", image: U("photo-1571019613454-1cb2f99b2d8b"), placeholder: true },
 ];
 
 export function categoryOf(slug: string): Category {
@@ -98,7 +109,7 @@ export const offers: Offer[] = [
     distanceKm: 0.8,
     rating: 4.9,
     reviews: 214,
-    image: U("photo-1518611012118-696072aa579a"),
+    image: "/categories/reformer.jpg",
     coach: "Camille",
     description:
       "Un reformer exigeant et fluide pour gainer tout le corps. Serviette et chaussettes antidérapantes fournies.",
