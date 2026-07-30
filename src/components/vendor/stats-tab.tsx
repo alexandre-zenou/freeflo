@@ -10,20 +10,20 @@ import {
   revenueDays,
 } from "@/components/vendor/vendor-data";
 
-/** Échelle de chaleur des ventes : bone → périwinkle → ember. */
+/** Échelle de chaleur des ventes : crème → rouge → or. */
 const HEAT = [
   "bg-ink/5",
-  "bg-peri-tint",
-  "bg-peri/55",
-  "bg-peri-deep",
-  "bg-ember",
+  "bg-pro-surface",
+  "bg-gold/55",
+  "bg-brand",
+  "bg-brand",
 ] as const;
 
 function Panel({ title, children, aside }: { title: string; children: React.ReactNode; aside?: React.ReactNode }) {
   return (
-    <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
+    <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
       <div className="flex items-baseline justify-between gap-3">
-        <h3 className="font-medium text-ink">{title}</h3>
+        <h3 className="serif-display text-xl text-ink">{title}</h3>
         {aside}
       </div>
       {children}
@@ -41,7 +41,7 @@ export function StatsTab() {
     <div className="space-y-4">
       {/* A — récupération : l'argent retrouvé */}
       <div className="grid gap-4 lg:grid-cols-[1fr_1fr]">
-        <Panel title="Valeur récupérée ce mois" aside={<span className="text-sm text-peri-deep">{recovery.recoveredDelta}</span>}>
+        <Panel title="Valeur récupérée ce mois" aside={<span className="text-sm text-pro-accent">{recovery.recoveredDelta}</span>}>
           <p className="mt-3 font-display text-4xl font-light text-ink">{formatEuro(recovery.recoveredNet)}</p>
           <p className="mt-1 text-sm text-ink-soft">
             nets, encaissés sur des places qui partaient à la poubelle. Une place vide vaut 0 €.
@@ -54,7 +54,7 @@ export function StatsTab() {
               <span className="text-ink-soft">{recovery.placesLost} perdues</span>
             </div>
             <div className="mt-2 flex h-1.5 w-full gap-0.5 overflow-hidden rounded-full">
-              <div className="h-full rounded-l-full bg-peri-deep" style={{ width: `${savedPct}%` }} />
+              <div className="h-full rounded-l-full bg-brand" style={{ width: `${savedPct}%` }} />
               <div className="h-full flex-1 rounded-r-full bg-ink/10" />
             </div>
           </div>
@@ -64,7 +64,7 @@ export function StatsTab() {
           <div className="mt-4 space-y-4">
             {[
               { label: "Avant FREEFLO", pct: recovery.fillBefore, cls: "bg-ink/25" },
-              { label: "Avec FREEFLO", pct: recovery.fillWith, cls: "bg-peri-deep" },
+              { label: "Avec FREEFLO", pct: recovery.fillWith, cls: "bg-brand" },
             ].map((r) => (
               <div key={r.label}>
                 <div className="flex items-baseline justify-between text-sm">
@@ -89,11 +89,11 @@ export function StatsTab() {
         <div className="mt-4 grid gap-6 sm:grid-cols-[auto_1fr]">
           <div className="flex gap-8 sm:flex-col sm:gap-5">
             <div>
-              <p className="font-display text-3xl font-light text-ink">−{meltStats.avgDiscount}%</p>
+              <p className="serif-display text-3xl text-ink">−{meltStats.avgDiscount}%</p>
               <p className="mt-0.5 text-xs text-ink-soft">remise moyenne à la vente</p>
             </div>
             <div>
-              <p className="font-display text-3xl font-light text-ink">{meltStats.avgLeadTime}</p>
+              <p className="serif-display text-3xl text-ink">{meltStats.avgLeadTime}</p>
               <p className="mt-0.5 text-xs text-ink-soft">avant le cours, en moyenne</p>
             </div>
           </div>
@@ -106,7 +106,7 @@ export function StatsTab() {
                 </div>
                 <div className="mt-1 h-1.5 w-full overflow-hidden rounded-full bg-ink/8">
                   <div
-                    className={cn("h-full rounded-full", t.hot ? "bg-ember" : "bg-peri-deep")}
+                    className={cn("h-full rounded-full", t.hot ? "bg-brand" : "bg-brand")}
                     style={{ width: `${t.pct}%` }}
                   />
                 </div>
@@ -126,7 +126,7 @@ export function StatsTab() {
           <p className="mt-3 font-display text-4xl font-light text-ink">{acquisition.newClients}</p>
           <p className="mt-1 text-sm text-ink-soft">ce mois, jamais venus chez vous auparavant.</p>
           <p className="mt-5 border-t border-line pt-4 text-sm leading-relaxed text-ink">
-            <strong className="text-peri-deep">{returnedPct}% sont revenus</strong> une deuxième
+            <strong className="text-pro-accent">{returnedPct}% sont revenus</strong> une deuxième
             fois — dont {acquisition.returnedFullPrice} au plein tarif.
           </p>
         </Panel>
@@ -137,7 +137,7 @@ export function StatsTab() {
               <li key={o.area} className="flex items-center gap-3 text-sm">
                 <span className="w-14 shrink-0 text-ink-soft">{o.area}</span>
                 <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/8">
-                  <div className="h-full rounded-full bg-peri-deep" style={{ width: `${o.pct}%` }} />
+                  <div className="h-full rounded-full bg-brand" style={{ width: `${o.pct}%` }} />
                 </div>
                 <span className="w-9 shrink-0 text-right tabular-nums text-ink">{o.pct}%</span>
               </li>

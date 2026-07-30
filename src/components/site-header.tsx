@@ -4,7 +4,7 @@ import Link from "next/link";
 import { useEffect, useState } from "react";
 import { Menu, X } from "lucide-react";
 import { Logo } from "@/components/logo";
-import { Button } from "@/components/ui/button";
+import { LocaleSwitch } from "@/components/locale-switch";
 import { nav } from "@/lib/site";
 import { cn } from "@/lib/utils";
 
@@ -26,7 +26,7 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
-        solid ? "border-b border-line bg-bone/85 backdrop-blur-md" : "border-b border-transparent",
+        solid ? "border-b border-line bg-cream/85 backdrop-blur-md" : "border-b border-transparent",
       )}
     >
       <div className="ff-container flex h-16 items-center justify-between md:h-[4.5rem]">
@@ -48,18 +48,7 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
         </nav>
 
         <div className="hidden items-center gap-3 md:flex">
-          <Link
-            href={nav.auth[0].href}
-            className={cn(
-              "text-sm transition-colors",
-              onDark ? "text-white/85 hover:text-white" : "text-ink-soft hover:text-ink",
-            )}
-          >
-            Connexion
-          </Link>
-          <Button asChild variant={onDark ? "ghostline" : "solid"} size="sm">
-            <Link href={nav.vendorCta.href}>{nav.vendorCta.label}</Link>
-          </Button>
+          <LocaleSwitch onDark={onDark} />
         </div>
 
         <button
@@ -72,9 +61,9 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
       </div>
 
       {open && (
-        <div className="border-t border-line bg-bone md:hidden">
+        <div className="border-t border-line bg-cream md:hidden">
           <div className="ff-container flex flex-col gap-1 py-4">
-            {[...nav.primary, nav.auth[0], nav.vendorCta].map((l) => (
+            {[...nav.primary, nav.vendorCta].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -84,6 +73,9 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
                 {l.label}
               </Link>
             ))}
+            <div className="px-2 pt-2">
+              <LocaleSwitch onDark={false} />
+            </div>
           </div>
         </div>
       )}

@@ -9,7 +9,7 @@ import { steps } from "@/lib/site";
  * Scroll-driven concept walkthrough for /comment-ca-marche.
  * Adapted from 21st.dev "Timeline" (aceternity, id 857) — sticky step titles +
  * scroll-progress beam — re-skinned to the FREEFLO editorial system: serif
- * numerals, hairline rail, and a beam that heats from periwinkle to ember as
+ * numerals, hairline rail, and a beam that heats from brand red to gold as
  * you scroll (the dégressivité metaphor).
  */
 const details = [
@@ -50,8 +50,8 @@ export function ConceptTimeline() {
             className="flex justify-start gap-6 pt-16 first:pt-0 md:gap-10 md:pt-28"
           >
             <div className="sticky top-28 z-10 flex max-w-[9rem] flex-col self-start sm:max-w-xs md:w-full lg:max-w-sm">
-              <div className="flex items-baseline gap-4 rounded-r-full bg-bone/90 py-1 pl-12 pr-3 backdrop-blur-sm md:pl-16">
-                <span className="serif-em text-2xl text-peri-deep md:text-3xl">{s.n}</span>
+              <div className="flex items-baseline gap-4 rounded-r-full bg-cream/90 py-1 pl-12 pr-3 backdrop-blur-sm md:pl-16">
+                <span className="serif-em text-2xl text-brand md:text-3xl">{s.n}</span>
                 <h3 className="display hidden text-2xl text-ink md:block md:text-4xl">
                   {s.title}
                 </h3>
@@ -75,7 +75,7 @@ export function ConceptTimeline() {
         >
           <motion.div
             style={{ height: heightTransform, opacity: opacityTransform }}
-            className="absolute inset-x-0 top-0 w-px bg-gradient-to-b from-peri via-peri-deep to-ember-deep"
+            className="absolute inset-x-0 top-0 w-px bg-gradient-to-b from-gold via-brand to-brand-deep"
           />
         </div>
       </div>

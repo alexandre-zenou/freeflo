@@ -13,7 +13,7 @@ function LivePriceCell({ offer }: { offer: VendorOffer }) {
   return (
     <div className="min-w-0">
       {live.discountPct > 0 ? (
-        <span className="tabular-nums text-sm font-medium text-ember-deep">
+        <span className="tabular-nums text-sm font-medium text-brand-deep">
           {formatEuro(live.currentPrice)}{" "}
           <span className="font-normal text-ink-soft line-through">{formatEuro(offer.basePrice)}</span>
         </span>
@@ -58,7 +58,7 @@ export function OffersTab({
   onCreate: () => void;
 }) {
   return (
-    <div className="overflow-hidden rounded-2xl bg-paper ring-1 ring-line">
+    <div className="overflow-hidden rounded-2xl bg-white ring-1 ring-line">
       <div className="hidden grid-cols-[2fr_0.8fr_1.4fr_0.9fr] gap-4 border-b border-line px-5 py-3 text-xs font-medium uppercase tracking-wide text-ink-soft sm:grid">
         <span>Offre du jour</span><span>Places</span><span>Prix live</span><span className="text-right">Actions</span>
       </div>

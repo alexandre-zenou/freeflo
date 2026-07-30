@@ -7,9 +7,9 @@ import { activitySeed } from "@/components/vendor/vendor-data";
 const DEMO_SPEED = 90;
 
 const KIND_DOT: Record<string, string> = {
-  sale: "bg-ember",
-  melt: "bg-peri-deep",
-  review: "bg-peri",
+  sale: "bg-brand",
+  melt: "bg-brand",
+  review: "bg-gold",
   payout: "bg-ink/40",
 };
 
@@ -31,11 +31,11 @@ export function ActivityFeed() {
   }, []);
 
   return (
-    <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
+    <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
       <div className="flex items-baseline justify-between">
         <h3 className="font-medium text-ink">En ce moment</h3>
         <span className="flex items-center gap-1.5 text-xs text-ink-soft">
-          <span className="h-1.5 w-1.5 rounded-full bg-ember pulse-dot" /> live
+          <span className="h-1.5 w-1.5 rounded-full bg-brand pulse-dot" /> live
         </span>
       </div>
       <ul className="mt-4 space-y-3">

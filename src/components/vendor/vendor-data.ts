@@ -12,30 +12,47 @@ export interface VendorOffer {
   placesLeft: number;
   basePrice: number;
   startsInHours: number;
+  /** Jour de la semaine, 0 = lundi (pour l'onglet Planning). */
+  day: number;
+  time: string;
   paused?: boolean;
 }
 
+/** Semaine affichée dans le Planning, comme la maquette (lun → dim). */
+export const weekDays = [
+  { short: "LUN", date: 14 },
+  { short: "MAR", date: 15 },
+  { short: "MER", date: 16 },
+  { short: "JEU", date: 17 },
+  { short: "VEN", date: 18 },
+  { short: "SAM", date: 19 },
+  { short: "DIM", date: 20 },
+] as const;
+
 export const initialVendorOffers: VendorOffer[] = [
-  { id: "v-vinyasa", title: "Vinyasa Flow — 18h30", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4 },
-  { id: "v-reformer", title: "Reformer intensif — 7h30", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5 },
-  { id: "v-doux", title: "Pilates doux — 12h00", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0 },
-  { id: "v-debutant", title: "Yoga débutant — 20h00", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52 },
+  { id: "v-reformer", title: "Reformer intensif", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5, day: 3, time: "07:30" },
+  { id: "v-doux", title: "Pilates doux", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0, day: 3, time: "12:00" },
+  { id: "v-vinyasa", title: "Vinyasa Flow", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4, day: 3, time: "18:30" },
+  { id: "v-debutant", title: "Yoga débutant", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52, day: 3, time: "20:00" },
+  { id: "v-hiit", title: "HIIT express", cat: "HIIT", capacity: 14, placesLeft: 5, basePrice: 20, startsInHours: 30, day: 1, time: "09:00" },
+  { id: "v-boxe", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44, day: 4, time: "19:00" },
 ];
 
+/** Colonnes et statuts repris de la maquette : client · cours · créneau · statut. */
 export interface VendorOrder {
   name: string;
   offer: string;
+  slot: string;
   ref: string;
-  state: "à préparer" | "retiré";
+  state: "confirmée" | "arrivée" | "annulée";
 }
 
 export const vendorOrders: VendorOrder[] = [
-  { name: "Thomas L.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-193", state: "à préparer" },
-  { name: "Amélie R.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-194", state: "à préparer" },
-  { name: "Léa S.", offer: "Vinyasa Flow — 18h30", ref: "FLO-STU-196", state: "à préparer" },
-  { name: "Sofia M.", offer: "Yoga débutant — 20h00", ref: "FLO-STU-195", state: "à préparer" },
-  { name: "Karim B.", offer: "Pilates doux — 12h00", ref: "FLO-STU-188", state: "retiré" },
-  { name: "Julie M.", offer: "Pilates doux — 12h00", ref: "FLO-STU-187", state: "retiré" },
+  { name: "Thomas L.", offer: "Vinyasa Flow", slot: "Mer · 18h30", ref: "FLO-STU-193", state: "confirmée" },
+  { name: "Sofia M.", offer: "Yoga débutant", slot: "Mer · 20h00", ref: "FLO-STU-195", state: "confirmée" },
+  { name: "Amélie R.", offer: "Reformer intensif", slot: "Lun · 07h30", ref: "FLO-STU-194", state: "confirmée" },
+  { name: "Karim B.", offer: "Boxe cardio", slot: "Ven · 19h00", ref: "FLO-STU-188", state: "annulée" },
+  { name: "Julie P.", offer: "Pilates doux", slot: "Lun · 12h00", ref: "FLO-STU-187", state: "arrivée" },
 ];
 
 /* ——— Avis (cohérents avec le KPI : 4,9 · 512 avis) ——— */

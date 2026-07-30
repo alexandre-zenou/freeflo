@@ -1,23 +1,34 @@
+"use client";
+
 import { Reveal } from "@/components/reveal";
-import { SectionHeading } from "@/components/section-heading";
 import { steps } from "@/lib/site";
+import { useT } from "@/lib/i18n";
 
+/**
+ * Promesse + parcours en 4 temps, exactement comme la maquette cliente :
+ * accroche en gras italique rouge, puis les quatre étapes alignées, centrées.
+ */
 export function HowItWorks() {
-  return (
-    <section className="ff-container py-24 md:py-32">
-      <SectionHeading
-        title={<>Découvrir. Réserver.<br />Se pointer. Profiter.</>}
-        intro="La simplicité de Too Good To Go, appliquée au sport. Aucune application à installer : tout se passe dans le navigateur."
-      />
+  const t = useT();
 
-      <Reveal stagger={0.12} className="mt-14 grid gap-x-10 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
+  return (
+    <section className="ff-container py-20 md:py-28">
+      <h2 className="display-italic mx-auto max-w-4xl text-balance text-center text-[clamp(1.75rem,4.2vw,3.1rem)] text-brand">
+        {t(
+          "Réservez vos séances de sport, sans abonnement, à coût moindre près de chez vous",
+          "Book your sport sessions — no membership, for less, right next door",
+        )}
+      </h2>
+
+      <Reveal stagger={0.1} className="mt-16 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((s) => (
-          <div key={s.n} className="border-t border-ink/20 pt-5">
-            <div className="flex items-baseline gap-3">
-              <span className="serif-em text-3xl text-peri-deep">{s.n}</span>
-              <h3 className="text-xl font-medium text-ink">{s.title}</h3>
-            </div>
-            <p className="mt-4 max-w-[26ch] text-sm leading-relaxed text-ink-soft">{s.text}</p>
+          <div key={s.n} className="text-center">
+            <h3 className="display text-2xl text-brand sm:text-[1.7rem]">
+              {s.n}. {s.title}
+            </h3>
+            <p className="mx-auto mt-4 max-w-[30ch] text-sm leading-relaxed text-brand/85">
+              {s.text}
+            </p>
           </div>
         ))}
       </Reveal>

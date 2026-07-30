@@ -22,7 +22,7 @@ export default function CommentCaMarchePage() {
       <main>
         <PageHero
           eyebrow="Le concept"
-          title={<>Le bon plan sport, <span className="serif-em text-peri-deep">en direct.</span></>}
+          title={<>Le bon plan sport, <span className="serif-em text-brand">en direct.</span></>}
           intro="Les salles ont des places vides à chaque créneau. FREEFLO les libère à prix cassé, en temps réel, pour les sportifs près de chez elles. Tout le monde y gagne."
         >
           <div className="mt-8 flex flex-wrap gap-3">

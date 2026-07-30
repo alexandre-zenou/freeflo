@@ -94,14 +94,14 @@ export function MeltCurve({
     >
       <defs>
         <linearGradient id="melt-stroke" x1="0" y1="0" x2="1" y2="0">
-          <stop offset="0%" stopColor="#8b9ddb" />
-          <stop offset="55%" stopColor="#8b9ddb" />
-          <stop offset="82%" stopColor="#ff6a45" />
-          <stop offset="100%" stopColor="#e8431c" />
+          <stop offset="0%" stopColor="#fffdfa" />
+          <stop offset="55%" stopColor="#f6e3ad" />
+          <stop offset="82%" stopColor="#f4d26e" />
+          <stop offset="100%" stopColor="#ffe067" />
         </linearGradient>
         <linearGradient id="melt-fill" x1="0" y1="0" x2="0" y2="1">
-          <stop offset="0%" stopColor="#8b9ddb" stopOpacity="0.22" />
-          <stop offset="100%" stopColor="#8b9ddb" stopOpacity="0.02" />
+          <stop offset="0%" stopColor="#f4d26e" stopOpacity="0.22" />
+          <stop offset="100%" stopColor="#f4d26e" stopOpacity="0.02" />
         </linearGradient>
       </defs>
 
@@ -142,7 +142,7 @@ export function MeltCurve({
           textAnchor="middle"
           fontSize="12"
           fontWeight={s.discount > 0 ? 600 : 400}
-          fill={s.discount > 0 ? "#ff8a3d" : "rgba(255,255,255,0.4)"}
+          fill={s.discount > 0 ? "#ffe067" : "rgba(255,255,255,0.4)"}
         >
           {s.discount > 0 ? `−${s.discount}%` : "plein tarif"}
         </text>
@@ -151,13 +151,13 @@ export function MeltCurve({
       {/* l'axe couvre départ et plancher — pas d'étiquettes redondantes */}
 
       {/* le point « maintenant », porté par le slider */}
-      {hot && <circle cx={x(hours)} cy={y(now.currentPrice)} r="12" fill="#ff6a45" opacity="0.25" />}
+      {hot && <circle cx={x(hours)} cy={y(now.currentPrice)} r="12" fill="#ffe067" opacity="0.30" />}
       <circle
         cx={x(hours)}
         cy={y(now.currentPrice)}
         r="6"
-        fill={hot ? "#ff6a45" : "#8b9ddb"}
-        stroke="#16182b"
+        fill={hot ? "#ffe067" : "#fffdfa"}
+        stroke="#830606"
         strokeWidth="2"
       />
     </svg>

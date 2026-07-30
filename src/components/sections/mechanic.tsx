@@ -45,7 +45,7 @@ export function Mechanic() {
   const activeTierLabel = price.tierLabel;
 
   return (
-    <section className="bg-ink py-24 text-bone md:py-32">
+    <section className="bg-brand-deep py-24 text-cream md:py-32">
       <div className="ff-container">
         <SectionHeading
           onDark
@@ -58,7 +58,7 @@ export function Mechanic() {
           {/* live meter */}
           <div className="rounded-3xl bg-white/[0.04] p-8 ring-1 ring-white/10">
             <div className="flex items-center justify-between">
-              <span className="eyebrow text-peri">Cours de Pilates · plein tarif {formatEuro(BASE)}</span>
+              <span className="eyebrow text-gold">Cours de Pilates · plein tarif {formatEuro(BASE)}</span>
               <button
                 onClick={() => setPlaying((p) => !p)}
                 className="rounded-full border border-white/20 px-3 py-1 text-xs text-white/70 hover:bg-white/10"
@@ -71,7 +71,7 @@ export function Mechanic() {
               <span
                 className={cn(
                   "font-display text-7xl font-medium tabular-nums transition-colors duration-300",
-                  price.discountPct > 0 ? "text-ember" : "text-bone",
+                  price.discountPct > 0 ? "text-brand" : "text-cream",
                 )}
               >
                 {formatEuro(price.currentPrice)}
@@ -81,7 +81,7 @@ export function Mechanic() {
               )}
             </div>
             <div className="mt-2 flex items-center gap-3 text-sm">
-              <span className={cn("rounded-full px-2.5 py-0.5 font-semibold", price.discountPct > 0 ? "bg-ember text-white" : "bg-white/10 text-white/60")}>
+              <span className={cn("rounded-full px-2.5 py-0.5 font-semibold", price.discountPct > 0 ? "bg-brand text-white" : "bg-white/10 text-white/60")}>
                 −{price.discountPct}%
               </span>
               <span className="text-white/60">{activeTierLabel}</span>
@@ -103,7 +103,7 @@ export function Mechanic() {
               step={0.5}
               value={hours}
               onChange={(e) => { setPlaying(false); setHours(Number(e.target.value)); }}
-              className="mt-4 w-full accent-ember"
+              className="mt-4 w-full accent-brand"
               aria-label="Temps avant le créneau"
             />
 
@@ -114,7 +114,7 @@ export function Mechanic() {
                   onClick={() => setBand(b.key)}
                   className={cn(
                     "flex-1 rounded-full border px-3 py-2 text-xs transition-colors",
-                    band === b.key ? "border-ember bg-ember/15 text-ember" : "border-white/15 text-white/60 hover:border-white/40",
+                    band === b.key ? "border-brand bg-brand/15 text-brand" : "border-white/15 text-white/60 hover:border-white/40",
                   )}
                 >
                   {b.label}
@@ -131,7 +131,7 @@ export function Mechanic() {
           <div>
             <div className="rounded-3xl bg-white/[0.03] p-5 ring-1 ring-white/10 sm:p-6">
               <div className="flex items-baseline justify-between gap-3">
-                <h3 className="text-sm font-medium text-bone">Votre prix, heure par heure</h3>
+                <h3 className="text-sm font-medium text-cream">Votre prix, heure par heure</h3>
                 <span className="text-xs text-white/45">glissez sur la courbe</span>
               </div>
               <div className="mt-3">
@@ -148,7 +148,7 @@ export function Mechanic() {
             <button
               onClick={() => setShowGrid((s) => !s)}
               aria-expanded={showGrid}
-              className="mt-4 flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-bone"
+              className="mt-4 flex items-center gap-2 text-sm text-white/60 transition-colors hover:text-cream"
             >
               <ChevronDown className={cn("h-4 w-4 transition-transform duration-300", showGrid && "rotate-180")} />
               {showGrid ? "Masquer la grille complète" : "Voir la grille complète"}
@@ -170,7 +170,7 @@ export function Mechanic() {
                   const rowActive = tier.label === activeTierLabel;
                   return (
                     <tr key={tier.label} className={cn("border-t border-white/8", rowActive && "bg-white/[0.06]")}>
-                      <td className={cn("p-3", rowActive ? "text-bone" : "text-white/60")}>{tier.label}</td>
+                      <td className={cn("p-3", rowActive ? "text-cream" : "text-white/60")}>{tier.label}</td>
                       {bands.map((b, i) => {
                         const d = tier.discount[i];
                         const cellActive = rowActive && b.key === band;
@@ -180,9 +180,9 @@ export function Mechanic() {
                               className={cn(
                                 "inline-block min-w-14 rounded-full px-2 py-1 tabular-nums transition-colors",
                                 cellActive
-                                  ? "bg-ember font-semibold text-white"
+                                  ? "bg-brand font-semibold text-white"
                                   : d > 0
-                                  ? "text-ember/80"
+                                  ? "text-brand/80"
                                   : "text-white/35",
                               )}
                             >

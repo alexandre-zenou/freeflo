@@ -9,18 +9,18 @@ import { cn } from "@/lib/utils";
 import type { VendorOffer } from "@/components/vendor/vendor-data";
 
 const SLOTS = [
-  { label: "Aujourd'hui · 18h30", startsInHours: 2.5 },
-  { label: "Aujourd'hui · 20h00", startsInHours: 4 },
-  { label: "Demain · 7h30", startsInHours: 15 },
-  { label: "Demain · 12h00", startsInHours: 20 },
-  { label: "Après-demain · 18h30", startsInHours: 44 },
+  { label: "Aujourd'hui · 18h30", startsInHours: 2.5, day: 3 },
+  { label: "Aujourd'hui · 20h00", startsInHours: 4, day: 3 },
+  { label: "Demain · 7h30", startsInHours: 15, day: 4 },
+  { label: "Demain · 12h00", startsInHours: 20, day: 4 },
+  { label: "Après-demain · 18h30", startsInHours: 44, day: 5 },
 ];
 
 /** Points d'échantillonnage de la courbe (heures avant le cours, décroissant). */
 const CURVE_HOURS = [72, 60, 48, 36, 24, 18, 12, 8, 6, 4, 2, 1, 0.25];
 
 const inputCls =
-  "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-peri-deep";
+  "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brand";
 
 export function CreateOfferDrawer({
   open,
@@ -66,12 +66,14 @@ export function CreateOfferDrawer({
     if (basePrice <= 0 || capacity < 1) return setError("Prix plein et places doivent être positifs.");
     onCreate({
       id: `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
-      title: `${title.trim()} — ${SLOTS[slot].label.split("· ")[1]}`,
+      title: title.trim(),
       cat,
       capacity,
       placesLeft: capacity,
       basePrice,
       startsInHours: SLOTS[slot].startsInHours,
+      day: SLOTS[slot].day,
+      time: SLOTS[slot].label.split("· ")[1].trim(),
     });
     setTitle("");
     setError(null);
@@ -82,10 +84,10 @@ export function CreateOfferDrawer({
   return (
     <div className="fixed inset-0 z-50">
       <button aria-label="Fermer" onClick={onClose} className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]" />
-      <aside className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto bg-bone p-6 shadow-lift sm:p-8">
+      <aside className="absolute right-0 top-0 flex h-full w-full max-w-md flex-col overflow-y-auto bg-cream p-6 shadow-lift sm:p-8">
         <div className="flex items-start justify-between gap-4">
           <div>
-            <p className="eyebrow text-peri-deep">Nouvelle offre</p>
+            <p className="eyebrow text-brand">Nouvelle offre</p>
             <h2 className="display mt-1 text-2xl text-ink">Deux minutes, montre en main.</h2>
           </div>
           <button
@@ -159,7 +161,7 @@ export function CreateOfferDrawer({
             <h3 className="font-medium text-ink">Votre prix fondra ainsi</h3>
             <span className="text-xs text-ink-soft">
               de <strong className="text-ink">{formatEuro(basePrice)}</strong> à{" "}
-              <strong className="text-ember-deep">{formatEuro(minPrice)}</strong>
+              <strong className="text-brand-deep">{formatEuro(minPrice)}</strong>
             </span>
           </div>
           <svg viewBox="0 0 260 84" className="mt-3 w-full" aria-hidden>
@@ -193,7 +195,7 @@ export function CreateOfferDrawer({
               <li key={l.tier} className="flex items-baseline justify-between gap-3">
                 <span>{l.tier}</span>
                 <span className="tabular-nums">
-                  {l.discount > 0 ? <strong className="text-ember-deep">−{l.discount}%</strong> : "plein tarif"}
+                  {l.discount > 0 ? <strong className="text-brand-deep">−{l.discount}%</strong> : "plein tarif"}
                   <span className="ml-2 text-ink-soft">commission {l.commission}%</span>
                 </span>
               </li>
@@ -201,12 +203,12 @@ export function CreateOfferDrawer({
           </ul>
         </div>
 
-        {error && <p className="mt-4 text-sm text-ember-deep">{error}</p>}
+        {error && <p className="mt-4 text-sm text-brand-deep">{error}</p>}
 
         <div className="mt-6 flex items-center gap-3 border-t border-ink/20 pt-5">
           <button
             onClick={submit}
-            className="inline-flex items-center gap-2 rounded-full bg-ember px-6 py-3 text-sm font-medium text-white ember-glow transition-colors hover:bg-ember-deep"
+            className="inline-flex items-center gap-2 rounded-full bg-brand px-6 py-3 text-sm font-medium text-white gold-glow transition-colors hover:bg-brand-deep"
           >
             Publier l&apos;offre
           </button>

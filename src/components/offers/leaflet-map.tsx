@@ -20,6 +20,13 @@ export interface District {
   lng: number;
 }
 
+/** Repères jaunes de la charte cliente (« + jaune pour monument »). */
+export interface Monument {
+  label: string;
+  lat: number;
+  lng: number;
+}
+
 // Voyager basemap: light + premium, with soft-green parks and blue water.
 const CARTO = "https://{s}.basemaps.cartocdn.com/rastertiles/voyager/{z}/{x}/{y}{r}.png";
 const ATTR =
@@ -28,6 +35,7 @@ const ATTR =
 export function LeafletMap({
   points,
   districts = [],
+  monuments = [],
   activeId,
   onHover,
   onSelect,
@@ -40,6 +48,7 @@ export function LeafletMap({
 }: {
   points: MapPoint[];
   districts?: District[];
+  monuments?: Monument[];
   activeId?: string | null;
   onHover?: (id: string | null) => void;
   onSelect?: (id: string) => void;
@@ -54,13 +63,16 @@ export function LeafletMap({
   const mapRef = useRef<LMap | null>(null);
   const markersRef = useRef<Record<string, LMarker>>({});
   const districtRef = useRef<LMarker[]>([]);
+  const monumentRef = useRef<LMarker[]>([]);
 
   const sig = useMemo(
     () =>
       points.map((p) => `${p.id}:${p.label ?? ""}:${p.hot ? 1 : 0}`).join("|") +
       "||" +
-      districts.map((d) => d.label).join(","),
-    [points, districts],
+      districts.map((d) => d.label).join(",") +
+      "||" +
+      monuments.map((m) => m.label).join(","),
+    [points, districts, monuments],
   );
 
   // build map + markers (rebuilds markers when points change)
@@ -108,6 +120,22 @@ export function LeafletMap({
           interactive: false,
           keyboard: false,
           zIndexOffset: -1000,
+        }).addTo(map),
+      );
+
+      // repères monuments, en jaune, sous les pastilles de prix
+      monumentRef.current.forEach((m) => m.remove());
+      monumentRef.current = monuments.map((mo) =>
+        L.marker([mo.lat, mo.lng], {
+          icon: L.divIcon({
+            className: "",
+            html: `<div class="ff-pin"><span class="ff-pin__pill ff-pin__pill--monument">${mo.label}</span></div>`,
+            iconSize: [0, 0],
+            iconAnchor: [0, 0],
+          }),
+          interactive: false,
+          keyboard: false,
+          zIndexOffset: -500,
         }).addTo(map),
       );
 

@@ -9,7 +9,7 @@ const total = ratingBreakdown.reduce((s, r) => s + r.count, 0);
 export function ReviewsTab() {
   return (
     <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
-      <div className="h-fit rounded-2xl bg-paper p-6 ring-1 ring-line">
+      <div className="h-fit rounded-2xl bg-white p-6 ring-1 ring-line">
         <div className="flex items-baseline gap-3">
           <p className="font-display text-5xl font-light text-ink">4,9</p>
           <p className="text-sm text-ink-soft">{total} avis</p>
@@ -18,11 +18,11 @@ export function ReviewsTab() {
           {ratingBreakdown.map((r) => (
             <li key={r.stars} className="flex items-center gap-3 text-sm">
               <span className="flex w-8 shrink-0 items-center gap-1 text-ink-soft">
-                {r.stars} <Star className="h-3 w-3 fill-current text-peri-deep" />
+                {r.stars} <Star className="h-3 w-3 fill-current text-pro-accent" />
               </span>
               <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-ink/8">
                 <div
-                  className="h-full rounded-full bg-peri-deep"
+                  className="h-full rounded-full bg-brand"
                   style={{ width: `${Math.max(1, Math.round((r.count / total) * 100))}%` }}
                 />
               </div>
@@ -37,9 +37,9 @@ export function ReviewsTab() {
 
       <div className="space-y-4">
         {recentReviews.map((r) => (
-          <article key={`${r.name}-${r.date}`} className="rounded-2xl bg-paper p-6 ring-1 ring-line">
+          <article key={`${r.name}-${r.date}`} className="rounded-2xl bg-white p-6 ring-1 ring-line">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="font-medium text-ink">
+              <p className="serif-display text-xl text-ink">
                 {r.name}
                 <span className="ml-2 text-sm font-normal text-ink-soft">· {r.course}</span>
               </p>
@@ -48,7 +48,7 @@ export function ReviewsTab() {
                   {Array.from({ length: 5 }, (_, i) => (
                     <Star
                       key={i}
-                      className={cn("h-3.5 w-3.5", i < r.rating ? "fill-current text-peri-deep" : "text-ink/20")}
+                      className={cn("h-3.5 w-3.5", i < r.rating ? "fill-current text-pro-accent" : "text-ink/20")}
                     />
                   ))}
                 </span>
@@ -58,7 +58,7 @@ export function ReviewsTab() {
             <p className="mt-3 text-sm leading-relaxed text-ink/80">{r.text}</p>
             {r.reply ? (
               <p className="mt-4 border-l-0 border-t border-line pt-3 text-sm leading-relaxed text-ink-soft">
-                <span className="font-medium text-ink">Votre réponse ·</span> {r.reply}
+                <span className="serif-display text-xl text-ink">Votre réponse ·</span> {r.reply}
               </p>
             ) : (
               <button className="mt-4 rounded-full border border-line px-3.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-ink">

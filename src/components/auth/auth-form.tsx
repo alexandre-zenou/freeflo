@@ -32,7 +32,7 @@ export function AuthForm() {
             onClick={() => setMode(m)}
             className={cn(
               "flex-1 rounded-full px-4 py-2 font-medium transition-colors",
-              mode === m ? "bg-bone text-ink shadow-soft" : "text-ink-soft hover:text-ink",
+              mode === m ? "bg-cream text-ink shadow-soft" : "text-ink-soft hover:text-ink",
             )}
           >
             {m === "login" ? "Se connecter" : "Créer un compte"}
@@ -55,13 +55,13 @@ export function AuthForm() {
         <Field label="Mot de passe" type="password" placeholder="••••••••" />
         {mode === "login" && (
           <div className="text-right">
-            <Link href="/connexion" className="text-xs text-peri-deep hover:underline">
+            <Link href="/connexion" className="text-xs text-brand hover:underline">
               Mot de passe oublié ?
             </Link>
           </div>
         )}
 
-        <Button type="submit" variant="ember" size="lg" className="w-full" disabled={loading}>
+        <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
           {loading ? "Un instant…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
           {!loading && <ArrowRight className="h-4 w-4" />}
         </Button>
@@ -92,7 +92,7 @@ export function AuthForm() {
 
       <p className="mt-4 text-center text-sm text-ink-soft">
         Vous gérez un centre de sport ?{" "}
-        <Link href="/inscrire-son-centre" className="font-medium text-peri-deep hover:underline">
+        <Link href="/inscrire-son-centre" className="font-medium text-brand hover:underline">
           Espace pro
         </Link>
       </p>
@@ -108,7 +108,7 @@ function Field({ label, placeholder, type = "text" }: { label: string; placehold
         type={type}
         placeholder={placeholder}
         required
-        className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-peri focus:ring-2 focus:ring-peri/30"
+        className="w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-gold focus:ring-2 focus:ring-gold/30"
       />
     </label>
   );

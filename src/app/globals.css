@@ -4,9 +4,13 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  FREEFLO — éditorial athlétique.
-  Marque : périwinkle calme. Accent : ember (le prix chauffe quand le compte à rebours brûle).
-  Type : Hanken Grotesk (display large, fin) + Instrument Serif italic (éditorial).
+  FREEFLO — charte cliente (Canva, juillet 2026).
+  Marque : rouge profond + or. Fond crème. Type : Hanken Grotesk (display gras)
+  + Instrument Serif (accents éditoriaux et titres de l'espace pro).
+
+  Deux niveaux assumés :
+  · public   — rouge/or franc, énergique ;
+  · espace pro — fond blanc, bordeaux et serif, plus calme (cf. annotations client).
 */
 
 @theme inline {
@@ -18,21 +22,25 @@
   --font-serif: var(--font-instrument);
 
   /* palette */
-  --color-bone: var(--bone);
+  --color-cream: var(--cream);
   --color-paper: var(--paper);
   --color-ink: var(--ink);
   --color-ink-soft: var(--ink-soft);
-  --color-peri: var(--peri);
-  --color-peri-deep: var(--peri-deep);
-  --color-peri-tint: var(--peri-tint);
-  --color-ember: var(--ember);
-  --color-ember-deep: var(--ember-deep);
+  --color-brand: var(--brand);
+  --color-brand-deep: var(--brand-deep);
+  --color-brand-tint: var(--brand-tint);
+  --color-gold: var(--gold);
+  --color-gold-bright: var(--gold-bright);
+  --color-gold-deep: var(--gold-deep);
+  --color-pro-surface: var(--pro-surface);
+  --color-pro-accent: var(--pro-accent);
+  --color-pro-tan: var(--pro-tan);
   --color-line: var(--line);
   --color-line-strong: var(--line-strong);
 
-  --shadow-soft: 0 1px 2px rgba(18, 20, 43, 0.04), 0 12px 34px -16px rgba(18, 20, 43, 0.20);
-  --shadow-lift: 0 2px 8px rgba(18, 20, 43, 0.06), 0 34px 64px -26px rgba(18, 20, 43, 0.34);
-  --shadow-ember: 0 10px 40px -12px rgba(255, 104, 68, 0.45);
+  --shadow-soft: 0 1px 2px rgba(40, 12, 12, 0.04), 0 12px 34px -16px rgba(40, 12, 12, 0.18);
+  --shadow-lift: 0 2px 8px rgba(40, 12, 12, 0.06), 0 34px 64px -26px rgba(40, 12, 12, 0.30);
+  --shadow-gold: 0 10px 40px -12px rgba(244, 210, 110, 0.55);
 
   /* shadcn-compatible tokens (button etc.) */
   --color-card: var(--card);
@@ -60,36 +68,44 @@
 }
 
 :root {
-  --bone: #f3f2ee;         /* warm off-white paper */
-  --paper: #fbfaf7;        /* card surface */
-  --ink: #16182b;          /* deep navy-ink text */
-  --ink-soft: #565a75;     /* muted ink */
-  --peri: #8b9ddb;         /* signature periwinkle */
-  --peri-deep: #4f61a8;    /* deep periwinkle for depth */
-  --peri-tint: #dfe4f5;    /* pale periwinkle wash */
-  --ember: #ff6a45;        /* urgency accent — discount heat */
-  --ember-deep: #e8431c;
-  --line: rgba(22, 24, 43, 0.12);
-  --line-strong: rgba(22, 24, 43, 0.24);
+  /* mesurés au pixel sur la maquette Canva du client */
+  --cream: #fffdfa;        /* fond de page public */
+  --paper: #ffffff;        /* surface des cartes */
+  --ink: #1c1e26;          /* texte */
+  --ink-soft: #6a6560;     /* texte secondaire (chaud, pas bleuté) */
+  --brand: #a51c1e;        /* rouge FREEFLO — pastilles, chiffres, liens */
+  --brand-deep: #830606;   /* bandeaux rouges pleins, carte de confirmation */
+  --brand-tint: #f8e7e5;   /* lavis rouge pâle */
+  --gold: #f4d26e;         /* or — prix, accents sur fond sombre */
+  --gold-bright: #ffe067;  /* or vif — boutons d'action */
+  --gold-deep: #9a6c12;    /* or lisible en TEXTE sur fond clair (contraste AA) */
 
-  --background: var(--bone);
+  /* espace pro : fond blanc (annotation « mettre un fond blanc »), bordeaux, serif */
+  --pro-surface: #faf7f2;  /* bandes discrètes sur le blanc */
+  --pro-accent: #7b2624;   /* bordeaux */
+  --pro-tan: #d5c7b4;      /* barres de graphique */
+
+  --line: rgba(28, 30, 38, 0.12);
+  --line-strong: rgba(28, 30, 38, 0.24);
+
+  --background: var(--cream);
   --foreground: var(--ink);
   --card: var(--paper);
   --card-foreground: var(--ink);
   --popover: var(--paper);
   --popover-foreground: var(--ink);
-  --primary: var(--ink);
-  --primary-foreground: #fbfaf7;
-  --secondary: #e8eaf4;
+  --primary: var(--brand);
+  --primary-foreground: #fffdfa;
+  --secondary: #f5efe9;
   --secondary-foreground: var(--ink);
-  --muted: #e8eaf4;
+  --muted: #f5efe9;
   --muted-foreground: var(--ink-soft);
-  --accent: var(--peri-tint);
-  --accent-foreground: var(--peri-deep);
-  --destructive: #e8431c;
+  --accent: var(--brand-tint);
+  --accent-foreground: var(--brand);
+  --destructive: #a51c1e;
   --border: var(--line);
   --input: var(--line);
-  --ring: var(--peri);
+  --ring: var(--brand);
   --radius: 0.9rem;
 }
 
@@ -115,16 +131,31 @@
 }
 
 @layer utilities {
-  /* Editorial oversized display, thin & wide — the Canva signature */
+  /* Display public : gras et serré, comme la maquette Canva */
   .display {
     font-family: var(--font-display), sans-serif;
-    font-weight: 300;
-    letter-spacing: -0.035em;
-    line-height: 0.92;
+    font-weight: 700;
+    letter-spacing: -0.03em;
+    line-height: 0.98;
   }
   .display-tight {
     letter-spacing: -0.045em;
     line-height: 0.9;
+  }
+  /* Titre de section public : gras italique (« Réservez vos séances… ») */
+  .display-italic {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 700;
+    font-style: italic;
+    letter-spacing: -0.02em;
+    line-height: 1.06;
+  }
+  /* Titres de l'espace pro : serif droit, plus calme */
+  .serif-display {
+    font-family: var(--font-serif), Georgia, serif;
+    font-weight: 400;
+    letter-spacing: -0.01em;
+    line-height: 1.1;
   }
   .serif-em {
     font-family: var(--font-serif), Georgia, serif;
@@ -144,13 +175,13 @@
     margin-inline: auto;
     padding-inline: clamp(1.25rem, 4vw, 3rem);
   }
-  /* atmospheric periwinkle mesh for hero/backgrounds */
-  .peri-mesh {
+  /* nappe rouge atmosphérique pour les fonds héros */
+  .brand-mesh {
     background:
-      radial-gradient(60% 55% at 78% 8%, rgba(139, 157, 219, 0.55), transparent 60%),
-      radial-gradient(50% 60% at 12% 92%, rgba(223, 228, 245, 0.9), transparent 65%),
-      radial-gradient(80% 70% at 50% 120%, rgba(79, 97, 168, 0.28), transparent 60%),
-      var(--peri);
+      radial-gradient(60% 55% at 78% 8%, rgba(165, 28, 30, 0.75), transparent 60%),
+      radial-gradient(50% 60% at 12% 92%, rgba(131, 6, 6, 0.85), transparent 65%),
+      radial-gradient(80% 70% at 50% 120%, rgba(244, 210, 110, 0.18), transparent 60%),
+      var(--brand-deep);
   }
   .grain {
     position: relative;
@@ -167,8 +198,8 @@
   .hairline {
     border-color: var(--line);
   }
-  .ember-glow {
-    box-shadow: var(--shadow-ember);
+  .gold-glow {
+    box-shadow: var(--shadow-gold);
   }
 }
 
@@ -208,10 +239,10 @@
 /* ---- Leaflet ---- */
 .leaflet-container {
   font-family: var(--font-sans), sans-serif;
-  background: #e8eaf4;
+  background: #f5efe9;
   z-index: 0;
 }
-.leaflet-container a { color: var(--peri-deep); }
+.leaflet-container a { color: var(--brand); }
 .leaflet-control-attribution {
   font-size: 10px;
   background: rgba(251, 250, 247, 0.8) !important;
@@ -235,12 +266,18 @@
     font-weight: 600;
     background: #fff;
     color: var(--ink);
-    box-shadow: 0 4px 16px rgba(18, 20, 43, 0.28);
+    box-shadow: 0 4px 16px rgba(40, 12, 12, 0.28);
     transition: transform 0.15s ease;
   }
-  .ff-pin__pill--hot { background: var(--ember); color: #fff; }
+  /* charte client : pastilles rouges, le jaune est réservé aux monuments */
+  .ff-pin__pill--hot { background: var(--brand); color: #fff; }
+  .ff-pin__pill--monument {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 500;
+  }
   .ff-pin__pill--active {
-    outline: 2px solid var(--ink);
+    outline: 2px solid var(--brand-deep);
     outline-offset: 1px;
     transform: scale(1.1);
   }
@@ -250,8 +287,8 @@
     width: 18px;
     height: 18px;
     border-radius: 999px;
-    background: var(--ember);
-    box-shadow: 0 0 0 6px rgba(255, 106, 69, 0.25);
+    background: var(--brand);
+    box-shadow: 0 0 0 6px rgba(165, 28, 30, 0.22);
   }
   /* "you are here" */
   .ff-here {
@@ -260,7 +297,7 @@
     height: 14px;
     border-radius: 999px;
     background: var(--ink);
-    box-shadow: 0 0 0 5px rgba(22, 24, 43, 0.18);
+    box-shadow: 0 0 0 5px rgba(28, 30, 38, 0.18);
   }
   /* arrondissement label */
   .ff-arr {
@@ -269,7 +306,7 @@
     font-size: 11px;
     font-weight: 600;
     letter-spacing: 0.1em;
-    color: rgba(22, 24, 43, 0.45);
+    color: rgba(28, 30, 38, 0.45);
     text-shadow: 0 1px 2px rgba(255, 255, 255, 0.85), 0 0 6px rgba(255, 255, 255, 0.7);
   }
 }

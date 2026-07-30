@@ -21,7 +21,7 @@ function Toggle({
       onClick={() => onChange(!checked)}
       className={cn(
         "relative h-6 w-11 shrink-0 rounded-full transition-colors",
-        checked ? "bg-peri-deep" : "bg-ink/15",
+        checked ? "bg-brand" : "bg-ink/15",
       )}
     >
       <span
@@ -49,8 +49,8 @@ export function SettingsTab() {
   return (
     <div className="space-y-4">
       {/* le moteur, sous VOTRE contrôle */}
-      <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
-        <h3 className="font-medium text-ink">Dégressivité</h3>
+      <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
+        <h3 className="serif-display text-xl text-ink">Dégressivité</h3>
         <div className="mt-4 flex flex-wrap items-center justify-between gap-4 border-t border-line pt-4">
           <div>
             <p className="text-sm font-medium text-ink">Prix plancher</p>
@@ -66,7 +66,7 @@ export function SettingsTab() {
                 onClick={() => setFloor(f.value)}
                 className={cn(
                   "rounded-full px-3.5 py-1.5 text-xs font-medium transition-colors",
-                  floor === f.value ? "bg-ink text-bone" : "bg-secondary text-ink-soft hover:text-ink",
+                  floor === f.value ? "bg-ink text-cream" : "bg-secondary text-ink-soft hover:text-ink",
                 )}
               >
                 {f.label}
@@ -86,8 +86,8 @@ export function SettingsTab() {
       </div>
 
       {/* notifications */}
-      <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
-        <h3 className="font-medium text-ink">Notifications</h3>
+      <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
+        <h3 className="serif-display text-xl text-ink">Notifications</h3>
         <p className="mt-1 text-xs text-ink-soft">Réservations, passage en sprint final, virements.</p>
         <div className="mt-4 flex items-center justify-between border-t border-line pt-4">
           <p className="text-sm text-ink">E-mail · bonjour@studiobloom.fr</p>
@@ -100,8 +100,8 @@ export function SettingsTab() {
       </div>
 
       {/* statut du compte — plus de cartes mortes */}
-      <div className="rounded-2xl bg-paper p-6 ring-1 ring-line">
-        <h3 className="font-medium text-ink">Votre compte</h3>
+      <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
+        <h3 className="serif-display text-xl text-ink">Votre compte</h3>
         <ul className="mt-4 divide-y divide-line text-sm">
           {[
             { t: "Informations du centre", d: "Studio Bloom · 9 rue de Turenne, 75004" },
@@ -110,10 +110,10 @@ export function SettingsTab() {
           ].map((s) => (
             <li key={s.t} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">
               <div>
-                <p className="font-medium text-ink">{s.t}</p>
+                <p className="serif-display text-xl text-ink">{s.t}</p>
                 <p className="mt-0.5 text-xs text-ink-soft">{s.d}</p>
               </div>
-              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-peri-tint px-2.5 py-1 text-xs font-medium text-peri-deep">
+              <span className="flex shrink-0 items-center gap-1.5 rounded-full bg-pro-surface px-2.5 py-1 text-xs font-medium text-pro-accent">
                 <BadgeCheck className="h-3.5 w-3.5" /> Vérifié
               </span>
             </li>

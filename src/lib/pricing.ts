@@ -57,7 +57,7 @@ export interface PriceState {
   tierLabel: string;
   band: StockBand;
   hoursBefore: number;
-  /** Urgence normalisée 0→1 (0 = loin, 1 = sprint final). Pilote la jauge ember. */
+  /** Urgence normalisée 0→1 (0 = loin, 1 = sprint final). Pilote la jauge d’urgence. */
   heat: number;
   isFinalSprint: boolean;
   commissionPct: number;

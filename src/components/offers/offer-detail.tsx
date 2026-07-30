@@ -36,7 +36,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
               {cat.label}
             </span>
             {live.discountPct > 0 && (
-              <span className="absolute right-4 top-4 rounded-full bg-ember px-3 py-1 text-sm font-semibold text-white">
+              <span className="absolute right-4 top-4 rounded-full bg-brand px-3 py-1 text-sm font-semibold text-white">
                 −{live.discountPct}% en ce moment
               </span>
             )}
@@ -45,7 +45,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           <div className="mt-8">
             <div className="flex items-center gap-3 text-sm text-ink-soft">
               <span className="flex items-center gap-1 font-medium text-ink">
-                <Star className="h-4 w-4 fill-ember text-ember" /> {offer.rating.toFixed(1)}
+                <Star className="h-4 w-4 fill-brand text-brand" /> {offer.rating.toFixed(1)}
               </span>
               <span>· {offer.reviews} avis</span>
               <span>· {offer.arrondissement} · {offer.distanceKm} km</span>
@@ -75,7 +75,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
                 />
               </div>
               <p className="flex items-center gap-2 bg-paper px-4 py-3 text-sm text-ink">
-                <MapPin className="h-4 w-4 text-peri-deep" /> {offer.address}
+                <MapPin className="h-4 w-4 text-brand" /> {offer.address}
               </p>
             </div>
           </div>
@@ -86,12 +86,12 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           <div className="rounded-3xl bg-paper p-6 shadow-lift ring-1 ring-line">
             <div className="flex items-end justify-between">
               <div className="flex items-baseline gap-2">
-                <span className="font-display text-5xl font-medium text-ember-deep">{formatEuro(live.currentPrice)}</span>
+                <span className="font-display text-5xl font-medium text-brand-deep">{formatEuro(live.currentPrice)}</span>
                 {live.discountPct > 0 && <span className="text-lg text-ink-soft line-through">{formatEuro(offer.basePrice)}</span>}
               </div>
             </div>
             {live.savings > 0 && (
-              <p className="mt-1 text-sm font-medium text-ember-deep">Vous économisez {formatEuro(live.savings)}</p>
+              <p className="mt-1 text-sm font-medium text-brand-deep">Vous économisez {formatEuro(live.savings)}</p>
             )}
 
             <div className="mt-5">
@@ -104,7 +104,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
               <Row icon={<ShieldCheck className="h-4 w-4" />} label="Annulation" value="Gratuite -6 h avant" />
             </div>
 
-            <Button variant="ember" size="lg" className="mt-6 w-full" onClick={() => setBooking(true)}>
+            <Button variant="gold" size="lg" className="mt-6 w-full" onClick={() => setBooking(true)}>
               Réserver ma place
             </Button>
             <p className="mt-3 text-center text-xs text-ink-soft">Le prix peut encore baisser… ou la place partir.</p>
@@ -131,7 +131,7 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
 function Row({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
     <div className="flex items-center gap-3">
-      <span className="text-peri-deep">{icon}</span>
+      <span className="text-brand">{icon}</span>
       <span className="text-ink-soft">{label}</span>
       <span className="ml-auto font-medium text-ink">{value}</span>
     </div>

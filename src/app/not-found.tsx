@@ -7,10 +7,10 @@ export default function NotFound() {
   return (
     <>
       <SiteHeader />
-      <main className="grid min-h-dvh place-items-center peri-mesh grain">
+      <main className="grid min-h-dvh place-items-center brand-mesh grain">
         <div className="ff-container text-center">
           <p className="display text-[clamp(4rem,14vw,9rem)] text-ink">404</p>
-          <p className="serif-em -mt-2 text-2xl text-peri-deep">Ce créneau est déjà parti.</p>
+          <p className="serif-em -mt-2 text-2xl text-brand">Ce créneau est déjà parti.</p>
           <p className="mx-auto mt-4 max-w-md text-ink/70">
             La page n&apos;existe plus, mais d&apos;autres cours se libèrent en ce moment près de vous.
           </p>

@@ -20,16 +20,21 @@ export const site = {
   },
 } as const;
 
+/** Navigation de la maquette cliente : à propos · connexion · espace pro · FR/EN. */
 export const nav = {
   primary: [
-    { label: "Trouver un cours", href: "/offres" },
-    { label: "Comment ça marche", href: "/comment-ca-marche" },
+    { label: "Qui sommes nous ?", href: "/qui-sommes-nous" },
+    { label: "Connexion", href: "/connexion" },
     { label: "Espace pro", href: "/pro" },
   ],
   vendorCta: { label: "Inscrire mon centre", href: "/inscrire-son-centre" },
   auth: [
     { label: "Connexion", href: "/connexion" },
     { label: "Inscription", href: "/connexion?mode=signup" },
+  ],
+  locales: [
+    { code: "fr", label: "FR" },
+    { code: "en", label: "EN" },
   ],
 } as const;
 
@@ -195,26 +200,27 @@ export function offerById(id: string): Offer | undefined {
   return offers.find((o) => o.id === id);
 }
 
+/** Copie reprise mot pour mot de la maquette cliente (Canva, juillet 2026). */
 export const steps = [
   {
     n: "01",
     title: "Découvrir",
-    text: "Activez la géoloc. Les cours près de vous s'affichent, avec le prix qui fond en temps réel.",
+    text: "Activez votre géolocalisation. Les cours près de vous s'affichent, à coûts moindres.",
   },
   {
     n: "02",
-    title: "Réserver & payer",
-    text: "Une place vous plaît ? Bloquez-la en deux taps. Paiement sécurisé, place garantie.",
+    title: "Réserver",
+    text: "Une place vous plaît ? Bloquez-la en deux clics. Paiement sécurisé, place garantie.",
   },
   {
     n: "03",
     title: "Se présenter",
-    text: "Montrez votre QR code à l'accueil du centre au créneau indiqué. C'est tout.",
+    text: "Confirmez votre identité à l'accueil du centre au créneau indiqué.",
   },
   {
     n: "04",
     title: "Profiter",
-    text: "Transpirez, progressez, notez l'expérience. Le prochain cours est déjà moins cher.",
+    text: "Profitez des offres, progressez à prix moindre, et notez votre expérience.",
   },
 ] as const;
 

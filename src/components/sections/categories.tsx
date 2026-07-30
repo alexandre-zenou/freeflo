@@ -6,7 +6,7 @@ export function Categories() {
   return (
     <section className="bg-secondary/50 py-6">
       <div className="mb-4 ff-container">
-        <p className="serif-em text-xl text-peri-deep">Tous les sports, moins chers.</p>
+        <p className="serif-em text-xl text-brand">Tous les sports, moins chers.</p>
       </div>
       {/* edge-to-edge marquee of category tiles */}
       <div className="group relative overflow-hidden">

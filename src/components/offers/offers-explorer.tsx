@@ -2,12 +2,13 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Map as MapIcon, List, SlidersHorizontal } from "lucide-react";
+import { Map as MapIcon, List, SlidersHorizontal, Search } from "lucide-react";
 import { OfferCard } from "@/components/offer-card";
-import { LeafletMap, type MapPoint } from "@/components/offers/leaflet-map";
+import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
 import { categories, type Offer } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
 import { formatEuro } from "@/lib/format";
+import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Sort = "urgence" | "proximite" | "prix";
@@ -17,22 +18,56 @@ const sorts: { key: Sort; label: string }[] = [
   { key: "prix", label: "Prix le plus bas" },
 ];
 
+/** Repères jaunes demandés par le client pour situer la carte. */
+const MONUMENTS: Monument[] = [
+  { label: "Tour Eiffel", lat: 48.8584, lng: 2.2945 },
+  { label: "Louvre", lat: 48.8606, lng: 2.3376 },
+  { label: "Notre-Dame", lat: 48.8530, lng: 2.3499 },
+  { label: "Sacré-Cœur", lat: 48.8867, lng: 2.3431 },
+  { label: "Arc de Triomphe", lat: 48.8738, lng: 2.2950 },
+];
+
+/**
+ * Disponibilité déduite du seul `startsInHours` (jamais de `Date` au rendu),
+ * pour que serveur et client produisent le même balisage.
+ */
+function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
+  if (startsInHours <= 12) return "today";
+  if (startsInHours <= 36) return "tomorrow";
+  return "later";
+}
+
+const selectCls =
+  "shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-brand-deep focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:ring-offset-2";
+
 export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const router = useRouter();
-  const [cat, setCat] = useState<string | null>(null);
+  const t = useT();
+  const [loc, setLoc] = useState<string>("");
+  const [cat, setCat] = useState<string>("");
+  const [avail, setAvail] = useState<string>("");
   const [sort, setSort] = useState<Sort>("urgence");
   const [view, setView] = useState<"list" | "map">("map");
   const [hover, setHover] = useState<string | null>(null);
 
+  const arrondissements = useMemo(
+    () => [...new Set(offers.map((o) => o.arrondissement))].sort(),
+    [offers],
+  );
+
   const list = useMemo(() => {
-    const filtered = cat ? offers.filter((o) => o.category === cat) : offers;
-    const sorted = [...filtered].sort((a, b) => {
+    const filtered = offers.filter((o) => {
+      if (loc && o.arrondissement !== loc) return false;
+      if (cat && o.category !== cat) return false;
+      if (avail && dayBucket(o.startsInHours) !== avail) return false;
+      return true;
+    });
+    return [...filtered].sort((a, b) => {
       if (sort === "urgence") return a.startsInHours - b.startsInHours;
       if (sort === "proximite") return a.distanceKm - b.distanceKm;
       return a.basePrice - b.basePrice;
     });
-    return sorted;
-  }, [offers, cat, sort]);
+  }, [offers, loc, cat, avail, sort]);
 
   const points: MapPoint[] = useMemo(
     () =>
@@ -59,44 +94,52 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
 
   return (
     <div>
-      {/* filters */}
-      <div className="sticky top-16 z-30 -mx-4 border-b border-line bg-bone/90 px-4 py-3 backdrop-blur md:top-[4.5rem]">
+      {/* filtres : listes déroulantes de la maquette cliente */}
+      <div className="sticky top-16 z-30 -mx-4 border-b border-line bg-cream/90 px-4 py-3 backdrop-blur md:top-[4.5rem]">
         <div className="ff-container flex flex-col gap-3">
-          <div className="flex items-center gap-2 overflow-x-auto pb-1 [scrollbar-width:none]">
+          <div className="flex flex-wrap items-center gap-2">
+            <label className="sr-only" htmlFor="f-loc">{t("Localisation", "Location")}</label>
+            <select id="f-loc" value={loc} onChange={(e) => setLoc(e.target.value)} className={selectCls}>
+              <option value="">{t("Localisation", "Location")}</option>
+              {arrondissements.map((a) => (
+                <option key={a} value={a}>{a}</option>
+              ))}
+            </select>
+
+            <label className="sr-only" htmlFor="f-cat">{t("Type de cours", "Class type")}</label>
+            <select id="f-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={selectCls}>
+              <option value="">{t("Type de cours", "Class type")}</option>
+              {categories.map((c) => (
+                <option key={c.slug} value={c.slug}>{c.label}</option>
+              ))}
+            </select>
+
+            <label className="sr-only" htmlFor="f-avail">{t("Disponibilité", "Availability")}</label>
+            <select id="f-avail" value={avail} onChange={(e) => setAvail(e.target.value)} className={selectCls}>
+              <option value="">{t("Disponibilité", "Availability")}</option>
+              <option value="today">{t("Aujourd'hui", "Today")}</option>
+              <option value="tomorrow">{t("Demain", "Tomorrow")}</option>
+            </select>
+
             <button
-              onClick={() => setCat(null)}
-              className={cn(
-                "shrink-0 rounded-full px-3.5 py-1.5 text-sm transition-colors",
-                cat === null ? "bg-ink text-bone" : "bg-secondary text-ink-soft hover:text-ink",
-              )}
+              onClick={() => { setLoc(""); setCat(""); setAvail(""); }}
+              className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/35 px-4 py-2 text-sm text-brand transition-colors hover:bg-brand hover:text-white"
             >
-              Tous
+              <Search className="h-4 w-4" /> {t("Rechercher ici", "Search here")}
             </button>
-            {categories.map((c) => (
-              <button
-                key={c.slug}
-                onClick={() => setCat(c.slug)}
-                className={cn(
-                  "shrink-0 rounded-full px-3.5 py-1.5 text-sm transition-colors",
-                  cat === c.slug ? "bg-ink text-bone" : "bg-secondary text-ink-soft hover:text-ink",
-                )}
-              >
-                {c.label}
-              </button>
-            ))}
           </div>
 
           <div className="flex items-center justify-between gap-3">
             <div className="flex items-center gap-2 text-sm text-ink-soft">
               <SlidersHorizontal className="h-4 w-4" />
-              <span className="hidden sm:inline">Trier :</span>
+              <span className="hidden sm:inline">{t("Trier :", "Sort:")}</span>
               {sorts.map((s) => (
                 <button
                   key={s.key}
                   onClick={() => setSort(s.key)}
                   className={cn(
                     "rounded-full px-3 py-1 text-sm transition-colors",
-                    sort === s.key ? "bg-peri-tint text-peri-deep" : "hover:text-ink",
+                    sort === s.key ? "bg-brand-tint text-brand" : "hover:text-ink",
                   )}
                 >
                   {s.label}
@@ -107,15 +150,15 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
             <div className="flex shrink-0 items-center rounded-full bg-secondary p-1">
               <button
                 onClick={() => setView("list")}
-                className={cn("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm", view === "list" ? "bg-bone text-ink shadow-soft" : "text-ink-soft")}
+                className={cn("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm", view === "list" ? "bg-paper text-ink shadow-soft" : "text-ink-soft")}
               >
-                <List className="h-4 w-4" /> Liste
+                <List className="h-4 w-4" /> {t("Liste", "List")}
               </button>
               <button
                 onClick={() => setView("map")}
-                className={cn("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm", view === "map" ? "bg-bone text-ink shadow-soft" : "text-ink-soft")}
+                className={cn("flex items-center gap-1.5 rounded-full px-3 py-1.5 text-sm", view === "map" ? "bg-paper text-ink shadow-soft" : "text-ink-soft")}
               >
-                <MapIcon className="h-4 w-4" /> Carte
+                <MapIcon className="h-4 w-4" /> {t("Carte", "Map")}
               </button>
             </div>
           </div>
@@ -124,7 +167,12 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
 
       <div className="ff-container pt-8 pb-24 md:pb-32">
         <p className="mb-6 text-sm text-ink-soft">
-          <span className="font-medium text-ink">{list.length} cours</span> disponibles près de vous
+          <span className="font-medium text-ink">
+            {list.length} {t("cours", "classes")}
+          </span>{" "}
+          {list.length > 0
+            ? t("disponibles près de vous", "available near you")
+            : t("— élargissez vos filtres", "— widen your filters")}
         </p>
 
         {view === "list" ? (
@@ -141,7 +189,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                   key={o.id}
                   onMouseEnter={() => setHover(o.id)}
                   onMouseLeave={() => setHover(null)}
-                  className={cn("rounded-2xl transition-all", hover === o.id && "ring-2 ring-ink ring-offset-2 ring-offset-bone")}
+                  className={cn("rounded-2xl transition-all", hover === o.id && "ring-2 ring-brand ring-offset-2 ring-offset-cream")}
                 >
                   <OfferCard offer={o} />
                 </div>
@@ -152,6 +200,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                 <LeafletMap
                   points={points}
                   districts={districts}
+                  monuments={MONUMENTS}
                   activeId={hover}
                   onHover={setHover}
                   onSelect={(id) => router.push(`/offres/${id}`)}
@@ -159,7 +208,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                   fitBounds
                 />
                 <div className="pointer-events-none absolute bottom-3 left-3 z-[400] rounded-full bg-white/85 px-3 py-1 text-xs text-ink-soft backdrop-blur">
-                  {list.length} cours dans un rayon de 3 km
+                  {list.length} {t("cours dans un rayon de 3 km", "classes within 3 km")}
                 </div>
               </div>
             </div>

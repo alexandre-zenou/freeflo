@@ -19,7 +19,7 @@ export default function ConnexionPage() {
       <main className="pt-16 md:pt-[4.5rem]">
         <div className="grid min-h-[calc(100dvh-4.5rem)] lg:grid-cols-2">
           {/* brand panel */}
-          <div className="relative hidden overflow-hidden peri-mesh grain lg:block">
+          <div className="relative hidden overflow-hidden brand-mesh grain lg:block">
             <Image
               src="/categories/hiit.jpg"
               alt=""

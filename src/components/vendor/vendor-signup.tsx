@@ -9,8 +9,8 @@ export function VendorSignup() {
 
   if (done) {
     return (
-      <div className="rounded-3xl bg-ink p-8 text-center text-bone">
-        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-ember text-white">
+      <div className="rounded-3xl bg-ink p-8 text-center text-cream">
+        <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-brand text-white">
           <Check className="h-7 w-7" />
         </span>
         <h3 className="mt-4 font-display text-2xl">Demande envoyée !</h3>
@@ -43,7 +43,7 @@ export function VendorSignup() {
         <Field label="Téléphone" placeholder="01 23 45 67 89" />
       </div>
 
-      <Button type="submit" variant="ember" size="lg" className="mt-6 w-full">
+      <Button type="submit" variant="gold" size="lg" className="mt-6 w-full">
         Envoyer ma demande <ArrowRight className="h-4 w-4" />
       </Button>
       <p className="mt-3 text-center text-xs text-ink-soft">
@@ -61,7 +61,7 @@ function Field({ label, placeholder, type = "text" }: { label: string; placehold
         type={type}
         placeholder={placeholder}
         required
-        className="w-full rounded-xl border border-line bg-bone px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-peri focus:ring-2 focus:ring-peri/30"
+        className="w-full rounded-xl border border-line bg-cream px-3.5 py-2.5 text-sm text-ink outline-none placeholder:text-ink-soft/60 focus:border-gold focus:ring-2 focus:ring-gold/30"
       />
     </label>
   );

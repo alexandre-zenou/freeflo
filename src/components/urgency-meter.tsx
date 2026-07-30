@@ -1,7 +1,7 @@
 import { cn } from "@/lib/utils";
 import { formatCountdown } from "@/lib/format";
 
-/** Jauge « ember » : plus l'échéance approche, plus la barre chauffe et se remplit. */
+/** Jauge d’urgence : plus l'échéance approche, plus la barre chauffe et se remplit. */
 export function UrgencyMeter({
   heat,
   remainingHours,
@@ -19,8 +19,8 @@ export function UrgencyMeter({
     <div className={cn("w-full", className)}>
       {showLabel && (
         <div className="mb-1.5 flex items-center justify-between text-[0.72rem]">
-          <span className={cn("flex items-center gap-1.5 font-medium", hot ? "text-ember-deep" : "text-ink-soft")}>
-            <span className={cn("h-1.5 w-1.5 rounded-full", hot ? "bg-ember pulse-dot" : "bg-peri-deep")} />
+          <span className={cn("flex items-center gap-1.5 font-medium", hot ? "text-brand-deep" : "text-ink-soft")}>
+            <span className={cn("h-1.5 w-1.5 rounded-full", hot ? "bg-brand pulse-dot" : "bg-gold-deep")} />
             {hot ? "Sprint final" : "Le prix fond"}
           </span>
           <span className="tabular-nums text-ink-soft">départ dans {formatCountdown(remainingHours)}</span>
@@ -31,9 +31,10 @@ export function UrgencyMeter({
           className="h-full rounded-full transition-[width] duration-700 ease-out"
           style={{
             width: `${Math.max(6, pct)}%`,
+            /* calme = or, urgent = rouge : la charte cliente en deux temps */
             background: hot
-              ? "linear-gradient(90deg,#ff8a3d,#ff6a45,#e8431c)"
-              : "linear-gradient(90deg,#8b9ddb,#4f61a8)",
+              ? "linear-gradient(90deg,#f4d26e,#a51c1e,#830606)"
+              : "linear-gradient(90deg,#f6e3ad,#f4d26e)",
           }}
         />
       </div>

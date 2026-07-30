@@ -31,7 +31,7 @@ export default function InscrirePage() {
       <main>
         <PageHero
           eyebrow="Espace centres de sport"
-          title={<>Une place vide ne rapporte rien. <span className="serif-em text-peri-deep">Changez ça.</span></>}
+          title={<>Une place vide ne rapporte rien. <span className="serif-em text-brand">Changez ça.</span></>}
           intro="FREEFLO transforme vos créneaux invendus en revenus, sans abonnement ni risque. Vous ne payez qu'une commission quand vous vendez — et elle baisse quand vous bradez."
         />
 
@@ -42,7 +42,7 @@ export default function InscrirePage() {
               <Reveal stagger={0.1} className="grid gap-4 sm:grid-cols-2">
                 {vendorValue.map((v) => (
                   <div key={v.title} className="rounded-2xl bg-paper p-6 shadow-soft ring-1 ring-line">
-                    <span className="grid h-9 w-9 place-items-center rounded-full bg-peri-tint text-peri-deep">
+                    <span className="grid h-9 w-9 place-items-center rounded-full bg-brand-tint text-brand">
                       <Check className="h-4 w-4" />
                     </span>
                     <h3 className="mt-4 font-medium text-ink">{v.title}</h3>
@@ -71,8 +71,8 @@ export default function InscrirePage() {
             <SectionHeading eyebrow="La mise en route" title="En ligne en 2 minutes, payé dès demain." />
             <Reveal stagger={0.1} className="mt-12 grid gap-px overflow-hidden rounded-3xl bg-line sm:grid-cols-2 lg:grid-cols-4">
               {onboarding.map((s) => (
-                <div key={s.n} className="bg-bone p-7">
-                  <span className="font-display text-4xl font-light text-peri">{s.n}</span>
+                <div key={s.n} className="bg-cream p-7">
+                  <span className="font-display text-4xl font-light text-gold">{s.n}</span>
                   <h3 className="mt-5 font-medium text-ink">{s.t}</h3>
                   <p className="mt-2 text-sm leading-relaxed text-ink-soft">{s.d}</p>
                 </div>
@@ -104,7 +104,7 @@ export default function InscrirePage() {
                     <td className="p-3 text-ink">{tier.label}</td>
                     {tier.discount.map((d, i) => (
                       <td key={i} className="p-3 text-center tabular-nums">
-                        <span className={d > 0 ? "font-medium text-ember-deep" : "text-ink-soft"}>
+                        <span className={d > 0 ? "font-medium text-brand-deep" : "text-ink-soft"}>
                           {d === 0 ? "plein tarif" : `−${d}%`}
                         </span>
                       </td>

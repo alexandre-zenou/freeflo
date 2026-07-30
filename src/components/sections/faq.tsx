@@ -24,7 +24,7 @@ export function Faq() {
                   <span
                     className={cn(
                       "serif-em w-8 shrink-0 text-lg transition-colors duration-300",
-                      isOpen ? "text-peri-deep" : "text-ink/40",
+                      isOpen ? "text-brand" : "text-ink/40",
                     )}
                   >
                     {String(i + 1).padStart(2, "0")}
@@ -32,7 +32,7 @@ export function Faq() {
                   <span
                     className={cn(
                       "display flex-1 text-xl leading-snug transition-colors duration-300 sm:text-2xl",
-                      isOpen ? "text-peri-deep" : "text-ink group-hover:text-peri-deep",
+                      isOpen ? "text-brand" : "text-ink group-hover:text-brand",
                     )}
                   >
                     {item.q}
@@ -42,7 +42,7 @@ export function Faq() {
                     <span
                       className={cn(
                         "absolute left-0 top-1/2 h-px w-full -translate-y-1/2 transition-colors duration-300",
-                        isOpen ? "bg-peri-deep" : "bg-ink",
+                        isOpen ? "bg-brand" : "bg-ink",
                       )}
                     />
                     <span

@@ -9,14 +9,15 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        solid: "bg-ink text-bone hover:bg-ink/90 shadow-soft",
-        ember: "bg-ember text-white hover:bg-ember-deep ember-glow",
+        solid: "bg-brand text-white hover:bg-brand-deep shadow-soft",
+        /* action principale de la charte : pastille or, texte encre */
+        gold: "bg-gold-bright text-ink hover:bg-gold gold-glow font-semibold",
         outline:
-          "border border-ink/25 text-ink hover:border-ink hover:bg-ink hover:text-bone",
+          "border border-brand/35 text-brand hover:border-brand hover:bg-brand hover:text-white",
         ghostline:
-          "border border-white/45 text-white backdrop-blur-sm hover:bg-white hover:text-ink",
-        soft: "bg-secondary text-ink hover:bg-peri-tint",
-        link: "text-ink underline-offset-4 hover:underline px-0",
+          "border border-white/55 text-white backdrop-blur-sm hover:bg-white hover:text-brand-deep",
+        soft: "bg-secondary text-ink hover:bg-brand-tint",
+        link: "text-brand underline-offset-4 hover:underline px-0",
       },
       size: {
         sm: "h-9 px-4 text-[0.8rem]",

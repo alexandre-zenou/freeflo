@@ -13,11 +13,11 @@ export function VendorCta() {
         <div>
           <SectionHeading
             lead="Vous gérez un centre de sport ?"
-            title={<>Remplissez vos créneaux vides. <span className="serif-em text-peri-deep">Gratuitement.</span></>}
+            title={<>Remplissez vos créneaux vides. <span className="serif-em text-brand">Gratuitement.</span></>}
             intro="Chaque place non vendue est une perte sèche. Listez-la sur FREEFLO en 2 minutes et récupérez de la valeur, sans abonnement ni engagement."
           />
           <div className="mt-8 flex flex-wrap gap-3">
-            <Button asChild size="lg" variant="ember">
+            <Button asChild size="lg" variant="gold">
               <Link href="/inscrire-son-centre">Inscrire mon centre <ArrowRight className="h-4 w-4" /></Link>
             </Button>
             <Button asChild size="lg" variant="outline">
@@ -31,7 +31,7 @@ export function VendorCta() {
                 <dt
                   className={cn(
                     "display text-3xl font-light sm:text-4xl",
-                    s.value.startsWith("-") ? "text-ember-deep" : "text-ink",
+                    s.value.startsWith("-") ? "text-brand-deep" : "text-ink",
                   )}
                 >
                   {s.value}

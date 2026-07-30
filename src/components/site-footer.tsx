@@ -31,7 +31,7 @@ const columns = [
 
 export function SiteFooter() {
   return (
-    <footer className="border-t border-line bg-ink text-bone">
+    <footer className="bg-ink text-cream">
       <div className="ff-container grid gap-12 py-16 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="max-w-xs">
           <Logo onDark />
