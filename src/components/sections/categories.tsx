@@ -1,7 +1,6 @@
 import Link from "next/link";
 import Image from "next/image";
 import { categories } from "@/lib/site";
-import { cn } from "@/lib/utils";
 
 export function Categories() {
   return (
@@ -19,20 +18,7 @@ export function Categories() {
               className="relative h-40 w-64 shrink-0 overflow-hidden rounded-2xl ring-1 ring-line"
               aria-label={c.label}
             >
-              <Image
-                src={c.image}
-                alt=""
-                fill
-                sizes="256px"
-                className={cn(
-                  "object-cover transition-transform duration-700 hover:scale-105",
-                  c.placeholder && "saturate-[0.7] contrast-[1.05]",
-                )}
-              />
-              {/* harmonise les visuels d'attente avec la DA chaude du client */}
-              {c.placeholder && (
-                <div className="absolute inset-0 bg-[linear-gradient(150deg,#e8431c,#ffb03d)] opacity-50 mix-blend-color" />
-              )}
+              <Image src={c.image} alt="" fill sizes="256px" className="object-cover transition-transform duration-700 hover:scale-105" />
               <div className="absolute inset-0 bg-gradient-to-t from-ink/70 to-transparent" />
               <span className="absolute bottom-3 left-4 text-lg font-medium text-white">
                 {c.label}

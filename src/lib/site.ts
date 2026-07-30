@@ -37,21 +37,16 @@ export interface Category {
   slug: string;
   label: string;
   image: string;
-  /**
-   * `true` = visuel d'attente (Unsplash), pas encore fourni par le client.
-   * Les tuiles concernées reçoivent une harmonisation chaude pour s'aligner
-   * sur la direction artistique du client. À retirer dès la vraie photo livrée.
-   */
-  placeholder?: boolean;
 }
 
 const U = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=80`;
 
 /**
- * Direction artistique du client (Canva) : rouge / jaune saturé, studio.
- * Les catégories couvertes par ses visuels pointent en local ; les autres
- * restent sur Unsplash en attendant les images manquantes.
+ * Catalogue des sports — chaque catégorie porte un visuel fourni par le client
+ * (direction artistique Canva : rouge / jaune saturé, studio).
+ * Natation, danse et coaching perso sont retirés en attendant leurs photos ;
+ * les rétablir ici *et* dans `offers` dès que les visuels arrivent.
  */
 export const categories: Category[] = [
   { slug: "yoga", label: "Yoga", image: "/categories/yoga.jpg" },
@@ -59,9 +54,6 @@ export const categories: Category[] = [
   { slug: "boxe", label: "Boxe", image: "/categories/boxe.jpg" },
   { slug: "hiit", label: "HIIT", image: "/categories/hiit.jpg" },
   { slug: "cycling", label: "Cycling", image: "/categories/cycling.jpg" },
-  { slug: "natation", label: "Natation", image: U("photo-1519315901367-f34ff9154487"), placeholder: true },
-  { slug: "danse", label: "Danse", image: U("photo-1508700115892-45ecd05ae2ad"), placeholder: true },
-  { slug: "coaching", label: "Coaching perso", image: U("photo-1571019613454-1cb2f99b2d8b"), placeholder: true },
 ];
 
 export function categoryOf(slug: string): Category {
@@ -199,69 +191,6 @@ export const offers: Offer[] = [
       "45 min de ride chorégraphié, lumières et son de club. Chaussures de location incluses.",
     lat: 48.8735,
     lng: 2.3345,
-  },
-  {
-    id: "natation-technique",
-    title: "Perfectionnement crawl — petit groupe",
-    gym: "Aqua Lab",
-    category: "natation",
-    basePrice: 32,
-    placesLeft: 5,
-    startsInHours: 30,
-    durationMin: 45,
-    address: "24 bd Voltaire, 75011 Paris",
-    arrondissement: "11e",
-    distanceKm: 2.0,
-    rating: 4.6,
-    reviews: 88,
-    image: U("photo-1519315901367-f34ff9154487"),
-    coach: "Nadia",
-    description:
-      "Un coach dans l'eau, 6 nageurs max. On corrige la respiration et le geste. Bonnet obligatoire.",
-    lat: 48.8637,
-    lng: 2.3720,
-  },
-  {
-    id: "danse-heels",
-    title: "Heels Dance — Confiance & style",
-    gym: "Maison Move",
-    category: "danse",
-    basePrice: 25,
-    placesLeft: 2,
-    startsInHours: 4.5,
-    durationMin: 60,
-    address: "7 rue Bichat, 75010 Paris",
-    arrondissement: "10e",
-    distanceKm: 2.7,
-    rating: 4.9,
-    reviews: 143,
-    image: U("photo-1508700115892-45ecd05ae2ad"),
-    coach: "Inès",
-    description:
-      "Une choré qui claque, en talons ou en baskets. Zéro jugement, 100% énergie.",
-    lat: 48.8703,
-    lng: 2.3670,
-  },
-  {
-    id: "coaching-perso",
-    title: "Coaching perso — Renfo & posture",
-    gym: "Atelier Physique",
-    category: "coaching",
-    basePrice: 55,
-    placesLeft: 1,
-    startsInHours: 9,
-    durationMin: 55,
-    address: "40 rue de Rivoli, 75004 Paris",
-    arrondissement: "4e",
-    distanceKm: 1.9,
-    rating: 5.0,
-    reviews: 61,
-    image: U("photo-1571019613454-1cb2f99b2d8b"),
-    coach: "Thomas",
-    description:
-      "Séance en tête-à-tête, programme sur mesure. Idéal reprise ou objectif précis.",
-    lat: 48.8570,
-    lng: 2.3560,
   },
 ];
 
