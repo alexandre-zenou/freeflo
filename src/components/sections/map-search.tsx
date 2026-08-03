@@ -109,8 +109,8 @@ export function MapSearch() {
         </button>
       </div>
 
-      <div className="mt-6 grid gap-4 lg:grid-cols-[1.5fr_1fr]">
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line lg:aspect-auto lg:h-[520px]">
+      <div className="mt-6 grid gap-4 lg:grid-cols-[1.9fr_1fr]">
+        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line sm:aspect-[16/10] lg:aspect-auto lg:h-[720px]">
           <LeafletMap
             points={points}
             monuments={MONUMENTS}
@@ -123,11 +123,11 @@ export function MapSearch() {
         </div>
 
         {/* panneau de résultats, avec la disponibilité de chaque centre */}
-        <div className="overflow-hidden rounded-3xl bg-paper ring-1 ring-line">
-          <p className="border-b border-line px-5 py-3 text-sm font-medium text-ink">
+        <div className="flex flex-col overflow-hidden rounded-3xl bg-paper ring-1 ring-line lg:h-[720px]">
+          <p className="shrink-0 border-b border-line px-5 py-3 text-sm font-medium text-ink">
             {list.length} {list.length > 1 ? t("emplacements", "locations") : t("emplacement", "location")}
           </p>
-          <ul className="divide-y divide-line">
+          <ul className="divide-y divide-line overflow-y-auto">
             {list.map((o) => {
               const available = o.placesLeft > 0;
               return (
