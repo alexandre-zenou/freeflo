@@ -42,7 +42,7 @@ export default function QuiSommesNousPage() {
             <Button asChild size="lg" variant="gold">
               <Link href="/offres">Trouver mon cours de sport <ArrowRight className="h-4 w-4" /></Link>
             </Button>
-            <Button asChild size="lg" variant="outline">
+            <Button asChild size="lg" variant="ghostline">
               <Link href="/inscrire-son-centre">Je gère un centre</Link>
             </Button>
           </div>

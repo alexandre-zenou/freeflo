@@ -1,5 +1,9 @@
 import { cn } from "@/lib/utils";
 
+/**
+ * En-tête de page sur nappe rouge : le texte passe en blanc pour rester lisible
+ * (le fond n'est plus crème depuis la charte cliente).
+ */
 export function PageHero({
   eyebrow,
   title,
@@ -14,12 +18,13 @@ export function PageHero({
   compact?: boolean;
 }) {
   return (
-    <section className={cn("relative overflow-hidden brand-mesh grain", compact ? "pt-28 pb-10" : "pt-32 pb-16")}>
-      <div className="absolute inset-x-0 bottom-0 h-24 bg-gradient-to-b from-transparent to-cream" />
+    <section className={cn("relative overflow-hidden brand-mesh grain", compact ? "pt-28 pb-12" : "pt-32 pb-20")}>
       <div className="relative ff-container">
-        {eyebrow && <p className="eyebrow mb-4 text-ink/70">{eyebrow}</p>}
-        <h1 className="display max-w-3xl text-balance text-4xl text-ink sm:text-5xl md:text-6xl">{title}</h1>
-        {intro && <p className="mt-5 max-w-xl text-lg leading-relaxed text-ink/75">{intro}</p>}
+        {eyebrow && <p className="eyebrow mb-4 text-gold">{eyebrow}</p>}
+        <h1 className="display max-w-3xl text-balance text-4xl text-white sm:text-5xl md:text-6xl [text-shadow:0_2px_24px_rgba(60,2,2,0.45)]">
+          {title}
+        </h1>
+        {intro && <p className="mt-5 max-w-xl text-lg leading-relaxed text-white/90">{intro}</p>}
         {children}
       </div>
     </section>

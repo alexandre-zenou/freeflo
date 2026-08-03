@@ -31,7 +31,7 @@ export default function InscrirePage() {
       <main>
         <PageHero
           eyebrow="Espace centres de sport"
-          title={<>Une place vide ne rapporte rien. <span className="serif-em text-brand">Changez ça.</span></>}
+          title={<>Une place vide ne rapporte rien. <span className="serif-em text-gold">Changez ça.</span></>}
           intro="FREEFLO transforme vos créneaux invendus en revenus, sans abonnement ni risque. Vous ne payez qu'une commission quand vous vendez — et elle baisse quand vous bradez."
         />
 
