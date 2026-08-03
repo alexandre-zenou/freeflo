@@ -2,31 +2,50 @@
 
 import Link from "next/link";
 import Image from "next/image";
+import { useReducedMotion } from "framer-motion";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
 /**
- * Héros de la maquette cliente : plein cadre rouge, titre centré en gras,
- * un seul bouton fantôme. La photo boxe fournie par le client (salle rouge,
- * cordes jaunes) reprend exactement le cadrage de la maquette.
+ * Héros de la maquette cliente : vidéo plein cadre (boxeuse, ring jaune puis
+ * rouge), titre centré en gras, un seul bouton fantôme.
+ * Le poster est une image du plan rouge : il s'affiche avant la lecture, et
+ * remplace la vidéo si l'utilisateur préfère limiter les animations.
  */
 export function Hero() {
   const t = useT();
+  const reduced = useReducedMotion();
 
   return (
     <section className="relative min-h-dvh overflow-hidden bg-brand-deep">
       <div className="absolute inset-0">
-        <Image
-          src="/categories/boxe.jpg"
-          alt=""
-          fill
-          priority
-          sizes="100vw"
-          className="object-cover object-center"
-        />
-        {/* voile rouge : unifie la photo avec la charte et pose le contraste du titre */}
-        <div className="absolute inset-0 bg-brand-deep/45 mix-blend-multiply" />
-        <div className="absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_50%,rgba(131,6,6,0.55),rgba(131,6,6,0.12)_62%,transparent_82%)]" />
+        {reduced ? (
+          <Image
+            src="/video/hero-poster.jpg"
+            alt=""
+            fill
+            priority
+            sizes="100vw"
+            className="object-cover object-center"
+          />
+        ) : (
+          <video
+            className="h-full w-full object-cover object-center"
+            poster="/video/hero-poster.jpg"
+            autoPlay
+            muted
+            loop
+            playsInline
+            preload="auto"
+            aria-hidden
+          >
+            <source src="/video/hero.webm" type="video/webm" />
+            <source src="/video/hero.mp4" type="video/mp4" />
+          </video>
+        )}
+        {/* voile rouge : assoit le contraste du titre par-dessus la vidéo */}
+        <div className="absolute inset-0 bg-brand-deep/35 mix-blend-multiply" />
+        <div className="absolute inset-0 bg-[radial-gradient(75%_60%_at_50%_50%,rgba(131,6,6,0.5),rgba(131,6,6,0.12)_62%,transparent_82%)]" />
       </div>
 
       <div className="relative z-10 flex min-h-dvh flex-col items-center justify-center px-6 text-center">
