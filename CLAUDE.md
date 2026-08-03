@@ -9,9 +9,14 @@ A two-sided marketplace — **"Too Good To Go for unsold gym / sport-class slots
 Sports centres list last-minute empty places; the discount deepens as the class
 start-time approaches (dégressivité engine). Clients grab them cheap, nearby.
 
-Reference doc: the client's `Cahier des charges — FREEFLO` (17 sections). Visual
-reference the client liked: a Canva concept page — *editorial, dusty-periwinkle,
-oversized thin headline "Burn Calories, Not Cash.", ghost buttons.*
+Reference doc: the client's `Cahier des charges — FREEFLO` (17 sections).
+
+**Charte visuelle (juillet 2026) — la maquette Canva du client fait foi :**
+`studentdeal.my.canva.site/freeflo-burn-calories-not-cash`. Elle a REMPLACÉ la
+direction « périwinkle éditorial » du premier brief : le site est désormais
+**rouge / or / crème**, titres gras. La maquette est un re-skin de notre propre
+build (elle reprend nos données de démo), donc la structure est validée ; ce sont
+l'identité et quelques ajouts qui changent.
 
 ## Scope of THIS build (phase 1)
 
@@ -34,21 +39,29 @@ KYC, admin) is **phase 2** — designed in `docs/ARCHITECTURE.md`, not built her
 
 ## Brand tokens (per-client — do not import from other clients)
 
+Deux niveaux assumés : **public** (rouge/or franc) et **espace pro** (fond blanc,
+bordeaux, serif — plus calme, cf. annotation client « mettre un fond blanc »).
+
 | Token | Value | Use |
 |---|---|---|
-| `--peri` | `#8b9ddb` | signature periwinkle |
-| `--peri-deep` | `#4f61a8` | depth, accents on light |
-| `--peri-tint` | `#dfe4f5` | pale washes, map canvas |
-| `--ink` | `#16182b` | text, dark sections |
-| `--bone` | `#f3f2ee` | page background |
-| `--paper` | `#fbfaf7` | cards |
-| `--ember` / `--ember-deep` | `#ff6a45` / `#e8431c` | **discounts & urgency only** |
+| `--brand` | `#a51c1e` | rouge FREEFLO : pastilles, chiffres, liens |
+| `--brand-deep` | `#830606` | bandeaux pleins, carte de confirmation, héros |
+| `--brand-tint` | `#f8e7e5` | lavis rouge pâle |
+| `--gold` / `--gold-bright` | `#f4d26e` / `#ffe067` | prix, boutons d'action |
+| `--gold-deep` | `#9a6c12` | or en **texte** sur fond clair (contraste AA) |
+| `--cream` | `#fffdfa` | fond de page public |
+| `--paper` | `#ffffff` | cartes |
+| `--ink` / `--ink-soft` | `#1c1e26` / `#6a6560` | texte |
+| `--pro-accent` / `--pro-surface` / `--pro-tan` | `#7b2624` / `#faf7f2` / `#d5c7b4` | espace pro |
 
-**Type:** `Hanken Grotesk` (display, thin/wide) + `Instrument Serif` italic (editorial
-flourish, `.serif-em`). Utilities: `.display`, `.eyebrow`, `.peri-mesh`, `.grain`, `.rise`.
+**Type — inchangé** (choix explicite du client) : `Hanken Grotesk` + `Instrument Serif`.
+Utilities : `.display` (gras), `.display-italic` (accroche), `.serif-display` (titres
+espace pro), `.serif-em`, `.eyebrow`, `.brand-mesh`, `.grain`, `.rise`, `.gold-glow`.
 
-**The signature idea:** the dégressivité grid made *alive* — prices tick down, an
-**ember gauge** shows urgency. Cool calm brand, hot urgent discount.
+**Logo :** wordmark bicolore — « FREE » rouge + « FLO » or.
+
+**The signature idea:** la dégressivité rendue *vivante* — les prix descendent, une
+jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
 
 ## Routes
 
@@ -56,7 +69,8 @@ flourish, `.serif-em`). Utilities: `.display`, `.eyebrow`, `.peri-mesh`, `.grain
 |---|---|
 | `/` | Marketing home (hero, how-it-works, live mechanic, live offers, vendor CTA, FAQ) |
 | `/offres` | Product: list + stylized map, filters, sort — the core client screen |
-| `/offres/[id]` | Offer detail + booking flow (reserve → mock pay → QR) — SSG per offer |
+| `/offres/[id]` | Offer detail + booking flow (reserve → mock pay → confirmation) — SSG per offer |
+| `/qui-sommes-nous` | À propos (demandé par la maquette) |
 | `/comment-ca-marche` | Concept / how-it-works |
 | `/inscrire-son-centre` | Vendor recruitment + commission grid + mock signup |
 | `/pro` | Vendor dashboard mockup ("espace pro" / MyStore) |
@@ -72,11 +86,25 @@ flourish, `.serif-em`). Utilities: `.display`, `.eyebrow`, `.peri-mesh`, `.grain
 - **Reveal animations use CSS + IntersectionObserver, not GSAP `.from()`.** GSAP's
   `.from()` strands elements at `opacity: 0` under React 19 StrictMode. Don't reintroduce
   `gsap.from` for entrance reveals — use `.rise` (CSS) or the `Reveal` component.
-- Remote images: **Unsplash only** (whitelisted in `next.config.ts`). Replace with the
-  client's real photography before launch.
+- **Photos du client** dans `public/categories/` (Canva) : yoga, pilates, boxe, hiit,
+  cycling, reformer. Elles servent les catégories ET les offres. Natation / danse /
+  coaching perso ont été **retirés** faute de visuels — pour les rétablir, remettre la
+  catégorie *et* son offre dans `site.ts`.
+- **Vidéo du héros** : `public/video/hero.{mp4,webm}` + `hero-poster.jpg`, encodées depuis
+  la capture du client (audio retiré, faststart). Poster affiché si `prefers-reduced-motion`.
+- **Pas de QR code** : le client a tranché pour une confirmation d'identité à l'accueil.
+  `components/qr.tsx` a été supprimé — ne pas le réintroduire sans validation.
+- **i18n maison** dans `src/lib/i18n.tsx` : `t("français", "english")`, pas de fichiers de
+  traduction. Le sélecteur FR/EN est réel ; seules l'accueil et les filtres ont l'anglais,
+  le reste retombe en français **en attendant la copie EN du client**.
 - Run: `npm run dev` (port 3222 via studio `launch.json`), `npm run build`, `npm test`.
 
 ## Open items before launch (from the cahier)
 
-Final logo, real photography, real copy per centre, definitive legal text (juriste),
-FR/EN decision, domain. Then phase 2 (see `docs/ARCHITECTURE.md`).
+Copie anglaise complète (le sélecteur FR/EN est en place), photos pour natation /
+danse / coaching perso si ces sports reviennent, vraie copie par centre, texte légal
+définitif (juriste), domaine. Puis phase 2 (voir `docs/ARCHITECTURE.md`).
+
+Points à confirmer avec le client sur la maquette : sa carte de confirmation affiche
+« Total €35.00 » alors que l'offre est à €20 (prix plein vs prix remisé) ; et
+« mettre un fond blanc » a été appliqué au fond de page de l'espace pro.
