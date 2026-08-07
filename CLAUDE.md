@@ -102,6 +102,32 @@ Reste à faire : copie (§ lot C), en-tête et pied de page (D), parcours sporti
 espace pro (F), page « Inscrire votre centre » (G), fluidité façon microsoft.ai (I),
 anglais réel (H). Détail et questions ouvertes dans `docs/FEEDBACK-2026-08.md`.
 
+## Transfert de données (Vercel) — à ne pas défaire
+
+Le poste de coût d'un site vitrine chez Vercel, c'est le **Fast Data Transfer** et les
+**transformations d'images**. Trois règles tiennent le budget de FREEFLO :
+
+1. **`public/` est figé un an.** Next sert `public/` avec `Cache-Control: max-age=0` :
+   le navigateur revalide à chaque visite. Sur la vidéo du héros (618 Ko) c'était le
+   premier poste du site. `next.config.ts` force `immutable` sur `/video/*` et
+   `/categories/*`. Corollaire : pour remplacer un de ces fichiers, **changer son nom**,
+   sinon les visiteurs garderont l'ancien.
+2. **Les images ne passent pas par l'optimiseur de Vercel.** `images.loader: "custom"`
+   + `src/lib/image-loader.ts` renvoient `next/image` chercher la bonne taille
+   directement chez Unsplash (imgix). On garde le lazy-loading et le `srcset`, mais ni
+   les octets ni les transformations ne nous sont facturés.
+   **Piège :** déclarer un loader personnalisé DÉSACTIVE `/_next/image`. Un fichier
+   local doit donc être servi tel quel — d'où l'obligation de l'exporter déjà
+   compressé et à la bonne taille. Y renvoyer donne un 404 et une image cassée.
+3. **La vidéo du héros n'est pas envoyée à tout le monde.** `sections/hero.tsx` la
+   charge seulement au-dessus de 768 px, hors `Save-Data` et hors 2G. Partout ailleurs,
+   le poster suffit (c'est une image du même plan). Ne pas resserrer le filtre jusqu'à
+   bloquer la 3G : beaucoup de postes fixes s'annoncent ainsi.
+
+Mesures relevées en production locale (accueil) : **1 179 Ko → 1 165 Ko en première
+visite desktop, 36 Ko sur mobile, et 34 Ko en visite suivante** (contre ~700 Ko
+auparavant, la vidéo et son poster étant retéléchargés à chaque fois).
+
 ## Conventions & gotchas
 
 - **All content lives in `src/lib/site.ts`.** Offers use relative `startsInHours` so the
