@@ -3,6 +3,7 @@
 import { useState } from "react";
 import { cn } from "@/lib/utils";
 import { vendorOrders, type VendorOrder } from "@/components/vendor/vendor-data";
+import { useT } from "@/lib/i18n";
 
 const STATE_STYLE: Record<VendorOrder["state"], string> = {
   confirmée: "bg-emerald-50 text-emerald-700",
@@ -15,6 +16,7 @@ const STATE_STYLE: Record<VendorOrder["state"], string> = {
  * Le QR code a été retiré : à l'accueil, le centre confirme l'identité du client.
  */
 export function OrdersTab() {
+  const t = useT();
   const [orders, setOrders] = useState<VendorOrder[]>(vendorOrders);
 
   const confirmIdentity = (ref: string) =>
@@ -27,18 +29,20 @@ export function OrdersTab() {
   return (
     <div className="space-y-4">
       <p className="text-sm text-ink-soft">
-        {expected} {expected > 1 ? "arrivées attendues" : "arrivée attendue"} · confirmez
+        {expected}{" "}
+        {expected > 1 ? t("arrivées attendues", "arrivals expected") : t("arrivée attendue", "arrival expected")}
+        {t(", confirmez", ", confirm")}
         l&apos;identité du client à l&apos;accueil.
       </p>
 
       <div className="overflow-x-auto rounded-2xl bg-paper ring-1 ring-line">
         <table className="w-full min-w-[620px] border-collapse text-sm">
           <thead>
-            <tr className="border-b border-line text-left text-xs uppercase tracking-wide text-ink-soft">
-              <th className="px-5 py-3 font-medium">Client</th>
-              <th className="px-5 py-3 font-medium">Cours</th>
+            <tr className="border-b border-line text-left text-xs uppercase text-ink-soft">
+              <th className="px-5 py-3 font-medium">{t("Client", "Customer")}</th>
+              <th className="px-5 py-3 font-medium">{t("Cours", "Class")}</th>
               <th className="px-5 py-3 font-medium">Créneau</th>
-              <th className="px-5 py-3 font-medium">Statut</th>
+              <th className="px-5 py-3 font-medium">{t("Statut", "Status")}</th>
               <th className="px-5 py-3 text-right font-medium">Accueil</th>
             </tr>
           </thead>
@@ -47,7 +51,7 @@ export function OrdersTab() {
               <tr key={o.ref} className="border-b border-line last:border-0">
                 <td className="px-5 py-4 font-medium text-ink">{o.name}</td>
                 <td className="px-5 py-4 text-ink-soft">{o.offer}</td>
-                <td className="px-5 py-4 tabular-nums text-ink-soft">{o.slot}</td>
+                <td className="px-5 py-4 tabular-nums text-ink-soft">{t(o.slot, o.slotEn)}</td>
                 <td className="px-5 py-4">
                   <span className={cn("rounded-full px-2.5 py-1 text-xs font-medium", STATE_STYLE[o.state])}>
                     {o.state.charAt(0).toUpperCase() + o.state.slice(1)}
@@ -59,10 +63,10 @@ export function OrdersTab() {
                       onClick={() => confirmIdentity(o.ref)}
                       className="rounded-full border border-line px-3.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-pro-accent hover:text-pro-accent"
                     >
-                      Confirmer l&apos;identité
+                      {t("Confirmer l'identité", "Confirm identity")}
                     </button>
                   ) : (
-                    <span className="text-xs text-ink-soft">—</span>
+                    <span className="text-xs text-ink-soft" aria-hidden />
                   )}
                 </td>
               </tr>

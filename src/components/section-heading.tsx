@@ -30,7 +30,7 @@ export function SectionHeading({
         <p className={cn("eyebrow mb-4", onDark ? "text-gold" : "text-brand")}>{eyebrow}</p>
       )}
       {lead && !eyebrow && (
-        <p className={cn("serif-em mb-3 text-2xl", onDark ? "text-gold" : "text-brand")}>{lead}</p>
+        <p className={cn("accent-em mb-3 text-2xl", onDark ? "text-gold" : "text-brand")}>{lead}</p>
       )}
       <h2
         className={cn(

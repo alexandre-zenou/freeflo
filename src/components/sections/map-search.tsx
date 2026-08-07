@@ -2,9 +2,14 @@
 
 import { useMemo, useState } from "react";
 import Image from "next/image";
+import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { Search, Star } from "lucide-react";
+import { PillSelect } from "@/components/ui/pill-select";
+import { RevealOnView } from "@/components/reveal-on-view";
+import { RevealLines } from "@/components/reveal";
 import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
+import { PARIS_ARRONDISSEMENTS } from "@/lib/geo";
 import { categories, categoryOf, offers } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
 import { formatEuro } from "@/lib/format";
@@ -13,7 +18,7 @@ import { cn } from "@/lib/utils";
 
 /**
  * Recherche cartographique de la maquette cliente :
- * trois listes déroulantes (localisation / type de cours / disponibilité),
+ * trois filtres en pastille (localisation / type de cours / disponibilité),
  * carte aux pastilles de la charte, et panneau de résultats avec la
  * disponibilité de chaque centre.
  *
@@ -34,9 +39,6 @@ function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
   return "later";
 }
 
-const selectCls =
-  "shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-brand-deep focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:ring-offset-2";
-
 export function MapSearch() {
   const router = useRouter();
   const t = useT();
@@ -44,11 +46,6 @@ export function MapSearch() {
   const [cat, setCat] = useState("");
   const [avail, setAvail] = useState("");
   const [hover, setHover] = useState<string | null>(null);
-
-  const arrondissements = useMemo(
-    () => [...new Set(offers.map((o) => o.arrondissement))].sort(),
-    [],
-  );
 
   const list = useMemo(
     () =>
@@ -72,45 +69,45 @@ export function MapSearch() {
 
   return (
     <section className="ff-container py-16 md:py-20">
-      <h2 className="display text-[clamp(1.75rem,3.4vw,2.6rem)] text-brand">
+      <RevealLines className="display text-[clamp(1.75rem,3.4vw,2.6rem)] text-brand">
         {t("Trouvez un cours autour de vous", "Find a class around you")}
-      </h2>
+      </RevealLines>
 
-      {/* listes déroulantes de la maquette */}
+      {/* Mêmes pastilles ovales que sur /offres (retour client : les listes
+          déroulantes natives « font trop old school »). */}
       <div className="mt-6 flex flex-wrap items-center gap-2">
-        <label className="sr-only" htmlFor="m-loc">{t("Localisation", "Location")}</label>
-        <select id="m-loc" value={loc} onChange={(e) => setLoc(e.target.value)} className={selectCls}>
-          <option value="">{t("Localisation", "Location")}</option>
-          {arrondissements.map((a) => (
-            <option key={a} value={a}>{a}</option>
-          ))}
-        </select>
+        <PillSelect
+          label={t("Localisation", "Location")}
+          value={loc}
+          onChange={setLoc}
+          options={PARIS_ARRONDISSEMENTS.map((a) => ({ value: a, label: a }))}
+        />
+        <PillSelect
+          label={t("Type de cours", "Class type")}
+          value={cat}
+          onChange={setCat}
+          options={categories.map((c) => ({ value: c.slug, label: c.label }))}
+        />
+        <PillSelect
+          label={t("Disponibilité", "Availability")}
+          value={avail}
+          onChange={setAvail}
+          options={[
+            { value: "today", label: t("Aujourd'hui", "Today") },
+            { value: "tomorrow", label: t("Demain", "Tomorrow") },
+          ]}
+        />
 
-        <label className="sr-only" htmlFor="m-cat">{t("Type de cours", "Class type")}</label>
-        <select id="m-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={selectCls}>
-          <option value="">{t("Type de cours", "Class type")}</option>
-          {categories.map((c) => (
-            <option key={c.slug} value={c.slug}>{c.label}</option>
-          ))}
-        </select>
-
-        <label className="sr-only" htmlFor="m-avail">{t("Disponibilité", "Availability")}</label>
-        <select id="m-avail" value={avail} onChange={(e) => setAvail(e.target.value)} className={selectCls}>
-          <option value="">{t("Disponibilité", "Availability")}</option>
-          <option value="today">{t("Aujourd'hui", "Today")}</option>
-          <option value="tomorrow">{t("Demain", "Tomorrow")}</option>
-        </select>
-
-        <button
-          onClick={() => { setLoc(""); setCat(""); setAvail(""); }}
+        <Link
+          href="/offres"
           className="inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/35 px-4 py-2 text-sm text-brand transition-colors hover:bg-brand hover:text-white"
         >
-          <Search className="h-4 w-4" /> {t("Rechercher ici", "Search here")}
-        </button>
+          <Search className="h-4 w-4" /> {t("Voir toutes les offres", "See all offers")}
+        </Link>
       </div>
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.9fr_1fr]">
-        <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line sm:aspect-[16/10] lg:aspect-auto lg:h-[720px]">
+        <RevealOnView className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line sm:aspect-[16/10] lg:aspect-auto lg:h-[720px]">
           <LeafletMap
             points={points}
             monuments={MONUMENTS}
@@ -120,7 +117,7 @@ export function MapSearch() {
             showUser
             fitBounds
           />
-        </div>
+        </RevealOnView>
 
         {/* panneau de résultats, avec la disponibilité de chaque centre */}
         <div className="flex flex-col overflow-hidden rounded-3xl bg-paper ring-1 ring-line lg:h-[720px]">
@@ -145,7 +142,7 @@ export function MapSearch() {
                       <span className="block truncate text-sm font-medium text-ink">{o.gym}</span>
                       <span className="flex items-center gap-1 text-xs text-ink-soft">
                         <Star className="h-3 w-3 text-gold" fill="currentColor" />
-                        {o.rating.toFixed(1)} · {categoryOf(o.category).label}
+                        {o.rating.toFixed(1)} {t(categoryOf(o.category).label, categoryOf(o.category).labelEn)}
                       </span>
                       <span
                         className={cn(

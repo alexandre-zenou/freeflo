@@ -54,9 +54,18 @@ bordeaux, serif — plus calme, cf. annotation client « mettre un fond blanc »
 | `--ink` / `--ink-soft` | `#1c1e26` / `#6a6560` | texte |
 | `--pro-accent` / `--pro-surface` / `--pro-tan` | `#7b2624` / `#faf7f2` / `#d5c7b4` | espace pro |
 
-**Type — inchangé** (choix explicite du client) : `Hanken Grotesk` + `Instrument Serif`.
-Utilities : `.display` (gras), `.display-italic` (accroche), `.serif-display` (titres
-espace pro), `.serif-em`, `.eyebrow`, `.brand-mesh`, `.grain`, `.rise`, `.gold-glow`.
+**Type — `Inter`, et Inter seul** (retour client 08/2026 : « Inter light pour texte,
+Inter gras pour titres »). Hanken Grotesk et Instrument Serif ont été RETIRÉS : il n'y
+a plus de serif nulle part, espace pro compris. Corps de page en 300 ; le petit texte
+(`.text-xs`, `.text-sm`) remonte à 400, sinon Inter Light devient illisible sur rouge.
+Utilities : `.display` (gras), `.display-italic` (accroche), `.pro-display` (titres
+espace pro, ex-`.serif-display`), `.accent-em` (ex-`.serif-em`), `.eyebrow`,
+`.brand-mesh`, `.grain`, `.rise`, `.gold-glow`.
+
+**Pas d'interlettrage, pas de tirets cadratins, pas de points médians** dans le texte
+visible : le client les identifie comme « des marqueurs de Claude ». `.eyebrow` a un
+`letter-spacing: 0`, et les séparateurs `—` / `·` ont été remplacés par des virgules,
+deux-points ou des phrases séparées. Ne pas les réintroduire.
 
 **Logo :** wordmark bicolore — « FREE » rouge + « FLO » or.
 
@@ -75,6 +84,23 @@ jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
 | `/inscrire-son-centre` | Vendor recruitment + commission grid + mock signup |
 | `/pro` | Vendor dashboard mockup ("espace pro" / MyStore) |
 | `/mentions-legales` | Legal (CGU/CGV/RGPD scaffold from §12) |
+
+## Retour client du 07/08/2026 (`docs/FEEDBACK-2026-08.md`)
+
+76 remarques inventoriées. **Règle qui prime sur tout le reste : aucun taux de remise,
+aucune commission, aucun chiffre d'affaires affiché — ni côté public, ni dans l'espace
+pro.** Les prix (plein barré + prix du moment) restent, eux, visibles.
+
+Déjà supprimés à ce titre : `sections/mechanic.tsx` et `melt-curve.tsx` (fichiers
+effacés), `sections/vendor-cta.tsx` (effacé), la grille de commission de
+`/inscrire-son-centre`, l'alerte sprint + les KPI de CA + le graphique de revenus + la
+carte « Prochain virement » + le panneau « Commission dégressive » du tableau de bord,
+la courbe du tiroir « Créer une offre », et deux panneaux de `stats-tab`. Ne pas les
+réintroduire. **Ne jamais nommer Too Good To Go ni Treatwell.**
+
+Reste à faire : copie (§ lot C), en-tête et pied de page (D), parcours sportif (E),
+espace pro (F), page « Inscrire votre centre » (G), fluidité façon microsoft.ai (I),
+anglais réel (H). Détail et questions ouvertes dans `docs/FEEDBACK-2026-08.md`.
 
 ## Conventions & gotchas
 
@@ -95,8 +121,18 @@ jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
 - **Pas de QR code** : le client a tranché pour une confirmation d'identité à l'accueil.
   `components/qr.tsx` a été supprimé — ne pas le réintroduire sans validation.
 - **i18n maison** dans `src/lib/i18n.tsx` : `t("français", "english")`, pas de fichiers de
-  traduction. Le sélecteur FR/EN est réel ; seules l'accueil et les filtres ont l'anglais,
-  le reste retombe en français **en attendant la copie EN du client**.
+  traduction. **Le site est intégralement bilingue depuis 08/2026** (espace pro et données
+  de démo compris). Les composants passent leurs deux versions inline ; les **données**
+  (`site.ts`, `legal.ts`, `vendor-data.ts`) portent des champs jumeaux `*En`
+  (`titleEn`, `textEn`, `labelEn`, `pEn`…). En ajoutant une chaîne visible, fournir
+  systématiquement les deux langues.
+  · La préférence est lue via `useSyncExternalStore` sur `localStorage` : pas de setState
+  dans un effet, rendu serveur toujours en français, et la langue se propage aux onglets.
+  · **Limite connue** : les métadonnées SEO (`<title>`, `description`) restent en français.
+  Les localiser demanderait un routage `/fr` `/en`, écarté pour ne pas casser les URLs.
+  · **Piège** : `RevealLines` réécrit le DOM du titre. Il doit lire le texte depuis sa
+  **prop**, jamais depuis `el.textContent`, sinon le titre reste figé dans la langue
+  précédente au changement FR/EN.
 - Run: `npm run dev` (port 3222 via studio `launch.json`), `npm run build`, `npm test`.
 
 ## Open items before launch (from the cahier)

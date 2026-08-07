@@ -129,7 +129,7 @@ export function LeafletMap({
         L.marker([mo.lat, mo.lng], {
           icon: L.divIcon({
             className: "",
-            html: `<div class="ff-pin"><span class="ff-pin__pill ff-pin__pill--monument">${mo.label}</span></div>`,
+            html: `<div class="ff-pin" style="--pin-i:0"><span class="ff-pin__pill ff-pin__pill--monument">${mo.label}</span></div>`,
             iconSize: [0, 0],
             iconAnchor: [0, 0],
           }),
@@ -143,9 +143,11 @@ export function LeafletMap({
       Object.values(markersRef.current).forEach((m) => m.remove());
       markersRef.current = {};
 
-      points.forEach((p) => {
+      points.forEach((p, i) => {
+        // `--pin-i` échelonne l'apparition (cf. `ff-pin-drop` dans globals.css) :
+        // la carte se dévoile, puis les prix se posent un par un.
         const html = p.label
-          ? `<div class="ff-pin"><span class="ff-pin__pill ${p.hot ? "ff-pin__pill--hot" : ""}">${p.label}</span></div>`
+          ? `<div class="ff-pin" style="--pin-i:${i}"><span class="ff-pin__pill ${p.hot ? "ff-pin__pill--hot" : ""}">${p.label}</span></div>`
           : '<div class="ff-dot"></div>';
         const marker = L.marker([p.lat, p.lng], {
           icon: L.divIcon({ className: "", html, iconSize: [0, 0], iconAnchor: [0, 0] }),

@@ -1,28 +1,27 @@
 import type { Metadata, Viewport } from "next";
-import { Hanken_Grotesk, Instrument_Serif } from "next/font/google";
+import { Inter } from "next/font/google";
 import { site } from "@/lib/site";
 import { LocaleProvider } from "@/lib/i18n";
 import "./globals.css";
 
-const hanken = Hanken_Grotesk({
+/**
+ * Retour client 08/2026 : « Changer la police du site — INTER. 1. Inter light
+ * pour texte, 2. Inter gras pour titres. » Inter remplace les DEUX familles
+ * précédentes (Hanken Grotesk + Instrument Serif) : il n'y a plus de serif.
+ * Fonte variable, donc les graisses 300 → 700 sont servies par un seul fichier.
+ */
+const inter = Inter({
   subsets: ["latin"],
-  variable: "--font-hanken",
-  display: "swap",
-});
-
-const instrument = Instrument_Serif({
-  subsets: ["latin"],
-  weight: "400",
   style: ["normal", "italic"],
-  variable: "--font-instrument",
+  variable: "--font-inter",
   display: "swap",
 });
 
 export const metadata: Metadata = {
   metadataBase: new URL(`https://${site.domain}`),
   title: {
-    default: `${site.name} — ${site.taglineFr}`,
-    template: `%s · ${site.name}`,
+    default: `${site.name} : ${site.taglineFr}`,
+    template: `%s | ${site.name}`,
   },
   description: site.description,
   keywords: [
@@ -36,7 +35,7 @@ export const metadata: Metadata = {
     type: "website",
     locale: "fr_FR",
     siteName: site.name,
-    title: `${site.name} — ${site.tagline}`,
+    title: `${site.name} : ${site.tagline}`,
     description: site.description,
   },
   twitter: { card: "summary_large_image", title: site.name, description: site.description },
@@ -50,7 +49,7 @@ export const viewport: Viewport = {
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="fr" className={`${hanken.variable} ${instrument.variable}`}>
+    <html lang="fr" className={inter.variable}>
       <body className="min-h-dvh antialiased">
         <LocaleProvider>{children}</LocaleProvider>
       </body>

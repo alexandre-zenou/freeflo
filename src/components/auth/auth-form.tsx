@@ -6,10 +6,12 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { ArrowRight, Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 type Mode = "login" | "signup";
 
 export function AuthForm() {
+  const t = useT();
   const router = useRouter();
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(params.get("mode") === "signup" ? "signup" : "login");
@@ -35,24 +37,24 @@ export function AuthForm() {
               mode === m ? "bg-cream text-ink shadow-soft" : "text-ink-soft hover:text-ink",
             )}
           >
-            {m === "login" ? "Se connecter" : "Créer un compte"}
+            {m === "login" ? t("Se connecter", "Log in") : t("Créer un compte", "Create account")}
           </button>
         ))}
       </div>
 
       <h1 className="display text-3xl text-ink">
-        {mode === "login" ? "Content de vous revoir." : "Rejoignez FREEFLO."}
+        {mode === "login" ? t("Content de vous revoir.", "Good to see you again.") : t("Rejoignez FREEFLO.", "Join FREEFLO.")}
       </h1>
       <p className="mt-2 text-sm text-ink-soft">
         {mode === "login"
-          ? "Connectez-vous pour réserver vos cours à prix qui fond."
-          : "Créez votre compte en 30 secondes et attrapez les meilleures places."}
+          ? t("Connectez-vous pour réserver vos cours à prix qui fond.", "Log in to book classes at melting prices.")
+          : t("Créez votre compte en 30 secondes et attrapez les meilleures places.", "Create your account in 30 seconds and grab the best spots.")}
       </p>
 
       <form onSubmit={submit} className="mt-7 space-y-3">
         {mode === "signup" && <Field label="Prénom" placeholder="Thomas" />}
         <Field label="Email" type="email" placeholder="thomas@email.com" />
-        <Field label="Mot de passe" type="password" placeholder="••••••••" />
+        <Field label={t("Mot de passe", "Password")} type="password" placeholder="••••••••" />
         {mode === "login" && (
           <div className="text-right">
             <Link href="/connexion" className="text-xs text-brand hover:underline">
@@ -62,7 +64,7 @@ export function AuthForm() {
         )}
 
         <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading}>
-          {loading ? "Un instant…" : mode === "login" ? "Se connecter" : "Créer mon compte"}
+          {loading ? t("Un instant…", "One moment…") : mode === "login" ? t("Se connecter", "Log in") : t("Créer mon compte", "Create my account")}
           {!loading && <ArrowRight className="h-4 w-4" />}
         </Button>
       </form>
@@ -87,7 +89,7 @@ export function AuthForm() {
       </div>
 
       <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-ink-soft">
-        <Lock className="h-3 w-3" /> Démo — aucune donnée n&apos;est envoyée.
+        <Lock className="h-3 w-3" /> {t("Démo : aucune donnée n'est envoyée.", "Demo: no data is sent.")}
       </p>
 
       <p className="mt-4 text-center text-sm text-ink-soft">

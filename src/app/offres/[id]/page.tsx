@@ -18,8 +18,8 @@ export async function generateMetadata({
   const offer = offerById(id);
   if (!offer) return { title: "Offre introuvable" };
   return {
-    title: `${offer.title} — ${offer.gym}`,
-    description: `${offer.description} Réservez à partir de ${offer.basePrice} € — le prix baisse à l'approche du créneau.`,
+    title: `${offer.title} chez ${offer.gym}`,
+    description: `${offer.description} Réservez à partir de ${offer.basePrice} €, le prix baisse à l'approche du créneau.`,
   };
 }
 

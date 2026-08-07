@@ -16,7 +16,16 @@ export interface VendorOffer {
   day: number;
   time: string;
   paused?: boolean;
+  /** Champ facultatif ajouté à la demande de la cliente. */
+  description?: string;
+  /** Uniquement proposé pour le Pilates et le Yoga (annotation cliente). */
+  nonSlipSocks?: boolean;
 }
+
+/** Activités pour lesquelles la question des chaussettes antidérapantes se pose. */
+export const SOCKS_ACTIVITIES = ["Pilates", "Yoga"];
+
+export const ACTIVITIES = ["Yoga", "Pilates", "Boxe", "HIIT", "Cycling"];
 
 /** Semaine affichée dans le Planning, comme la maquette (lun → dim). */
 export const weekDays = [
@@ -43,16 +52,17 @@ export interface VendorOrder {
   name: string;
   offer: string;
   slot: string;
+  slotEn: string;
   ref: string;
   state: "confirmée" | "arrivée" | "annulée";
 }
 
 export const vendorOrders: VendorOrder[] = [
-  { name: "Thomas L.", offer: "Vinyasa Flow", slot: "Mer · 18h30", ref: "FLO-STU-193", state: "confirmée" },
-  { name: "Sofia M.", offer: "Yoga débutant", slot: "Mer · 20h00", ref: "FLO-STU-195", state: "confirmée" },
-  { name: "Amélie R.", offer: "Reformer intensif", slot: "Lun · 07h30", ref: "FLO-STU-194", state: "confirmée" },
-  { name: "Karim B.", offer: "Boxe cardio", slot: "Ven · 19h00", ref: "FLO-STU-188", state: "annulée" },
-  { name: "Julie P.", offer: "Pilates doux", slot: "Lun · 12h00", ref: "FLO-STU-187", state: "arrivée" },
+  { name: "Thomas L.", offer: "Vinyasa Flow", slot: "Mer 18h30", slotEn: "Wed 18:30", ref: "FLO-STU-193", state: "confirmée" },
+  { name: "Sofia M.", offer: "Yoga débutant", slot: "Mer 20h00", slotEn: "Wed 20:00", ref: "FLO-STU-195", state: "confirmée" },
+  { name: "Amélie R.", offer: "Reformer intensif", slot: "Lun 07h30", slotEn: "Mon 07:30", ref: "FLO-STU-194", state: "confirmée" },
+  { name: "Karim B.", offer: "Boxe cardio", slot: "Ven 19h00", slotEn: "Fri 19:00", ref: "FLO-STU-188", state: "annulée" },
+  { name: "Julie P.", offer: "Pilates doux", slot: "Lun 12h00", slotEn: "Mon 12:00", ref: "FLO-STU-187", state: "arrivée" },
 ];
 
 /* ——— Avis (cohérents avec le KPI : 4,9 · 512 avis) ——— */
@@ -71,69 +81,64 @@ export const recentReviews = [
     course: "Vinyasa Flow",
     rating: 5,
     date: "il y a 2 jours",
-    text: "Réservé à −45% une heure avant, accueil au QR nickel. Le cours était complet et l'énergie incroyable.",
+    dateEn: "2 days ago",
+    text: "Réservé une heure avant, accueil impeccable. Le cours était complet et l'énergie incroyable.",
+    textEn: "Booked an hour before, faultless welcome. The class was full and the energy incredible.",
     reply: null,
+    replyEn: null,
   },
   {
     name: "Thomas L.",
     course: "Pilates doux",
     rating: 5,
     date: "il y a 4 jours",
-    text: "Première fois chez Studio Bloom grâce à FREEFLO — j'ai repris une carte de 10 depuis.",
+    dateEn: "4 days ago",
+    text: "Première fois chez Studio Bloom grâce à FREEFLO, j'ai repris une carte de 10 depuis.",
+    textEn: "First time at Studio Bloom thanks to FREEFLO, I have bought a 10-class pass since.",
     reply: "Merci Thomas, à très vite au studio !",
+    replyEn: "Thanks Thomas, see you very soon at the studio!",
   },
   {
     name: "Inès K.",
     course: "Yoga débutant",
     rating: 4,
     date: "il y a 6 jours",
+    dateEn: "6 days ago",
     text: "Très bon cours, vestiaires un peu petits quand on arrive à 3 en même temps.",
+    textEn: "Very good class, changing rooms a little tight when three of us arrive at once.",
     reply: null,
+    replyEn: null,
   },
 ] as const;
 
 /** Fil d'activité — minutes relatives « au chargement », le composant fait vivre le temps. */
 export const activitySeed = [
-  { minutesAgo: 2, text: "Thomas L. a réservé Vinyasa Flow — 18h30", kind: "sale" },
-  { minutesAgo: 9, text: "Vinyasa Flow est passé en sprint final (−50%)", kind: "melt" },
-  { minutesAgo: 21, text: "Nouvel avis 5★ d'Amélie R. sur Vinyasa Flow", kind: "review" },
-  { minutesAgo: 34, text: "Sofia M. a réservé Yoga débutant — 20h00", kind: "sale" },
-  { minutesAgo: 58, text: "Virement quotidien de 168 € envoyé", kind: "payout" },
+  { minutesAgo: 2, text: "Thomas L. a réservé Vinyasa Flow de 18h30", textEn: "Thomas L. booked the 18:30 Vinyasa Flow", kind: "sale" },
+  { minutesAgo: 9, text: "Vinyasa Flow est passé en sprint final", textEn: "Vinyasa Flow entered the final sprint", kind: "melt" },
+  { minutesAgo: 21, text: "Nouvel avis 5★ d'Amélie R. sur Vinyasa Flow", textEn: "New 5★ review from Amélie R. on Vinyasa Flow", kind: "review" },
+  { minutesAgo: 34, text: "Sofia M. a réservé Yoga débutant de 20h00", textEn: "Sofia M. booked the 20:00 Yoga for beginners", kind: "sale" },
+  { minutesAgo: 58, text: "Virement quotidien de 168 € envoyé", textEn: "Daily payout of 168 € sent", kind: "payout" },
 ] as const;
 
 export const payouts = [
-  { date: "Aujourd'hui", amount: 126, state: "en route" },
-  { date: "Hier", amount: 168, state: "reçu" },
-  { date: "Samedi", amount: 214, state: "reçu" },
-  { date: "Vendredi", amount: 97, state: "reçu" },
-  { date: "Jeudi", amount: 143, state: "reçu" },
+  { date: "Aujourd'hui", dateEn: "Today", amount: 126, state: "en route" },
+  { date: "Hier", dateEn: "Yesterday", amount: 168, state: "reçu" },
+  { date: "Samedi", dateEn: "Saturday", amount: 214, state: "reçu" },
+  { date: "Vendredi", dateEn: "Friday", amount: 97, state: "reçu" },
+  { date: "Jeudi", dateEn: "Thursday", amount: 143, state: "reçu" },
 ] as const;
 
-export const revenueChart = [40, 55, 48, 70, 62, 88, 96];
+/** Jours de la semaine, réutilisés par la grille des heures chaudes. */
 export const revenueDays = ["L", "M", "M", "J", "V", "S", "D"];
 
-/* ——— Statistiques (démo, cohérentes avec les KPIs : 148 paniers · 3 240 € CA) ——— */
+/* ——— Statistiques (démo) ———
+   Retour client 08/2026 : `revenueChart` (graphique de revenus), les montants
+   récupérés et `meltStats` (remise moyenne, répartition par palier) ont été
+   supprimés. Seul le remplissage subsiste ici. */
 
 export const recovery = {
-  /** Net encaissé sur des places qui partaient à la poubelle (après commission). */
-  recoveredNet: 2430,
-  recoveredDelta: "+31%",
-  placesSaved: 148,
-  placesLost: 43,
   fillBefore: 61,
   fillWith: 78,
-} as const;
-
-export const meltStats = {
-  avgDiscount: 34,
-  avgLeadTime: "5 h 40",
-  /** Répartition des ventes par palier de remise. */
-  byTier: [
-    { tier: "Plein tarif", pct: 18, hot: false },
-    { tier: "−15 à −25%", pct: 27, hot: false },
-    { tier: "−30 à −45%", pct: 33, hot: false },
-    { tier: "Sprint final (−50/−60%)", pct: 22, hot: true },
-  ],
 } as const;
 
 export const acquisition = {
@@ -141,18 +146,18 @@ export const acquisition = {
   returned: 26,
   returnedFullPrice: 19,
   origins: [
-    { area: "11e", pct: 32 },
-    { area: "4e", pct: 21 },
-    { area: "10e", pct: 14 },
-    { area: "15e", pct: 9 },
-    { area: "Autres", pct: 24 },
+    { area: "11e", areaEn: "11e", pct: 32 },
+    { area: "4e", areaEn: "4e", pct: 21 },
+    { area: "10e", areaEn: "10e", pct: 14 },
+    { area: "15e", areaEn: "15e", pct: 9 },
+    { area: "Autres", areaEn: "Other", pct: 24 },
   ],
 } as const;
 
 /** Intensité des ventes (0–4) par jour (L→D) et tranche horaire. */
 export const heatRows = [
-  { slot: "Matin (6h–11h)", cells: [1, 2, 1, 1, 2, 3, 2] },
-  { slot: "Midi (11h–14h)", cells: [2, 2, 3, 2, 2, 1, 1] },
-  { slot: "Après-midi (14h–18h)", cells: [1, 1, 2, 2, 3, 2, 3] },
-  { slot: "Soir (18h–22h)", cells: [3, 4, 4, 3, 4, 2, 1] },
+  { slot: "Matin (6h–11h)", slotEn: "Morning (6–11)", cells: [1, 2, 1, 1, 2, 3, 2] },
+  { slot: "Midi (11h–14h)", slotEn: "Midday (11–14)", cells: [2, 2, 3, 2, 2, 1, 1] },
+  { slot: "Après-midi (14h–18h)", slotEn: "Afternoon (14–18)", cells: [1, 1, 2, 2, 3, 2, 3] },
+  { slot: "Soir (18h–22h)", slotEn: "Evening (18–22)", cells: [3, 4, 4, 3, 4, 2, 1] },
 ] as const;

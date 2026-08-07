@@ -7,8 +7,10 @@ import { Logo } from "@/components/logo";
 import { LocaleSwitch } from "@/components/locale-switch";
 import { nav } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
+  const t = useT();
   const [scrolled, setScrolled] = useState(false);
   const [open, setOpen] = useState(false);
 
@@ -29,32 +31,47 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
         solid ? "border-b border-line bg-cream/85 backdrop-blur-md" : "border-b border-transparent",
       )}
     >
+      {/*
+        Retour client : « décaler le texte vers la droite » et « ajouter rubrique
+        inscrire mon centre à droite d'espace pro ». Le logo reste seul à gauche,
+        tout le reste forme un bloc aligné à droite.
+      */}
       <div className="ff-container flex h-16 items-center justify-between md:h-[4.5rem]">
         <Logo onDark={onDark} />
 
-        <nav className="hidden items-center gap-8 md:flex">
-          {nav.primary.map((l) => (
+        <div className="hidden items-center gap-7 md:flex">
+          <nav className="flex items-center gap-7">
+            {nav.primary.map((l) => (
+              <Link
+                key={l.href}
+                href={l.href}
+                className={cn(
+                  "text-sm transition-colors",
+                  onDark ? "text-white/85 hover:text-white" : "text-ink-soft hover:text-ink",
+                )}
+              >
+                {t(l.label, l.labelEn)}
+              </Link>
+            ))}
             <Link
-              key={l.href}
-              href={l.href}
+              href={nav.vendorCta.href}
               className={cn(
-                "text-sm transition-colors",
-                onDark ? "text-white/85 hover:text-white" : "text-ink-soft hover:text-ink",
+                "rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                onDark
+                  ? "bg-white/15 text-white hover:bg-white/25"
+                  : "bg-brand-tint text-brand hover:bg-brand hover:text-white",
               )}
             >
-              {l.label}
+              {t(nav.vendorCta.label, nav.vendorCta.labelEn)}
             </Link>
-          ))}
-        </nav>
-
-        <div className="hidden items-center gap-3 md:flex">
+          </nav>
           <LocaleSwitch onDark={onDark} />
         </div>
 
         <button
           className={cn("md:hidden", onDark ? "text-white" : "text-ink")}
           onClick={() => setOpen((v) => !v)}
-          aria-label={open ? "Fermer le menu" : "Ouvrir le menu"}
+          aria-label={open ? t("Fermer le menu", "Close menu") : t("Ouvrir le menu", "Open menu")}
         >
           {open ? <X /> : <Menu />}
         </button>
@@ -70,7 +87,7 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
                 onClick={() => setOpen(false)}
                 className="rounded-lg px-2 py-3 text-ink hover:bg-secondary"
               >
-                {l.label}
+                {t(l.label, l.labelEn)}
               </Link>
             ))}
             <div className="px-2 pt-2">

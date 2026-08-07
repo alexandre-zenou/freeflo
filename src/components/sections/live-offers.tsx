@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Reveal } from "@/components/reveal";
+import { Reveal, RevealLines } from "@/components/reveal";
 import { OfferCard } from "@/components/offer-card";
 import { offers } from "@/lib/site";
 import { useT } from "@/lib/i18n";
@@ -16,17 +16,22 @@ export function LiveOffers() {
   const t = useT();
 
   return (
+    /*
+      Retour client : « Remplir la largeur de la page avec les 4 cases, laisser 1 cm
+      de chaque côté. » On sort donc du `ff-container` (max 1240 px) pour un bandeau
+      pleine largeur, avec une gouttière de 1 cm exactement au-delà du mobile.
+    */
     <section className="bg-brand-deep py-16 md:py-20">
-      <div className="ff-container">
+      <div className="mx-auto w-full px-5 md:px-[1cm]">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <h2 className="display text-[clamp(1.9rem,3.6vw,2.8rem)] uppercase text-white">
+            <RevealLines className="display text-[clamp(1.9rem,3.6vw,2.8rem)] uppercase text-white">
               {t("Réservez maintenant", "Book now")}
-            </h2>
+            </RevealLines>
             <p className="mt-2 text-lg text-white/90">
               {t(
                 "Les places s'écoulent vite, et sont limitées !",
-                "Spots go fast — and there aren't many.",
+                "Spots go fast, and there aren't many.",
               )}
             </p>
           </div>
@@ -38,9 +43,9 @@ export function LiveOffers() {
           </Link>
         </div>
 
-        <Reveal stagger={0.1} className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+        <Reveal stagger={0.1} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((o) => (
-            <OfferCard key={o.id} offer={o} />
+            <OfferCard key={o.id} offer={o} dense />
           ))}
         </Reveal>
       </div>

@@ -3,16 +3,18 @@
 import { Star } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { ratingBreakdown, recentReviews } from "@/components/vendor/vendor-data";
+import { useT } from "@/lib/i18n";
 
 const total = ratingBreakdown.reduce((s, r) => s + r.count, 0);
 
 export function ReviewsTab() {
+  const t = useT();
   return (
     <div className="grid gap-4 lg:grid-cols-[0.9fr_1.1fr]">
       <div className="h-fit rounded-2xl bg-white p-6 ring-1 ring-line">
         <div className="flex items-baseline gap-3">
           <p className="font-display text-5xl font-light text-ink">4,9</p>
-          <p className="text-sm text-ink-soft">{total} avis</p>
+          <p className="text-sm text-ink-soft">{total} {t("avis", "reviews")}</p>
         </div>
         <ul className="mt-6 space-y-2.5">
           {ratingBreakdown.map((r) => (
@@ -31,17 +33,20 @@ export function ReviewsTab() {
           ))}
         </ul>
         <p className="mt-6 border-t border-line pt-4 text-xs leading-relaxed text-ink-soft">
-          Vous répondez à 92% des avis. Les centres qui répondent remontent dans les résultats.
+          {t(
+            "Vous répondez à 92% des avis. Les centres qui répondent remontent dans les résultats.",
+            "You reply to 92% of reviews. Centres that reply rank higher in results.",
+          )}
         </p>
       </div>
 
       <div className="space-y-4">
         {recentReviews.map((r) => (
-          <article key={`${r.name}-${r.date}`} className="rounded-2xl bg-white p-6 ring-1 ring-line">
+          <article key={`${r.name}-${t(r.date, r.dateEn)}`} className="rounded-2xl bg-white p-6 ring-1 ring-line">
             <div className="flex flex-wrap items-baseline justify-between gap-2">
-              <p className="serif-display text-xl text-ink">
+              <p className="pro-display text-xl text-ink">
                 {r.name}
-                <span className="ml-2 text-sm font-normal text-ink-soft">· {r.course}</span>
+                <span className="ml-2 text-sm font-normal text-ink-soft">sur {r.course}</span>
               </p>
               <span className="flex items-center gap-2 text-xs text-ink-soft">
                 <span className="flex gap-0.5" aria-label={`${r.rating} étoiles sur 5`}>
@@ -52,17 +57,17 @@ export function ReviewsTab() {
                     />
                   ))}
                 </span>
-                {r.date}
+                {t(r.date, r.dateEn)}
               </span>
             </div>
-            <p className="mt-3 text-sm leading-relaxed text-ink/80">{r.text}</p>
+            <p className="mt-3 text-sm leading-relaxed text-ink/80">{t(r.text, r.textEn)}</p>
             {r.reply ? (
               <p className="mt-4 border-l-0 border-t border-line pt-3 text-sm leading-relaxed text-ink-soft">
-                <span className="serif-display text-xl text-ink">Votre réponse ·</span> {r.reply}
+                <span className="pro-display text-xl text-ink">{t("Votre réponse :", "Your reply:")}</span> {t(r.reply, r.replyEn ?? undefined)}
               </p>
             ) : (
               <button className="mt-4 rounded-full border border-line px-3.5 py-1.5 text-xs font-medium text-ink transition-colors hover:border-ink">
-                Répondre
+                {t("Répondre", "Reply")}
               </button>
             )}
           </article>

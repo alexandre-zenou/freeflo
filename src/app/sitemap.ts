@@ -3,7 +3,17 @@ import { site, offers } from "@/lib/site";
 
 export default function sitemap(): MetadataRoute.Sitemap {
   const base = `https://${site.domain}`;
-  const routes = ["", "/offres", "/comment-ca-marche", "/inscrire-son-centre", "/mentions-legales"];
+  const routes = [
+    "",
+    "/offres",
+    "/comment-ca-marche",
+    "/qui-sommes-nous",
+    "/inscrire-son-centre",
+    "/inscription-centre",
+    "/mentions-legales",
+    "/cgu-cgv",
+    "/confidentialite",
+  ];
   const staticPages = routes.map((r) => ({
     url: `${base}${r}`,
     changeFrequency: "weekly" as const,

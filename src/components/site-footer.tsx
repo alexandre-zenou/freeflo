@@ -1,56 +1,78 @@
+"use client";
+
 import Link from "next/link";
 import { Logo } from "@/components/logo";
-import { site, nav } from "@/lib/site";
+import { site } from "@/lib/site";
+import { useT } from "@/lib/i18n";
 
+/**
+ * Pied de page.
+ *
+ * Retour client : fond rouge (« changer le gris anthracite par du rouge, le même
+ * que le reste »), nouveau texte de présentation, lien « Tarifs & commission »
+ * supprimé, et les trois liens légaux mènent enfin à trois pages distinctes.
+ */
 const columns = [
   {
     title: "Découvrir",
+    titleEn: "Discover",
     links: [
-      { label: "Trouver un cours", href: "/offres" },
-      { label: "Comment ça marche", href: "/comment-ca-marche" },
-      { label: "Catégories", href: "/offres" },
+      { label: "Trouver un cours", labelEn: "Find a class", href: "/offres" },
+      { label: "Comment ça fonctionne", labelEn: "How it works", href: "/comment-ca-marche" },
+      { label: "Catégories", labelEn: "Categories", href: "/offres" },
     ],
   },
   {
     title: "Les centres",
+    titleEn: "For centres",
     links: [
-      { label: "Inscrire mon centre", href: "/inscrire-son-centre" },
-      { label: "Espace pro", href: "/pro" },
-      { label: "Tarifs & commission", href: "/inscrire-son-centre" },
+      { label: "Inscrire mon centre", labelEn: "Sign up my centre", href: "/inscription-centre" },
+      { label: "Pourquoi FREEFLO", labelEn: "Why FREEFLO", href: "/inscrire-son-centre" },
+      { label: "Espace pro", labelEn: "Pro area", href: "/pro" },
     ],
   },
   {
     title: "Légal",
+    titleEn: "Legal",
     links: [
-      { label: "Mentions légales", href: "/mentions-legales" },
-      { label: "CGU / CGV", href: "/mentions-legales" },
-      { label: "Confidentialité (RGPD)", href: "/mentions-legales" },
+      { label: "Mentions légales", labelEn: "Legal notice", href: "/mentions-legales" },
+      { label: "CGU / CGV", labelEn: "Terms of use and sale", href: "/cgu-cgv" },
+      { label: "Confidentialité (RGPD)", labelEn: "Privacy (GDPR)", href: "/confidentialite" },
     ],
   },
 ];
 
 export function SiteFooter() {
+  const t = useT();
+
   return (
-    <footer className="bg-ink text-cream">
+    // Filet supérieur : sur les pages dont la dernière section est déjà rouge
+    // (les étapes de « Qui sommes nous »), le pied de page s'y fondrait sans lui.
+    <footer className="border-t border-gold/25 bg-brand-deep text-white">
       <div className="ff-container grid gap-12 py-16 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="max-w-xs">
           <Logo onDark />
-          <p className="mt-4 text-sm leading-relaxed text-white/60">{site.description}</p>
-          <div className="mt-6 flex gap-4 text-sm text-white/60">
-            <a href={site.social.instagram} className="hover:text-white">Instagram</a>
-            <a href={site.social.tiktok} className="hover:text-white">TikTok</a>
-            <a href={site.social.linkedin} className="hover:text-white">LinkedIn</a>
+          <p className="mt-4 text-sm leading-relaxed text-white/80">
+            {t(
+              "FREEFLO libère les places de cours de sport invendues près de chez vous. Plus l'heure approche, plus le prix fond. Réservez en dernière minute, et profitez-en !",
+              "FREEFLO releases unsold sport class places near you. The closer the class, the lower the price. Book at the last minute, and make the most of it!",
+            )}
+          </p>
+          <div className="mt-6 flex gap-4 text-sm text-white/80">
+            <a href={site.social.instagram} className="transition-colors hover:text-gold">Instagram</a>
+            <a href={site.social.tiktok} className="transition-colors hover:text-gold">TikTok</a>
+            <a href={site.social.linkedin} className="transition-colors hover:text-gold">LinkedIn</a>
           </div>
         </div>
 
         {columns.map((col) => (
           <div key={col.title}>
-            <h3 className="eyebrow text-white/45">{col.title}</h3>
+            <h3 className="eyebrow text-gold">{t(col.title, col.titleEn)}</h3>
             <ul className="mt-4 space-y-3">
               {col.links.map((l) => (
                 <li key={l.label}>
-                  <Link href={l.href} className="text-sm text-white/75 transition-colors hover:text-white">
-                    {l.label}
+                  <Link href={l.href} className="text-sm text-white/85 transition-colors hover:text-gold">
+                    {t(l.label, l.labelEn)}
                   </Link>
                 </li>
               ))}
@@ -59,15 +81,12 @@ export function SiteFooter() {
         ))}
       </div>
 
-      <div className="border-t border-white/10">
-        <div className="ff-container flex flex-col items-start justify-between gap-3 py-6 text-xs text-white/45 sm:flex-row sm:items-center">
-          <p>© {new Date().getFullYear()} {site.name}. Le sport de dernière minute. — Démo studio Orvane.</p>
-          <p className="serif-em text-sm text-white/60">« {site.tagline} »</p>
+      <div className="border-t border-white/15">
+        <div className="ff-container flex flex-col items-start justify-between gap-3 py-6 text-xs text-white/65 sm:flex-row sm:items-center">
+          <p>© {new Date().getFullYear()} {site.name}. {t("Le sport de dernière minute. Démo studio Orvane.", "Last-minute sport. Studio Orvane demo.")}</p>
+          <p className="accent-em text-sm text-gold">« {site.tagline} »</p>
         </div>
       </div>
-      <Link href={nav.vendorCta.href} className="sr-only">
-        {nav.vendorCta.label}
-      </Link>
     </footer>
   );
 }

@@ -4,13 +4,18 @@ import { useState } from "react";
 import { SectionHeading } from "@/components/section-heading";
 import { faq } from "@/lib/site";
 import { cn } from "@/lib/utils";
+import { useT } from "@/lib/i18n";
 
 export function Faq() {
+  const t = useT();
   const [open, setOpen] = useState<number | null>(0);
   return (
     <section className="ff-container py-24 md:py-28">
       <div className="grid gap-12 lg:grid-cols-[0.8fr_1.2fr]">
-        <SectionHeading eyebrow="Questions fréquentes" title={<>Tout est<br />limpide.</>} />
+        <SectionHeading
+          eyebrow={t("Questions fréquentes", "Frequently asked")}
+          title={t("Tout est limpide.", "All perfectly clear.")}
+        />
         <div>
           {faq.map((item, i) => {
             const isOpen = open === i;
@@ -23,7 +28,7 @@ export function Faq() {
                 >
                   <span
                     className={cn(
-                      "serif-em w-8 shrink-0 text-lg transition-colors duration-300",
+                      "accent-em w-8 shrink-0 text-lg transition-colors duration-300",
                       isOpen ? "text-brand" : "text-ink/40",
                     )}
                   >
@@ -35,7 +40,7 @@ export function Faq() {
                       isOpen ? "text-brand" : "text-ink group-hover:text-brand",
                     )}
                   >
-                    {item.q}
+                    {t(item.q, item.qEn)}
                   </span>
                   {/* thin drawn +/− affordance — the vertical stroke collapses when open */}
                   <span aria-hidden className="relative h-4 w-4 shrink-0 self-center">
@@ -59,7 +64,7 @@ export function Faq() {
                     isOpen ? "grid-rows-[1fr] pb-7" : "grid-rows-[0fr]",
                   )}
                 >
-                  <p className="min-h-0 max-w-xl pl-[3.25rem] leading-relaxed text-ink-soft">{item.a}</p>
+                  <p className="min-h-0 max-w-xl pl-[3.25rem] leading-relaxed text-ink-soft">{t(item.a, item.aEn)}</p>
                 </div>
               </div>
             );

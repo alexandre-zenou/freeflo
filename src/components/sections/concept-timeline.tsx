@@ -4,6 +4,7 @@ import { useEffect, useRef, useState } from "react";
 import { motion, useScroll, useTransform } from "framer-motion";
 import { SectionHeading } from "@/components/section-heading";
 import { steps } from "@/lib/site";
+import { useT } from "@/lib/i18n";
 
 /**
  * Scroll-driven concept walkthrough for /comment-ca-marche.
@@ -13,13 +14,21 @@ import { steps } from "@/lib/site";
  * you scroll (the dégressivité metaphor).
  */
 const details = [
-  "La carte affiche le prix à l'instant T, recalculé en continu — pas une estimation.",
+  "La carte affiche le prix à l'instant T, recalculé en continu, pas une estimation.",
   "Une fois bloqué, votre prix ne bouge plus, même si la jauge continue de chauffer.",
-  "Votre QR code vit dans le navigateur — rien à installer, rien à imprimer.",
+  "Votre nom suffit à l'accueil : rien à installer, rien à imprimer.",
   "Votre note fait remonter les centres fiables. Et le prochain cours est déjà moins cher.",
 ];
 
+const DETAILS_EN = [
+  "The map shows the price right now, recalculated continuously, not an estimate.",
+  "Once held, your price stops moving, even as the gauge keeps heating up.",
+  "Your name is enough at the front desk: nothing to install, nothing to print.",
+  "Your rating pushes reliable centres up. And the next class is already cheaper.",
+];
+
 export function ConceptTimeline() {
+  const t = useT();
   const ref = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
   const [height, setHeight] = useState(0);
@@ -39,8 +48,11 @@ export function ConceptTimeline() {
   return (
     <section ref={containerRef} className="ff-container py-24 md:py-32">
       <SectionHeading
-        title={<>Le parcours, pas à pas.</>}
-        intro="Quatre gestes, de la découverte au cours. Aucun compte à créer avant de voir les prix."
+        title={t("Le parcours, pas à pas.", "The journey, step by step.")}
+        intro={t(
+          "Quatre gestes, de la découverte au cours. Aucun compte à créer avant de voir les prix.",
+          "Four moves, from finding a class to taking it. No account needed before you see prices.",
+        )}
       />
 
       <div ref={ref} className="relative mt-16">
@@ -51,18 +63,18 @@ export function ConceptTimeline() {
           >
             <div className="sticky top-28 z-10 flex max-w-[9rem] flex-col self-start sm:max-w-xs md:w-full lg:max-w-sm">
               <div className="flex items-baseline gap-4 rounded-r-full bg-cream/90 py-1 pl-12 pr-3 backdrop-blur-sm md:pl-16">
-                <span className="serif-em text-2xl text-brand md:text-3xl">{s.n}</span>
+                <span className="accent-em text-2xl text-brand md:text-3xl">{s.n}</span>
                 <h3 className="display hidden text-2xl text-ink md:block md:text-4xl">
-                  {s.title}
+                  {t(s.title, s.titleEn)}
                 </h3>
               </div>
             </div>
 
             <div className="relative w-full">
-              <h3 className="display mb-3 block text-2xl text-ink md:hidden">{s.title}</h3>
-              <p className="max-w-prose leading-relaxed text-ink/80">{s.text}</p>
+              <h3 className="display mb-3 block text-2xl text-ink md:hidden">{t(s.title, s.titleEn)}</h3>
+              <p className="max-w-prose leading-relaxed text-ink/80">{t(s.text, s.textEn)}</p>
               <p className="mt-6 max-w-prose border-t border-ink/20 pt-4 text-sm text-ink-soft">
-                {details[i]}
+                {t(details[i], DETAILS_EN[i])}
               </p>
             </div>
           </div>

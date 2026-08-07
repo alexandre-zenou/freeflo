@@ -4,7 +4,7 @@ import { SiteFooter } from "@/components/site-footer";
 import { VendorDashboard } from "@/components/vendor/vendor-dashboard";
 
 export const metadata: Metadata = {
-  title: "Espace pro — tableau de bord",
+  title: "Espace pro, tableau de bord",
   description:
     "L'espace pro FREEFLO : gérez vos offres du jour, suivez vos ventes et vos paiements quotidiens, préparez les commandes. Aperçu de démonstration.",
   robots: { index: false, follow: false },

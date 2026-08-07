@@ -4,22 +4,24 @@
 @custom-variant dark (&:is(.dark *));
 
 /*
-  FREEFLO — charte cliente (Canva, juillet 2026).
-  Marque : rouge profond + or. Fond crème. Type : Hanken Grotesk (display gras)
-  + Instrument Serif (accents éditoriaux et titres de l'espace pro).
+  FREEFLO — charte cliente (Canva, juillet 2026), amendée par le retour du 07/08/2026.
+  Marque : rouge profond + or. Fond crème.
+
+  Type : INTER, et Inter seul (retour client). Light (300) pour le texte, Bold (700)
+  pour les titres. Les deux familles précédentes (Hanken Grotesk, Instrument Serif)
+  ont été retirées : il n'y a plus de serif nulle part, espace pro compris.
 
   Deux niveaux assumés :
-  · public   — rouge/or franc, énergique ;
-  · espace pro — fond blanc, bordeaux et serif, plus calme (cf. annotations client).
+  · public : rouge/or franc, énergique ;
+  · espace pro : fond blanc et bordeaux, plus calme (cf. annotations client).
 */
 
 @theme inline {
   --color-background: var(--background);
   --color-foreground: var(--foreground);
 
-  --font-sans: var(--font-hanken);
-  --font-display: var(--font-hanken);
-  --font-serif: var(--font-instrument);
+  --font-sans: var(--font-inter);
+  --font-display: var(--font-inter);
 
   /* palette */
   --color-cream: var(--cream);
@@ -73,12 +75,17 @@
   --paper: #ffffff;        /* surface des cartes */
   --ink: #1c1e26;          /* texte */
   --ink-soft: #6a6560;     /* texte secondaire (chaud, pas bleuté) */
-  --brand: #a51c1e;        /* rouge FREEFLO — pastilles, chiffres, liens */
-  --brand-deep: #830606;   /* bandeaux rouges pleins, carte de confirmation */
+  /*
+    Valeurs relevées le 07/08/2026 directement sur la maquette Canva de la cliente
+    (studentdeal.my.canva.site/freeflo-burn-calories-not-cash), en lisant les styles
+    calculés — ce sont donc SES pantones, pas une approximation.
+  */
+  --brand: #a51c1e;        /* rouge FREEFLO : pastilles, chiffres, liens */
+  --brand-deep: #800101;   /* bandeaux rouges pleins, carte de confirmation */
   --brand-tint: #f8e7e5;   /* lavis rouge pâle */
-  --gold: #f4d26e;         /* or — prix, accents sur fond sombre */
-  --gold-bright: #ffe067;  /* or vif — boutons d'action */
-  --gold-deep: #9a6c12;    /* or lisible en TEXTE sur fond clair (contraste AA) */
+  --gold: #f4d26e;         /* SON or : couleur du prix remisé, et du « FLO » du logo */
+  --gold-bright: #ffde59;  /* SON jaune de bouton (fond des CTA « Réserver ») */
+  --gold-deep: #9a6c12;    /* or assombri, lisible en TEXTE sur fond clair (AA) */
 
   /* espace pro : fond blanc (annotation « mettre un fond blanc »), bordeaux, serif */
   --pro-surface: #faf7f2;  /* bandes discrètes sur le blanc */
@@ -87,6 +94,17 @@
 
   --line: rgba(28, 30, 38, 0.12);
   --line-strong: rgba(28, 30, 38, 0.24);
+
+  /*
+    Mouvement. La cliente cite microsoft.ai comme référence de fluidité et demande
+    « le même effet quand la carte apparaît ». Relevé sur leur site le 07/08/2026 :
+    une seule courbe partout, un long départ suivi d'une queue très douce, des
+    durées longues (0,8 s à 1,3 s) et un décalage de 0,07 s entre éléments.
+    Tout le site s'aligne sur ces trois valeurs.
+  */
+  --ease-flo: cubic-bezier(0.43, 0.195, 0.02, 1);
+  --dur-flo: 1.1s;
+  --stagger-flo: 0.07s;
 
   --background: var(--cream);
   --foreground: var(--ink);
@@ -122,16 +140,28 @@
     background-color: var(--background);
     color: var(--foreground);
     font-family: var(--font-sans), ui-sans-serif, system-ui, sans-serif;
+    /* « Inter light pour texte » : la graisse par défaut du corps est 300. */
+    font-weight: 300;
     font-feature-settings: "ss01", "cv01";
   }
+  /*
+    Inter Light sous 16 px devient pâle et fatigant, surtout en blanc sur rouge :
+    le petit texte remonte à 400. Une classe de graisse explicite (font-medium,
+    font-light…) reste prioritaire, elle est émise dans la couche utilities.
+  */
+  .text-xs,
+  .text-sm {
+    font-weight: 400;
+  }
+  /* Retour client : surlignage de sélection au jaune de la charte, plus le gris. */
   ::selection {
-    background: var(--ink);
-    color: var(--bone);
+    background: var(--gold-bright);
+    color: var(--ink);
   }
 }
 
 @layer utilities {
-  /* Display public : gras et serré, comme la maquette Canva */
+  /* Display public : Inter gras et serré, comme la maquette Canva */
   .display {
     font-family: var(--font-display), sans-serif;
     font-weight: 700;
@@ -142,7 +172,7 @@
     letter-spacing: -0.045em;
     line-height: 0.9;
   }
-  /* Titre de section public : gras italique (« Réservez vos séances… ») */
+  /* Accroche de section : Inter gras italique (« Réservez vos séances… ») */
   .display-italic {
     font-family: var(--font-display), sans-serif;
     font-weight: 700;
@@ -150,24 +180,33 @@
     letter-spacing: -0.02em;
     line-height: 1.06;
   }
-  /* Titres de l'espace pro : serif droit, plus calme */
-  .serif-display {
-    font-family: var(--font-serif), Georgia, serif;
-    font-weight: 400;
-    letter-spacing: -0.01em;
+  /*
+    Anciennement `.serif-display` / `.serif-em` (Instrument Serif). Le retour
+    client impose Inter partout : ces deux utilitaires gardent leur RÔLE
+    (titre calme de l'espace pro, accent d'accroche) mais en Inter.
+  */
+  .pro-display {
+    font-family: var(--font-display), sans-serif;
+    font-weight: 700;
+    letter-spacing: -0.02em;
     line-height: 1.1;
   }
-  .serif-em {
-    font-family: var(--font-serif), Georgia, serif;
+  .accent-em {
+    font-family: var(--font-display), sans-serif;
     font-style: italic;
-    font-weight: 400;
-    letter-spacing: 0;
+    font-weight: 700;
+    letter-spacing: -0.02em;
   }
+  /*
+    Intitulés en capitales. Le retour client barre explicitement l'interlettrage
+    (« enlever les espacements entre les lettres, marqueurs de Claude ») :
+    letter-spacing remis à zéro, la casse et la taille suffisent à hiérarchiser.
+  */
   .eyebrow {
-    font-size: 0.72rem;
-    letter-spacing: 0.24em;
+    font-size: 0.78rem;
+    letter-spacing: 0;
     text-transform: uppercase;
-    font-weight: 500;
+    font-weight: 600;
   }
   .ff-container {
     width: 100%;
@@ -213,11 +252,38 @@
 }
 
 @keyframes ff-rise {
-  from { opacity: 0; transform: translateY(22px); }
+  from { opacity: 0; transform: translateY(32px); }
   to { opacity: 1; transform: none; }
 }
 .rise {
-  animation: ff-rise 0.9s cubic-bezier(0.2, 0.7, 0.2, 1) both;
+  animation: ff-rise var(--dur-flo) var(--ease-flo) both;
+}
+
+/*
+  Apparition de la carte. La cliente la cite nommément : « voir la map, je
+  souhaite avoir la même fluidité quand elle apparaît ». Le volet se lève,
+  s'agrandit très légèrement et se dévoile par le bas, sur la courbe maison.
+*/
+@keyframes ff-map-in {
+  from {
+    opacity: 0;
+    transform: translateY(28px) scale(1.03);
+    clip-path: inset(0 0 12% 0 round 1.5rem);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+    clip-path: inset(0 0 0 0 round 1.5rem);
+  }
+}
+.map-in {
+  animation: ff-map-in 1.3s var(--ease-flo) both;
+}
+
+/* Les pastilles de prix se posent ensuite, une par une. */
+@keyframes ff-pin-drop {
+  from { opacity: 0; transform: translate(-50%, calc(-100% - 14px)) scale(0.85); }
+  to { opacity: 1; transform: translate(-50%, -100%) scale(1); }
 }
 
 @keyframes ff-pulse {
@@ -255,6 +321,9 @@
   .ff-pin {
     transform: translate(-50%, -100%);
     cursor: pointer;
+    animation: ff-pin-drop 0.7s var(--ease-flo) both;
+    /* `--pin-i` est posé par leaflet-map.tsx : les pastilles se posent en cascade. */
+    animation-delay: calc(0.35s + var(--pin-i, 0) * var(--stagger-flo));
   }
   .ff-pin__pill {
     display: inline-flex;

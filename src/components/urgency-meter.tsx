@@ -1,5 +1,8 @@
+"use client";
+
 import { cn } from "@/lib/utils";
 import { formatCountdown } from "@/lib/format";
+import { useLocale, useT } from "@/lib/i18n";
 
 /** Jauge d’urgence : plus l'échéance approche, plus la barre chauffe et se remplit. */
 export function UrgencyMeter({
@@ -13,6 +16,8 @@ export function UrgencyMeter({
   className?: string;
   showLabel?: boolean;
 }) {
+  const t = useT();
+  const { locale } = useLocale();
   const pct = Math.round(heat * 100);
   const hot = heat > 0.6;
   return (
@@ -21,9 +26,11 @@ export function UrgencyMeter({
         <div className="mb-1.5 flex items-center justify-between text-[0.72rem]">
           <span className={cn("flex items-center gap-1.5 font-medium", hot ? "text-brand-deep" : "text-ink-soft")}>
             <span className={cn("h-1.5 w-1.5 rounded-full", hot ? "bg-brand pulse-dot" : "bg-gold-deep")} />
-            {hot ? "Sprint final" : "Le prix fond"}
+            {hot ? t("Sprint final", "Final sprint") : t("Le prix fond", "Price is melting")}
           </span>
-          <span className="tabular-nums text-ink-soft">départ dans {formatCountdown(remainingHours)}</span>
+          <span className="tabular-nums text-ink-soft">
+            {t("départ dans", "starts in")} {formatCountdown(remainingHours, locale)}
+          </span>
         </div>
       )}
       <div className="h-1.5 w-full overflow-hidden rounded-full bg-ink/8">

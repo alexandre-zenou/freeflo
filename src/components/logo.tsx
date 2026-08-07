@@ -15,7 +15,7 @@ export function Logo({
   return (
     <Link
       href="/"
-      aria-label="FREEFLO — accueil"
+      aria-label="FREEFLO, accueil"
       className={cn(
         "group inline-flex items-baseline font-display text-[1.4rem] font-extrabold tracking-tight",
         className,

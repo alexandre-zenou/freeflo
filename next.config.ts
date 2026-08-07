@@ -16,8 +16,11 @@ const nextConfig: NextConfig = {
           { key: "X-Content-Type-Options", value: "nosniff" },
           { key: "Referrer-Policy", value: "strict-origin-when-cross-origin" },
           {
+            // `geolocation=(self)` : la cliente demande un bouton « Activez votre
+            // géolocalisation » sur /offres. Avec `geolocation=()` le navigateur
+            // refusait la demande avant même d'afficher la permission.
             key: "Permissions-Policy",
-            value: "camera=(), microphone=(), geolocation=()",
+            value: "camera=(), microphone=(), geolocation=(self)",
           },
         ],
       },

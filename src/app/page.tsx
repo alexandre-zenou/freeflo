@@ -5,7 +5,6 @@ import { Categories } from "@/components/sections/categories";
 import { HowItWorks } from "@/components/sections/how-it-works";
 import { MapSearch } from "@/components/sections/map-search";
 import { LiveOffers } from "@/components/sections/live-offers";
-import { VendorCta } from "@/components/sections/vendor-cta";
 import { Faq } from "@/components/sections/faq";
 
 export default function Home() {
@@ -18,7 +17,6 @@ export default function Home() {
         <HowItWorks />
         <MapSearch />
         <LiveOffers />
-        <VendorCta />
         <Faq />
       </main>
       <SiteFooter />

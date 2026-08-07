@@ -2,23 +2,26 @@
 
 import { useMemo, useState } from "react";
 import { useRouter } from "next/navigation";
-import { Map as MapIcon, List, SlidersHorizontal, Search } from "lucide-react";
+import { Map as MapIcon, List, SlidersHorizontal, Search, MapPin, X } from "lucide-react";
 import { OfferCard } from "@/components/offer-card";
+import { PillSelect } from "@/components/ui/pill-select";
+import { RevealOnView } from "@/components/reveal-on-view";
 import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
 import { categories, type Offer } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
+import { distanceKm, PARIS_ARRONDISSEMENTS } from "@/lib/geo";
 import { formatEuro } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
 
 type Sort = "urgence" | "proximite" | "prix";
-const sorts: { key: Sort; label: string }[] = [
-  { key: "urgence", label: "Dernière chance" },
-  { key: "proximite", label: "Plus proches" },
-  { key: "prix", label: "Prix le plus bas" },
+const sorts: { key: Sort; label: string; labelEn: string }[] = [
+  { key: "urgence", label: "Dernière chance", labelEn: "Last chance" },
+  { key: "proximite", label: "Plus proches", labelEn: "Closest" },
+  { key: "prix", label: "Prix le plus bas", labelEn: "Lowest price" },
 ];
 
-/** Repères jaunes demandés par le client pour situer la carte. */
+/** Repères jaunes demandés par la cliente pour situer la carte. */
 const MONUMENTS: Monument[] = [
   { label: "Tour Eiffel", lat: 48.8584, lng: 2.2945 },
   { label: "Louvre", lat: 48.8606, lng: 2.3376 },
@@ -37,37 +40,63 @@ function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
   return "later";
 }
 
-const selectCls =
-  "shrink-0 rounded-full bg-brand px-4 py-2 text-sm font-medium text-white outline-none transition-colors hover:bg-brand-deep focus-visible:ring-2 focus-visible:ring-brand-deep focus-visible:ring-offset-2";
+type GeoState = "idle" | "asking" | "granted" | "denied";
 
 export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const router = useRouter();
   const t = useT();
-  const [loc, setLoc] = useState<string>("");
-  const [cat, setCat] = useState<string>("");
-  const [avail, setAvail] = useState<string>("");
+  const [loc, setLoc] = useState("");
+  const [cat, setCat] = useState("");
+  const [avail, setAvail] = useState("");
+  const [query, setQuery] = useState("");
   const [sort, setSort] = useState<Sort>("urgence");
   const [view, setView] = useState<"list" | "map">("map");
   const [hover, setHover] = useState<string | null>(null);
+  const [geo, setGeo] = useState<GeoState>("idle");
+  const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
 
-  const arrondissements = useMemo(
-    () => [...new Set(offers.map((o) => o.arrondissement))].sort(),
-    [offers],
-  );
+  /*
+    Retour client : « bien mettre la case activez la géolocalisation et ajouter tous
+    les arrondissements ». La position réelle sert à recalculer les distances par
+    haversine, et bascule le tri sur « Plus proches ».
+  */
+  const askGeo = () => {
+    if (!("geolocation" in navigator)) return setGeo("denied");
+    setGeo("asking");
+    navigator.geolocation.getCurrentPosition(
+      (pos) => {
+        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude });
+        setGeo("granted");
+        setSort("proximite");
+      },
+      () => setGeo("denied"),
+      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 },
+    );
+  };
 
   const list = useMemo(() => {
+    /** Distance réelle si la position est connue, sinon celle du jeu de démo. */
+    const distanceOf = (o: Offer) =>
+      me ? distanceKm(me, { lat: o.lat, lng: o.lng }) : o.distanceKm;
+
+    const q = query.trim().toLowerCase();
     const filtered = offers.filter((o) => {
       if (loc && o.arrondissement !== loc) return false;
       if (cat && o.category !== cat) return false;
       if (avail && dayBucket(o.startsInHours) !== avail) return false;
+      if (q) {
+        const haystack =
+          `${o.title} ${o.gym} ${o.category} ${o.address} ${o.arrondissement} ${o.coach}`.toLowerCase();
+        if (!haystack.includes(q)) return false;
+      }
       return true;
     });
     return [...filtered].sort((a, b) => {
       if (sort === "urgence") return a.startsInHours - b.startsInHours;
-      if (sort === "proximite") return a.distanceKm - b.distanceKm;
+      if (sort === "proximite") return distanceOf(a) - distanceOf(b);
       return a.basePrice - b.basePrice;
     });
-  }, [offers, loc, cat, avail, sort]);
+  }, [offers, loc, cat, avail, query, sort, me]);
 
   const points: MapPoint[] = useMemo(
     () =>
@@ -78,7 +107,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
     [list],
   );
 
-  // one label per arrondissement present, placed just above that district's pins
+  // une étiquette par arrondissement présent, posée juste au-dessus de ses pastilles
   const districts = useMemo(() => {
     const groups = new Map<string, { lat: number; lng: number; n: number }>();
     list.forEach((o) => {
@@ -92,45 +121,83 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
     }));
   }, [list]);
 
+  const hasFilters = Boolean(loc || cat || avail || query);
+
   return (
     <div>
-      {/* filtres : listes déroulantes de la maquette cliente */}
-      <div className="sticky top-16 z-30 -mx-4 border-b border-line bg-cream/90 px-4 py-3 backdrop-blur md:top-[4.5rem]">
+      {/* filtres : pastilles ovales, comme les puces de tri en dessous */}
+      <div className="sticky top-16 z-30 border-b border-line bg-cream/90 py-3 backdrop-blur md:top-[4.5rem]">
         <div className="ff-container flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
-            <label className="sr-only" htmlFor="f-loc">{t("Localisation", "Location")}</label>
-            <select id="f-loc" value={loc} onChange={(e) => setLoc(e.target.value)} className={selectCls}>
-              <option value="">{t("Localisation", "Location")}</option>
-              {arrondissements.map((a) => (
-                <option key={a} value={a}>{a}</option>
-              ))}
-            </select>
-
-            <label className="sr-only" htmlFor="f-cat">{t("Type de cours", "Class type")}</label>
-            <select id="f-cat" value={cat} onChange={(e) => setCat(e.target.value)} className={selectCls}>
-              <option value="">{t("Type de cours", "Class type")}</option>
-              {categories.map((c) => (
-                <option key={c.slug} value={c.slug}>{c.label}</option>
-              ))}
-            </select>
-
-            <label className="sr-only" htmlFor="f-avail">{t("Disponibilité", "Availability")}</label>
-            <select id="f-avail" value={avail} onChange={(e) => setAvail(e.target.value)} className={selectCls}>
-              <option value="">{t("Disponibilité", "Availability")}</option>
-              <option value="today">{t("Aujourd'hui", "Today")}</option>
-              <option value="tomorrow">{t("Demain", "Tomorrow")}</option>
-            </select>
+            <PillSelect
+              label={t("Localisation", "Location")}
+              value={loc}
+              onChange={setLoc}
+              options={PARIS_ARRONDISSEMENTS.map((a) => ({ value: a, label: a }))}
+            />
+            <PillSelect
+              label={t("Type de cours", "Class type")}
+              value={cat}
+              onChange={setCat}
+              options={categories.map((c) => ({ value: c.slug, label: c.label }))}
+            />
+            <PillSelect
+              label={t("Disponibilité", "Availability")}
+              value={avail}
+              onChange={setAvail}
+              options={[
+                { value: "today", label: t("Aujourd'hui", "Today") },
+                { value: "tomorrow", label: t("Demain", "Tomorrow") },
+              ]}
+            />
 
             <button
-              onClick={() => { setLoc(""); setCat(""); setAvail(""); }}
-              className="ml-auto inline-flex shrink-0 items-center gap-2 rounded-full border border-brand/35 px-4 py-2 text-sm text-brand transition-colors hover:bg-brand hover:text-white"
+              type="button"
+              onClick={askGeo}
+              disabled={geo === "asking"}
+              className={cn(
+                "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
+                geo === "granted"
+                  ? "bg-brand-deep text-white"
+                  : "border border-brand/35 text-brand hover:bg-brand hover:text-white disabled:opacity-60",
+              )}
             >
-              <Search className="h-4 w-4" /> {t("Rechercher ici", "Search here")}
+              <MapPin className="h-3.5 w-3.5" />
+              {geo === "granted"
+                ? t("Autour de vous", "Around you")
+                : geo === "asking"
+                  ? t("Localisation…", "Locating…")
+                  : t("Activez la géolocalisation", "Turn on location")}
             </button>
+
+            {/* recherche réelle : elle filtre, au lieu de remettre les filtres à zéro */}
+            <label className="ml-auto flex min-w-[13rem] flex-1 items-center gap-2 rounded-full border border-brand/35 px-4 py-2 text-sm text-ink focus-within:border-brand sm:flex-none">
+              <Search className="h-4 w-4 shrink-0 text-brand" />
+              <input
+                value={query}
+                onChange={(e) => setQuery(e.target.value)}
+                placeholder={t("Rechercher ici", "Search here")}
+                className="w-full bg-transparent outline-none placeholder:text-ink-soft/70"
+              />
+              {query && (
+                <button type="button" onClick={() => setQuery("")} aria-label={t("Effacer", "Clear")}>
+                  <X className="h-3.5 w-3.5 text-ink-soft hover:text-ink" />
+                </button>
+              )}
+            </label>
           </div>
 
+          {geo === "denied" && (
+            <p className="text-xs text-brand">
+              {t(
+                "Localisation refusée. Choisissez un arrondissement pour filtrer.",
+                "Location denied. Pick a district to filter instead.",
+              )}
+            </p>
+          )}
+
           <div className="flex items-center justify-between gap-3">
-            <div className="flex items-center gap-2 text-sm text-ink-soft">
+            <div className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
               <SlidersHorizontal className="h-4 w-4" />
               <span className="hidden sm:inline">{t("Trier :", "Sort:")}</span>
               {sorts.map((s) => (
@@ -142,9 +209,17 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                     sort === s.key ? "bg-brand-tint text-brand" : "hover:text-ink",
                   )}
                 >
-                  {s.label}
+                  {t(s.label, s.labelEn)}
                 </button>
               ))}
+              {hasFilters && (
+                <button
+                  onClick={() => { setLoc(""); setCat(""); setAvail(""); setQuery(""); }}
+                  className="rounded-full px-3 py-1 text-sm text-brand underline underline-offset-4 hover:text-brand-deep"
+                >
+                  {t("Tout effacer", "Clear all")}
+                </button>
+              )}
             </div>
 
             <div className="flex shrink-0 items-center rounded-full bg-secondary p-1">
@@ -172,7 +247,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
           </span>{" "}
           {list.length > 0
             ? t("disponibles près de vous", "available near you")
-            : t("— élargissez vos filtres", "— widen your filters")}
+            : t("élargissez vos filtres", "widen your filters")}
         </p>
 
         {view === "list" ? (
@@ -196,7 +271,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
               ))}
             </div>
             <div className="order-1 lg:order-2 lg:sticky lg:top-40 lg:self-start">
-              <div className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line lg:aspect-auto lg:h-[70vh] lg:min-h-[560px]">
+              <RevealOnView className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line lg:aspect-auto lg:h-[70vh] lg:min-h-[560px]">
                 <LeafletMap
                   points={points}
                   districts={districts}
@@ -210,7 +285,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                 <div className="pointer-events-none absolute bottom-3 left-3 z-[400] rounded-full bg-white/85 px-3 py-1 text-xs text-ink-soft backdrop-blur">
                   {list.length} {t("cours dans un rayon de 3 km", "classes within 3 km")}
                 </div>
-              </div>
+              </RevealOnView>
             </div>
           </div>
         )}

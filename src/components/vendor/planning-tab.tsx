@@ -1,154 +1,20 @@
 "use client";
 
 import { useState } from "react";
-import { Plus, X } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { OfferFormModal } from "@/components/vendor/offer-form-modal";
 import { weekDays, type VendorOffer } from "@/components/vendor/vendor-data";
+import { useT } from "@/lib/i18n";
 
-/** Astérisque des champs obligatoires (annotation client). */
-function Required() {
-  return <span className="text-brand"> *</span>;
-}
-
-const fieldCls =
-  "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-pro-accent";
-
-function PublishModal({
-  day,
-  onClose,
-  onPublish,
-}: {
-  day: number;
-  onClose: () => void;
-  onPublish: (o: VendorOffer) => void;
-}) {
-  const [title, setTitle] = useState("");
-  const [cat, setCat] = useState("Yoga");
-  const [time, setTime] = useState("18:30");
-  const [capacity, setCapacity] = useState(12);
-  const [price, setPrice] = useState(24);
-  const [coach, setCoach] = useState("");
-  const [error, setError] = useState<string | null>(null);
-
-  const submit = () => {
-    if (!title.trim()) return setError("Le nom du cours est obligatoire.");
-    if (capacity < 1 || price <= 0) return setError("Places et prix doivent être positifs.");
-    onPublish({
-      id: `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${time}`,
-      title: title.trim(),
-      cat,
-      capacity,
-      placesLeft: capacity,
-      basePrice: price,
-      startsInHours: 24,
-      day,
-      time,
-    });
-  };
-
-  return (
-    <div className="fixed inset-0 z-50 grid place-items-center p-4">
-      <button aria-label="Fermer" onClick={onClose} className="absolute inset-0 bg-ink/45 backdrop-blur-[2px]" />
-      <div className="relative w-full max-w-md rounded-3xl bg-white p-6 shadow-lift">
-        <div className="flex items-start justify-between">
-          <h2 className="serif-display text-2xl text-ink">Publier un cours</h2>
-          <button
-            onClick={onClose}
-            aria-label="Fermer"
-            className="grid h-9 w-9 place-items-center rounded-full bg-pro-surface text-ink-soft transition-colors hover:text-ink"
-          >
-            <X className="h-4 w-4" />
-          </button>
-        </div>
-
-        <div className="mt-5 space-y-4">
-          <label className="block text-sm">
-            <span className="mb-1.5 block font-medium text-ink">
-              Nom du cours<Required />
-            </span>
-            <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Vinyasa Flow" className={fieldCls} />
-          </label>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-medium text-ink">
-                Activité<Required />
-              </span>
-              <select value={cat} onChange={(e) => setCat(e.target.value)} className={fieldCls}>
-                {["Yoga", "Pilates", "Boxe", "HIIT", "Cycling"].map((c) => (
-                  <option key={c}>{c}</option>
-                ))}
-              </select>
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-medium text-ink">
-                Heure<Required />
-              </span>
-              <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={fieldCls} />
-            </label>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-medium text-ink">
-                Places<Required />
-              </span>
-              <input
-                type="number"
-                min={1}
-                value={capacity}
-                onChange={(e) => setCapacity(Math.max(1, Number(e.target.value)))}
-                className={fieldCls}
-              />
-            </label>
-            <label className="block text-sm">
-              <span className="mb-1.5 block font-medium text-ink">
-                Prix plein (€)<Required />
-              </span>
-              <input
-                type="number"
-                min={1}
-                value={price}
-                onChange={(e) => setPrice(Math.max(1, Number(e.target.value)))}
-                className={fieldCls}
-              />
-            </label>
-          </div>
-
-          {/* annotation client : photo + nom du professeur NON obligatoires */}
-          <label className="block text-sm">
-            <span className="mb-1.5 block font-medium text-ink">
-              Professeur <span className="font-normal text-ink-soft">(facultatif)</span>
-            </span>
-            <input value={coach} onChange={(e) => setCoach(e.target.value)} placeholder="Camille" className={fieldCls} />
-          </label>
-          <p className="text-xs text-ink-soft">
-            Photo du professeur facultative — elle pourra être ajoutée plus tard.
-          </p>
-        </div>
-
-        {error && <p className="mt-4 text-sm text-brand">{error}</p>}
-
-        <div className="mt-6 flex items-center gap-3 border-t border-line pt-5">
-          <button
-            onClick={submit}
-            className="rounded-full bg-pro-accent px-6 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
-          >
-            Publier
-          </button>
-          <button onClick={onClose} className="text-sm text-ink-soft transition-colors hover:text-ink">
-            Annuler
-          </button>
-          <span className="ml-auto text-xs text-ink-soft">
-            <Required /> champs obligatoires
-          </span>
-        </div>
-      </div>
-    </div>
-  );
-}
-
-/** Emploi du temps hebdomadaire — nouvel onglet demandé par le client. */
+/**
+ * Emploi du temps hebdomadaire.
+ *
+ * Retour client : le bouton « Publier un cours » en haut à droite faisait doublon
+ * avec « Créer une offre » de l'en-tête du tableau de bord. Il a été retiré ;
+ * l'ajout passe par la ligne « Ajouter un cours à ce jour », qui a l'avantage de
+ * savoir de quel jour il s'agit. Le formulaire lui-même vit dans
+ * `offer-form-modal.tsx`, partagé avec le bouton « Modifier » de Mes offres.
+ */
 export function PlanningTab({
   offers,
   onPublish,
@@ -156,6 +22,7 @@ export function PlanningTab({
   offers: VendorOffer[];
   onPublish: (o: VendorOffer) => void;
 }) {
+  const t = useT();
   const [day, setDay] = useState(3); // jeudi, comme la maquette
   const [modal, setModal] = useState(false);
 
@@ -165,17 +32,9 @@ export function PlanningTab({
 
   return (
     <div>
-      <div className="flex flex-wrap items-start justify-between gap-4">
-        <div>
-          <p className="eyebrow text-pro-accent">Emploi du temps</p>
-          <h2 className="serif-display mt-1 text-3xl text-ink">Planning</h2>
-        </div>
-        <button
-          onClick={() => setModal(true)}
-          className="inline-flex items-center gap-2 rounded-full bg-pro-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
-        >
-          <Plus className="h-4 w-4" /> Publier un cours
-        </button>
+      <div>
+        <p className="eyebrow text-pro-accent">{t("Emploi du temps", "Schedule")}</p>
+        <h2 className="pro-display mt-1 text-3xl text-ink">{t("Planning", "Planning")}</h2>
       </div>
 
       <div className="mt-6 flex flex-wrap gap-2">
@@ -191,7 +50,7 @@ export function PlanningTab({
                 : "border-line text-ink-soft hover:border-pro-accent hover:text-pro-accent",
             )}
           >
-            <span className="text-[0.7rem] tracking-wide">{d.short}</span>
+            <span className="text-[0.7rem]">{d.short}</span>
             <span className="font-medium">{d.date}</span>
           </button>
         ))}
@@ -216,7 +75,7 @@ export function PlanningTab({
               </div>
               <div className="min-w-[9rem] flex-1">
                 <p className="text-sm tabular-nums text-ink-soft">
-                  {sold}/{o.capacity} réservées
+                  {sold}/{o.capacity} {t("réservées", "booked")}
                 </p>
                 <div className="mt-1.5 h-1.5 w-full overflow-hidden rounded-full bg-ink/8">
                   <div className="h-full rounded-full bg-pro-tan" style={{ width: `${Math.max(4, pct)}%` }} />
@@ -228,7 +87,7 @@ export function PlanningTab({
                   full ? "bg-brand-tint text-brand" : "bg-emerald-50 text-emerald-700",
                 )}
               >
-                {full ? "Complet" : `${o.placesLeft} places restantes`}
+                {full ? t("Complet", "Full") : `${o.placesLeft} ${t("places restantes", "spots left")}`}
               </span>
             </div>
           );
@@ -238,15 +97,16 @@ export function PlanningTab({
           onClick={() => setModal(true)}
           className="w-full rounded-2xl border border-dashed border-line py-4 text-sm text-ink-soft transition-colors hover:border-pro-accent hover:text-pro-accent"
         >
-          + Ajouter un cours à ce jour
+          + {t("Ajouter un cours à ce jour", "Add a class to this day")}
         </button>
       </div>
 
       {modal && (
-        <PublishModal
+        <OfferFormModal
+          mode="create"
           day={day}
           onClose={() => setModal(false)}
-          onPublish={(o) => {
+          onSubmit={(o) => {
             onPublish(o);
             setModal(false);
           }}
