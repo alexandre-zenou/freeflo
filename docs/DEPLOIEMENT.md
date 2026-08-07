@@ -11,6 +11,7 @@ du compte utilisé pour la démo.
 | Hébergement | Vercel | **oui** : nouveau projet sur le compte cible |
 | Variables d'environnement | — | **aucune** à ce jour |
 | Domaines personnalisés | — | **aucun** attaché pour l'instant |
+| Compte Vercel | compte dédié **freeflo** | ce n'est PLUS l'équipe oravane (bascule 08/2026) |
 | Base de données / paiements | — | rien : la démo n'a pas de backend |
 
 Le site est une **démo statique** : tout le contenu vit dans `src/lib/site.ts`, les prix
@@ -65,8 +66,10 @@ les partages sociaux pointeront vers le mauvais domaine.
   définitifs restent à faire valider par un juriste.
 - **Contenu de démonstration** : centres, offres, avis, statistiques de l'espace pro
   sont fictifs (`src/lib/site.ts`, `src/components/vendor/vendor-data.ts`).
-- **Copie anglaise** : le sélecteur FR/EN fonctionne, mais seules l'accueil et les
-  filtres disposent de textes anglais ; le reste retombe en français.
+- **Copie anglaise** : le site est intégralement bilingue depuis 08/2026, espace pro
+  compris. La traduction a été produite par le studio : à faire relire par la cliente
+  avant publication, c'est de la copie commerciale. Limite connue : les métadonnées SEO
+  (`<title>`, `description`) restent en français.
 
 ## 5. Vérifications après bascule
 
