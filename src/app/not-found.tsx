@@ -14,11 +14,11 @@ export default function NotFound() {
       <SiteHeader />
       <main className="grid min-h-dvh place-items-center brand-mesh grain">
         <div className="ff-container text-center">
-          <p className="display text-[clamp(4rem,14vw,9rem)] text-ink">404</p>
-          <p className="accent-em -mt-2 text-2xl text-brand">
+          <p className="display text-[clamp(4rem,14vw,9rem)] text-white">404</p>
+          <p className="accent-em -mt-2 text-2xl text-gold">
             {t("Ce créneau est déjà parti.", "That slot is already gone.")}
           </p>
-          <p className="mx-auto mt-4 max-w-md text-ink/70">
+          <p className="mx-auto mt-4 max-w-md text-white/85">
             {t(
               "La page n'existe plus, mais d'autres cours se libèrent en ce moment près de vous.",
               "This page is gone, but other classes are opening up near you right now.",

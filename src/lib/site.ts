@@ -48,6 +48,12 @@ export const nav = {
  * héros, elle, reste celle de la cliente (elle demande de garder ses vidéos).
  * Les fichiers `public/categories/*.jpg` sont conservés au cas où elle changerait
  * d'avis.
+ *
+ * EXCEPTION — le cycling utilise SA photo (`/categories/cycling.jpg`). Aucune
+ * banque d'images n'a donné de vrai cours de cycling en salle (une quarantaine
+ * testées ; la seule correcte affichait la marque « Peloton » en clair). La
+ * sienne montre un vrai cours, en tenues rouges conformes à sa charte, sans
+ * marquage. À rebasculer sur Unsplash si elle fournit un autre visuel.
  */
 const U = (id: string) =>
   `https://images.unsplash.com/${id}?auto=format&fit=crop&w=1100&q=80`;
@@ -70,7 +76,7 @@ export const categories: Category[] = [
   { slug: "pilates", label: "Pilates", labelEn: "Pilates", image: U("photo-1518611012118-696072aa579a") },
   { slug: "boxe", label: "Boxe", labelEn: "Boxing", image: U("photo-1584464491033-06628f3a6b7b") },
   { slug: "hiit", label: "HIIT", labelEn: "HIIT", image: U("photo-1517836357463-d25dfeac3438") },
-  { slug: "cycling", label: "Cycling", labelEn: "Cycling", image: U("photo-1534258936925-c58bed479fcb") },
+  { slug: "cycling", label: "Cycling", labelEn: "Cycling", image: "/categories/cycling.jpg" },
 ];
 
 export function categoryOf(slug: string): Category {
@@ -217,7 +223,7 @@ export const offers: Offer[] = [
     distanceKm: 3.4,
     rating: 4.8,
     reviews: 297,
-    image: U("photo-1534258936925-c58bed479fcb"),
+    image: "/categories/cycling.jpg",
     coach: "Dylan",
     description:
       "45 min de ride chorégraphié, lumières et son de club. Chaussures de location incluses.",
