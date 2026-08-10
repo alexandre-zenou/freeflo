@@ -2,8 +2,18 @@ import Link from "next/link";
 import { cn } from "@/lib/utils";
 
 /**
- * Wordmark bicolore de la charte cliente : « FREE » rouge, « FLO » or.
- * Sur fond sombre le « FREE » passe en blanc pour rester lisible.
+ * Logo de la cliente (`public/brand/freeflo-logo.svg`) : un monogramme « f »
+ * avec « freeflo » en micro-typo autour.
+ *
+ * Le fichier fourni est entièrement NOIR, ce qui le rendait illisible sur le
+ * héros rouge et sur le pied de page. Plutôt que de le modifier — c'est son
+ * logo, on n'y touche pas — on l'utilise en **masque CSS** : la forme vient du
+ * SVG, la couleur de `currentColor`. Un seul fichier, servi une fois et mis en
+ * cache, qui s'adapte aux deux fonds.
+ *
+ * Le nom « FREEFLO » reste dans l'`aria-label` : la micro-typo du monogramme
+ * est illisible à cette taille, et un lecteur d'écran ne lit pas une image de
+ * fond.
  */
 export function Logo({
   className,
@@ -16,13 +26,25 @@ export function Logo({
     <Link
       href="/"
       aria-label="FREEFLO, accueil"
-      className={cn(
-        "group inline-flex items-baseline font-display text-[1.4rem] font-extrabold tracking-tight",
-        className,
-      )}
+      className={cn("inline-flex items-center", className)}
     >
-      <span className={onDark ? "text-white" : "text-brand"}>FREE</span>
-      <span className="text-gold">FLO</span>
+      <span
+        aria-hidden
+        className={cn(
+          "block h-9 w-[27px] shrink-0 transition-colors md:h-10 md:w-[30px]",
+          onDark ? "bg-white" : "bg-brand",
+        )}
+        style={{
+          maskImage: "url(/brand/freeflo-logo.svg)",
+          WebkitMaskImage: "url(/brand/freeflo-logo.svg)",
+          maskSize: "contain",
+          WebkitMaskSize: "contain",
+          maskRepeat: "no-repeat",
+          WebkitMaskRepeat: "no-repeat",
+          maskPosition: "center",
+          WebkitMaskPosition: "center",
+        }}
+      />
     </Link>
   );
 }

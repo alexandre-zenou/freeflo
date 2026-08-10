@@ -35,7 +35,7 @@ KYC, admin) is **phase 2** — designed in `docs/ARCHITECTURE.md`, not built her
 - **GSAP** available; hero/scroll reveals use **CSS + IntersectionObserver** (see note below)
 - shadcn-style `Button` (CVA), **lucide-react** icons
 - **vitest** for unit tests (the pricing engine is tested)
-- Deployed to **Vercel** (not yet deployed)
+- Déployé sur Vercel — **compte dédié « freeflo », plus l'équipe oravane** (bascule 08/2026)
 
 ## Brand tokens (per-client — do not import from other clients)
 
@@ -67,7 +67,14 @@ visible : le client les identifie comme « des marqueurs de Claude ». `.eyebrow
 `letter-spacing: 0`, et les séparateurs `—` / `·` ont été remplacés par des virgules,
 deux-points ou des phrases séparées. Ne pas les réintroduire.
 
-**Logo :** wordmark bicolore — « FREE » rouge + « FLO » or.
+**Logo :** le monogramme de la cliente, `public/brand/freeflo-logo.svg` (un « f » avec
+« freeflo » en micro-typo). Le wordmark bicolore « FREE » rouge + « FLO » or a été
+REMPLACÉ le 10/08/2026. Le fichier fourni est entièrement noir : `components/logo.tsx`
+l'applique en **masque CSS** (`mask-image` + `background-color: currentColor`), donc la
+forme vient du SVG et la couleur du contexte — rouge sur fond clair, blanc sur le rouge.
+Ne pas le repasser en `<img>` : il redeviendrait noir et illisible sur le héros.
+Le fichier n'est pas minifié (56 Ko) : deux tentatives d'arrondi des coordonnées l'ont
+cassé, et il est servi une seule fois puis figé un an. Ne pas y toucher sans outil dédié.
 
 **The signature idea:** la dégressivité rendue *vivante* — les prix descendent, une
 jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
@@ -81,9 +88,10 @@ jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
 | `/offres/[id]` | Offer detail + booking flow (reserve → mock pay → confirmation) — SSG per offer |
 | `/qui-sommes-nous` | À propos (demandé par la maquette) |
 | `/comment-ca-marche` | Concept / how-it-works |
-| `/inscrire-son-centre` | Vendor recruitment + commission grid + mock signup |
+| `/inscrire-son-centre` | « Pourquoi FREEFLO » : arguments centres + formulaire |
+| `/inscription-centre` | Entrée du parcours d'inscription (recherche de commerce) |
 | `/pro` | Vendor dashboard mockup ("espace pro" / MyStore) |
-| `/mentions-legales` | Legal (CGU/CGV/RGPD scaffold from §12) |
+| `/mentions-legales` · `/cgu-cgv` · `/confidentialite` | Les trois documents légaux, séparés |
 
 ## Retour client du 07/08/2026 (`docs/FEEDBACK-2026-08.md`)
 
@@ -98,9 +106,10 @@ carte « Prochain virement » + le panneau « Commission dégressive » du table
 la courbe du tiroir « Créer une offre », et deux panneaux de `stats-tab`. Ne pas les
 réintroduire. **Ne jamais nommer Too Good To Go ni Treatwell.**
 
-Reste à faire : copie (§ lot C), en-tête et pied de page (D), parcours sportif (E),
-espace pro (F), page « Inscrire votre centre » (G), fluidité façon microsoft.ai (I),
-anglais réel (H). Détail et questions ouvertes dans `docs/FEEDBACK-2026-08.md`.
+**Les 9 lots sont livrés** (A à I). Restent trois arbitrages notés dans le doc : le prix
+plancher de Paramètres (seul pourcentage encore affiché), le titre de la modale de la
+planche 26, et le contraste du prix en or sur carte blanche (1,47:1, conforme à son
+Canva). La traduction anglaise est celle du studio : à faire relire par la cliente.
 
 ## Transfert de données (Vercel) — à ne pas défaire
 

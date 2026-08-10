@@ -65,6 +65,12 @@ const nextConfig: NextConfig = {
         source: "/categories/:path*",
         headers: [{ key: "Cache-Control", value: `public, max-age=${ONE_YEAR}, immutable` }],
       },
+      {
+        // Le logo est servi en masque CSS sur toutes les pages : une seule
+        // requête, puis plus jamais.
+        source: "/brand/:path*",
+        headers: [{ key: "Cache-Control", value: `public, max-age=${ONE_YEAR}, immutable` }],
+      },
     ];
   },
 };
