@@ -68,7 +68,7 @@ export interface Category {
 export const categories: Category[] = [
   { slug: "yoga", label: "Yoga", labelEn: "Yoga", image: U("photo-1544367567-0f2fcb009e0b") },
   { slug: "pilates", label: "Pilates", labelEn: "Pilates", image: U("photo-1518611012118-696072aa579a") },
-  { slug: "boxe", label: "Boxe", labelEn: "Boxing", image: U("photo-1549060279-7e168fcee0c2") },
+  { slug: "boxe", label: "Boxe", labelEn: "Boxing", image: U("photo-1584464491033-06628f3a6b7b") },
   { slug: "hiit", label: "HIIT", labelEn: "HIIT", image: U("photo-1517836357463-d25dfeac3438") },
   { slug: "cycling", label: "Cycling", labelEn: "Cycling", image: U("photo-1534258936925-c58bed479fcb") },
 ];
@@ -145,7 +145,7 @@ export const offers: Offer[] = [
     distanceKm: 1.6,
     rating: 4.8,
     reviews: 388,
-    image: U("photo-1549060279-7e168fcee0c2"),
+    image: U("photo-1584464491033-06628f3a6b7b"),
     coach: "Sofiane",
     description:
       "Gants de location dispo. Un cours qui envoie : shadow, sac, corde. Tous niveaux, ambiance club.",

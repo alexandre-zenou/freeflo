@@ -10,22 +10,24 @@ import { useT } from "@/lib/i18n";
  * Héros de la maquette cliente : vidéo plein cadre (boxeuse, ring jaune puis
  * rouge), titre centré en gras, un seul bouton fantôme.
  *
- * Coût réseau — la vidéo pèse 618 Ko (webm) et représentait la moitié du poids
- * de l'accueil. Elle n'est plus chargée systématiquement :
- * · le poster est TOUJOURS l'image de fond, affichée immédiatement ;
- * · la vidéo ne se greffe par-dessus que sur grand écran, hors « économiseur de
- *   données », hors connexion lente, et si l'utilisateur ne demande pas de
- *   réduire les animations.
- * Résultat : les visites mobiles et les forfaits limités ne téléchargent que le
- * poster, et le rendu reste identique à l'œil (le poster EST une image du plan).
+ * Coût réseau — la vidéo était le premier poste de transfert du site. Deux
+ * mesures, plutôt que de la couper :
+ *
+ * 1. **Deux encodages.** L'original fait 1280×720 (618 Ko en webm), ce qui n'a
+ *    aucun sens sur un écran de 375 px. Une version 640 px (234 Ko) est servie
+ *    en dessous de 768 px : 62 % de moins, sans différence visible à l'écran.
+ * 2. **Le poster comme socle.** Il s'affiche immédiatement et reste seul si
+ *    l'utilisateur est en « économiseur de données », en 2G, ou demande de
+ *    réduire les animations. C'est une image du même plan : rien ne manque.
  */
-function useWantsVideo() {
-  const [wants, setWants] = useState(false);
+type Variant = "none" | "mobile" | "desktop";
+
+function useVideoVariant(): Variant {
+  const [variant, setVariant] = useState<Variant>("none");
 
   useEffect(() => {
     const decide = () => {
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      const bigEnough = window.matchMedia("(min-width: 768px)").matches;
 
       // `connection` n'existe pas partout : son absence n'est pas un refus.
       const conn = (
@@ -41,7 +43,8 @@ function useWantsVideo() {
       */
       const slow = conn?.effectiveType ? /^(slow-)?2g$/.test(conn.effectiveType) : false;
 
-      setWants(!reduced && bigEnough && !saveData && !slow);
+      if (reduced || saveData || slow) return setVariant("none");
+      setVariant(window.matchMedia("(min-width: 768px)").matches ? "desktop" : "mobile");
     };
 
     decide();
@@ -50,12 +53,13 @@ function useWantsVideo() {
     return () => mq.removeEventListener("change", decide);
   }, []);
 
-  return wants;
+  return variant;
 }
 
 export function Hero() {
   const t = useT();
-  const wantsVideo = useWantsVideo();
+  const variant = useVideoVariant();
+  const suffix = variant === "mobile" ? "-mobile" : "";
 
   return (
     <section className="relative min-h-dvh overflow-hidden bg-brand-deep">
@@ -70,8 +74,11 @@ export function Hero() {
           className="object-cover object-center"
         />
 
-        {wantsVideo && (
+        {variant !== "none" && (
+          /* `key` : changer de variante remonte l'élément, sinon le navigateur
+             garderait la source déjà chargée. */
           <video
+            key={variant}
             className="absolute inset-0 h-full w-full object-cover object-center"
             autoPlay
             muted
@@ -80,8 +87,8 @@ export function Hero() {
             preload="metadata"
             aria-hidden
           >
-            <source src="/video/hero.webm" type="video/webm" />
-            <source src="/video/hero.mp4" type="video/mp4" />
+            <source src={`/video/hero${suffix}.webm`} type="video/webm" />
+            <source src={`/video/hero${suffix}.mp4`} type="video/mp4" />
           </video>
         )}
 
