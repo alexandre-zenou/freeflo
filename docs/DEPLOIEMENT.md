@@ -48,10 +48,17 @@ Le site est déjà configuré pour `freeflo.fr` (`site.domain` dans `src/lib/sit
 utilisé pour les métadonnées Open Graph et l'URL canonique).
 
 1. Vercel → projet → **Settings → Domains → Add** → `freeflo.fr`.
-2. Chez le registrar, créer les enregistrements indiqués par Vercel :
-   - apex `freeflo.fr` → enregistrement **A** vers `76.76.21.21`
-   - `www.freeflo.fr` → **CNAME** vers `cname.vercel-dns.com`
-3. Le certificat HTTPS est émis automatiquement une fois la propagation faite.
+2. Chez le registrar (**IONOS**, d'après les serveurs de noms `ui-dns`), créer les
+   enregistrements **tels que Vercel les affiche dans l'onglet DNS Records** — ne pas
+   recopier des valeurs trouvées ailleurs, Vercel a changé d'IP par le passé.
+   Au 07/08/2026 Vercel demande : apex `@` → **A** vers `216.198.79.1`
+   (et non plus `76.76.21.21`, valeur historique qui traînait dans ce document).
+   Le sous-domaine `www` a sa propre ligne dans la liste des domaines, avec son
+   propre enregistrement à créer.
+3. **Supprimer d'abord l'enregistrement A de parking d'IONOS** (`217.160.0.227` au
+   moment de la bascule) : deux A concurrents sur `@` font échouer la vérification.
+4. Le certificat HTTPS est émis automatiquement une fois la propagation faite. Cliquer
+   **Refresh** sur la ligne du domaine dans Vercel pour forcer la revérification.
 
 Si le domaine retenu n'est pas `freeflo.fr`, mettre à jour `site.domain` dans
 `src/lib/site.ts` **avant** la mise en production, sinon les balises canoniques et
