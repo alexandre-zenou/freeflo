@@ -76,14 +76,14 @@ export const cgu: LegalSection[] = [
   {
     h: "Centres partenaires",
     hEn: "Partner centres",
-    p: "Aucun abonnement. Une commission dégressive est prélevée sur chaque vente. Les reversements sont effectués quotidiennement sur l'IBAN vérifié du centre. L'activation d'un compte est conditionnée à la vérification du SIRET et de l'IBAN.",
-    pEn: "No subscription. A sliding commission is taken on each sale. Payouts are made daily to the centre's verified bank account. Activating an account requires verification of the business and bank details.",
+    p: "Aucun abonnement. Une commission dégressive est prélevée sur chaque vente. Les reversements sont effectués mensuellement, à la fin du mois, sur l'IBAN vérifié du centre. L'activation d'un compte est conditionnée à la vérification du SIRET et de l'IBAN.",
+    pEn: "No subscription. A sliding commission is taken on each sale. Payouts are made monthly, at month end, to the centre's verified bank account. Activating an account requires verification of the business and bank details.",
   },
   {
     h: "Paiement",
     hEn: "Payment",
-    p: "Les paiements sont traités par Stripe. FREEFLO ne stocke aucune donnée de carte bancaire. (Version de démonstration : aucun paiement réel n'est traité.)",
-    pEn: "Payments are handled by Stripe. FREEFLO stores no card details. (Demonstration version: no real payment is processed.)",
+    p: "Les paiements sont traités par un prestataire de paiement sécurisé. FREEFLO ne stocke aucune donnée de carte bancaire. (Version de démonstration : aucun paiement réel n'est traité.)",
+    pEn: "Payments are handled by a secure payment provider. FREEFLO stores no card details. (Demonstration version: no real payment is processed.)",
   },
 ];
 
@@ -91,8 +91,8 @@ export const confidentialite: LegalSection[] = [
   {
     h: "Données collectées",
     hEn: "What we collect",
-    p: "Compte : nom, adresse e-mail, téléphone. Réservations : cours réservés, créneaux, montants. Aucune donnée de carte bancaire n'est stockée par FREEFLO, elles sont traitées directement par Stripe.",
-    pEn: "Account: name, email address, phone number. Bookings: classes booked, times, amounts. No card details are stored by FREEFLO, they are handled directly by Stripe.",
+    p: "Compte : nom, adresse e-mail, téléphone. Réservations : cours réservés, créneaux, montants. Aucune donnée de carte bancaire n'est stockée par FREEFLO, elles sont traitées directement par notre prestataire de paiement sécurisé.",
+    pEn: "Account: name, email address, phone number. Bookings: classes booked, times, amounts. No card details are stored by FREEFLO, they are handled directly by our secure payment provider.",
   },
   {
     h: "Géolocalisation",

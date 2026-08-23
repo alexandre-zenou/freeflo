@@ -26,11 +26,13 @@ export function Faq() {
                   className="group flex w-full items-baseline gap-5 py-6 text-left"
                   aria-expanded={isOpen}
                 >
+                  {/*
+                    Numéro à la même taille que la question (text-xl sm:text-2xl),
+                    en or. `gold-deep` et non `gold` : l'or clair sur le fond crème
+                    tombe à 1,5:1, le numéro disparaîtrait au lieu de ressortir.
+                  */}
                   <span
-                    className={cn(
-                      "accent-em w-8 shrink-0 text-lg transition-colors duration-300",
-                      isOpen ? "text-brand" : "text-ink/40",
-                    )}
+                    className="accent-em w-8 shrink-0 text-xl leading-snug text-gold-deep sm:text-2xl"
                   >
                     {String(i + 1).padStart(2, "0")}
                   </span>

@@ -6,7 +6,7 @@ import { InscrireContent } from "./content";
 export const metadata: Metadata = {
   title: "Inscrire mon centre de sport",
   description:
-    "Remplissez vos créneaux vides sans abonnement. Commission dégressive, virements quotidiens, mise en ligne en 2 minutes. FREEFLO recrute les centres de sport.",
+    "Remplissez vos créneaux vides sans abonnement. Commission dégressive, virements mensuels, mise en ligne en 2 minutes. FREEFLO recrute les centres de sport.",
 };
 
 export default function InscrirePage() {

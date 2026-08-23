@@ -22,7 +22,7 @@ export default function InscriptionCentrePage() {
   return (
     <>
       <SiteHeader />
-      <main className="brand-mesh grain relative min-h-dvh pt-16 md:pt-[4.5rem]">
+      <main className="brand-mesh grain relative min-h-dvh pt-20 md:pt-24">
         <InscriptionCentreContent />
       </main>
       <SiteFooter />

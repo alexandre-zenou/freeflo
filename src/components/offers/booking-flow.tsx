@@ -104,7 +104,7 @@ export function BookingFlow({
             <p className="eyebrow text-brand">{t("Paiement sécurisé", "Secure payment")}</p>
             <h2 className="mt-2 font-display text-2xl text-ink">{formatEuro(price)} {t("à régler", "to pay")}</h2>
             <p className="mt-1 flex items-center gap-1.5 text-xs text-ink-soft">
-              <Lock className="h-3 w-3" /> {t("Démo : via Stripe en production. N'entrez pas de vraie carte.", "Demo: Stripe in production. Do not enter a real card.")}
+              <Lock className="h-3 w-3" /> {t("Démo : paiement sécurisé en production. N'entrez pas de vraie carte.", "Demo: secure payment in production. Do not enter a real card.")}
             </p>
 
             <div className="mt-5 space-y-3">

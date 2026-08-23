@@ -132,7 +132,7 @@ export function SettingsTab() {
         <ul className="mt-4 divide-y divide-line text-sm">
           {[
             { t: "Informations du centre", tEn: "Centre details", d: "Studio Bloom, 9 rue de Turenne, 75004", dEn: "Studio Bloom, 9 rue de Turenne, 75004" },
-            { t: "Coordonnées bancaires", tEn: "Bank details", d: "IBAN se terminant par 4821, virements quotidiens actifs", dEn: "IBAN ending 4821, daily payouts active" },
+            { t: "Coordonnées bancaires", tEn: "Bank details", d: "IBAN se terminant par 4821, virements mensuels actifs", dEn: "IBAN ending 4821, monthly payouts active" },
             { t: "Informations légales", tEn: "Legal details", d: "SIRET validé, CGU pros signées", dEn: "Business number verified, pro terms signed" },
           ].map((s) => (
             <li key={s.t} className="flex items-center justify-between gap-4 py-3.5 first:pt-0 last:pb-0">

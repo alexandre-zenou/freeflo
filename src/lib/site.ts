@@ -6,7 +6,7 @@
 
 export const site = {
   name: "FREEFLO",
-  tagline: "Burn Calories, Not Cash.",
+  tagline: "Burn Calories, Not Cash",
   taglineFr: "Le sport de dernière minute, à prix qui fond.",
   domain: "freeflo.fr",
   description:
@@ -25,7 +25,6 @@ export const site = {
 /** Navigation de la maquette cliente : à propos · connexion · espace pro · FR/EN. */
 export const nav = {
   primary: [
-    { label: "Qui sommes nous ?", labelEn: "Who we are", href: "/qui-sommes-nous" },
     { label: "Connexion", labelEn: "Log in", href: "/connexion" },
     { label: "Espace pro", labelEn: "Pro area", href: "/pro" },
   ],
@@ -269,8 +268,8 @@ export const steps = [
     n: "04",
     title: "Profiter",
     titleEn: "Enjoy",
-    text: "Profitez des offres, progressez à prix moindre, et notez votre expérience.",
-    textEn: "Make the most of the deals, train for less, and rate your session.",
+    text: "Profitez des offres, progressez, et notez votre expérience.",
+    textEn: "Make the most of the deals, train, and rate your session.",
   },
 ] as const;
 
@@ -288,10 +287,10 @@ export const vendorValue = [
     textEn: "The deeper the discount on a place about to be lost, the lower our commission. Listing to the last minute always works in your favour.",
   },
   {
-    title: "Virements quotidiens",
-    titleEn: "Paid every day",
-    text: "Vous êtes payé chaque jour, pas à la fin du mois. L'argent d'une place vendue ce soir est sur votre compte demain.",
-    textEn: "You are paid daily, not at month end. A place sold tonight lands in your account tomorrow.",
+    title: "Virements mensuels",
+    titleEn: "Monthly payouts",
+    text: "Vous êtes payé chaque mois. L'argent de vos places vendues est reversé à la fin du mois.",
+    textEn: "You are paid every month. The money from the places you sell is transferred at month end.",
   },
   {
     title: "En ligne en 2 minutes",
@@ -305,32 +304,32 @@ export const faq = [
   {
     q: "Comment le prix peut-il autant baisser ?",
     qEn: "How can the price drop that much?",
-    a: "Une place de cours non vendue ne rapporte rien au centre. FREEFLO applique une remise qui s'approfondit à mesure que l'heure du cours approche : le centre récupère un peu de valeur plutôt que rien, et vous en profitez.",
-    aEn: "An unsold place earns the centre nothing at all. FREEFLO applies a discount that deepens as the class draws closer: the centre recovers some value rather than none, and you get the benefit.",
+    a: "Le centre utilise FREEFLO pour remplir ses créneaux vides et souhaite vous vendre une place remisée plutôt que la perdre.",
+    aEn: "The centre uses FREEFLO to fill its empty slots, and would rather sell you a place at a discount than lose it altogether.",
   },
   {
     q: "Le prix change vraiment en direct ?",
     qEn: "Does the price really change live?",
-    a: "Oui. Notre moteur de dégressivité recalcule le prix affiché en continu selon le temps restant et les places libres. Ce que vous voyez est le prix que vous payez à l'instant T.",
-    aEn: "Yes. Our pricing engine recalculates continuously from the time left and the places still free. What you see is what you pay, right now.",
+    a: "Les places partent au rythme des réservations, pas seulement du temps qui passe. Le prix affiché est celui du moment présent : hésiter, c'est risquer de ne plus trouver de place du tout.",
+    aEn: "Places go as bookings come in, not just as time ticks by. The price shown is the price right now: hesitate, and you risk finding no place left at all.",
   },
   {
     q: "Que se passe-t-il si j'annule ?",
     qEn: "What happens if I cancel?",
-    a: "Remboursement intégral si vous annulez plus de 6 h avant le créneau. Passé ce délai, la place est bloquée pour vous et n'est plus remboursable.",
-    aEn: "Full refund if you cancel more than 6 hours before the class. After that, the place is held for you and is no longer refundable.",
+    a: "Oui, gratuitement jusqu'à 6h avant le cours. Passé ce délai, la place vous est définitivement acquise : elle ne peut plus être réattribuée à temps à un autre sportif.",
+    aEn: "Yes, free of charge up to 6h before the class. After that the place is definitively yours: it can no longer be passed on to another member in time.",
   },
   {
     q: "Et si le cours est annulé par le centre ?",
     qEn: "And if the centre cancels the class?",
-    a: "Vous êtes remboursé automatiquement et vous pouvez signaler l'incident en un tap. Les centres peu fiables sont écartés.",
-    aEn: "You are refunded automatically, and you can report it in one tap. Unreliable centres are removed from the platform.",
+    a: "Remboursement automatique et immédiat, sans démarche à effectuer de votre part. Un signalement en un tap suffit si besoin, les centres qui annulent trop souvent perdent leur place sur FREEFLO.",
+    aEn: "An automatic, immediate refund, with nothing for you to do. One tap is enough to report it if needed, and centres that cancel too often lose their place on FREEFLO.",
   },
   {
     q: "C'est réservé à Paris ?",
     qEn: "Is it Paris only?",
-    a: "On démarre à Paris pour rôder l'expérience, puis on ouvre ville par ville. Inscrivez-vous pour être prévenu dès l'arrivée près de chez vous.",
-    aEn: "We are starting in Paris to get the experience right, then opening city by city. Sign up to hear the moment we reach you.",
+    a: "FREEFLO démarre à Paris, avec de nouvelles villes prévues rapidement. Inscrivez-vous pour être averti dès l'arrivée près de chez vous.",
+    aEn: "FREEFLO is starting in Paris, with new cities coming soon. Sign up to be told the moment we reach you.",
   },
 ] as const;
 

@@ -6,7 +6,7 @@ import { useT } from "@/lib/i18n";
 export function InscriptionCentreContent() {
   const t = useT();
   return (
-    <div className="ff-container flex min-h-[calc(100dvh-4.5rem)] flex-col justify-center py-16">
+    <div className="ff-container flex min-h-[calc(100dvh-6rem)] flex-col justify-center py-16">
       <div className="mx-auto w-full max-w-xl text-center">
         <h1 className="display text-[clamp(2rem,5vw,3.25rem)] text-white">
           {t("Inscrivez votre centre de sport.", "Sign up your sport centre.")}

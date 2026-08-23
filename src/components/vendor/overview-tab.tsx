@@ -74,7 +74,7 @@ export function OverviewTab({ offers }: { offers: VendorOffer[] }) {
           <ActivityFeed />
         </div>
 
-        {/* virements — la promesse « payé chaque jour », preuve à l'appui */}
+        {/* virements : la promesse « payé chaque mois », preuve à l'appui */}
         <div className="rounded-2xl bg-white p-6 ring-1 ring-line">
           <h3 className="font-medium text-ink">{t("Derniers virements", "Latest payouts")}</h3>
           <ul className="mt-4 divide-y divide-line text-sm">

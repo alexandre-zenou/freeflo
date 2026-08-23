@@ -36,8 +36,21 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
         inscrire mon centre à droite d'espace pro ». Le logo reste seul à gauche,
         tout le reste forme un bloc aligné à droite.
       */}
-      <div className="ff-container flex h-16 items-center justify-between md:h-[4.5rem]">
-        <Logo onDark={onDark} />
+      {/*
+        Barre pleine largeur, PAS `ff-container` : le logo doit toucher le bord
+        gauche de l'écran, or le conteneur a un padding et se centre à 1240px.
+        Le bloc de droite garde l'ancien retrait par rapport au bord.
+      */}
+      <div className="flex h-20 items-center justify-between pl-2 pr-[clamp(1.25rem,4vw,3rem)] md:h-24 md:pl-3">
+        {/*
+          Logo plus imposant que la version d'origine (h-9/h-10), et jaune quand
+          il passe sur le héros rouge. Sur le header plein, il reste rouge : le
+          jaune sur crème tombe à 1,5:1, illisible.
+        */}
+        <Logo
+          onDark={onDark}
+          markClassName={cn("h-16 w-12 md:h-20 md:w-[60px]", onDark && "bg-gold-bright")}
+        />
 
         <div className="hidden items-center gap-7 md:flex">
           <nav className="flex items-center gap-7">

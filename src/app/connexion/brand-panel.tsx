@@ -24,12 +24,12 @@ export function ConnexionBrandPanel() {
         </p>
         <div>
           <p className="display text-5xl text-white">
-            Burn Calories,<br />Not <span className="accent-em">Cash.</span>
+            Burn Calories,<br />Not <span className="accent-em">Cash</span>
           </p>
           <p className="mt-4 max-w-sm text-white/80">
             {t(
-              "Des centaines de places de cours se libèrent chaque jour près de vous. Ne les laissez pas filer.",
-              "Hundreds of class places open up near you every day. Don't let them slip away.",
+              "Des centaines de places à moitié prix se libèrent chaque jour près de chez vous. Premier arrivé, premier servi. À vous de jouer !",
+              "Hundreds of half-price class places open up near you every day. First come, first served. Your move!",
             )}
           </p>
         </div>

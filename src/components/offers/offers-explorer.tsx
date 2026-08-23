@@ -9,7 +9,8 @@ import { RevealOnView } from "@/components/reveal-on-view";
 import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
 import { categories, type Offer } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
-import { distanceKm, PARIS_ARRONDISSEMENTS } from "@/lib/geo";
+import { distanceKm, NEARBY, PARIS_ARRONDISSEMENTS } from "@/lib/geo";
+import { nearbyOption, useGeolocation } from "@/components/use-geolocation";
 import { formatEuro } from "@/lib/format";
 import { useT } from "@/lib/i18n";
 import { cn } from "@/lib/utils";
@@ -40,8 +41,6 @@ function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
   return "later";
 }
 
-type GeoState = "idle" | "asking" | "granted" | "denied";
-
 export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const router = useRouter();
   const t = useT();
@@ -52,27 +51,29 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const [sort, setSort] = useState<Sort>("urgence");
   const [view, setView] = useState<"list" | "map">("map");
   const [hover, setHover] = useState<string | null>(null);
-  const [geo, setGeo] = useState<GeoState>("idle");
-  const [me, setMe] = useState<{ lat: number; lng: number } | null>(null);
+  const geo = useGeolocation();
+  const me = geo.position;
 
   /*
     Retour client : « bien mettre la case activez la géolocalisation et ajouter tous
     les arrondissements ». La position réelle sert à recalculer les distances par
     haversine, et bascule le tri sur « Plus proches ».
+
+    Deux entrées mènent ici : l'option « Autour de moi » en tête du filtre
+    Localisation, et la case dédiée à côté des filtres. Elles partagent le même
+    état, donc l'une reflète toujours l'autre. En cas de refus, on repose le
+    filtre sur « tous » : la pastille ne doit pas annoncer une position qu'on n'a
+    pas obtenue.
   */
-  const askGeo = () => {
-    if (!("geolocation" in navigator)) return setGeo("denied");
-    setGeo("asking");
-    navigator.geolocation.getCurrentPosition(
-      (pos) => {
-        setMe({ lat: pos.coords.latitude, lng: pos.coords.longitude });
-        setGeo("granted");
-        setSort("proximite");
-      },
-      () => setGeo("denied"),
-      { enableHighAccuracy: false, timeout: 8000, maximumAge: 300_000 },
-    );
+  const enableNearby = () => {
+    setLoc(NEARBY);
+    geo.request({
+      granted: () => setSort("proximite"),
+      denied: () => setLoc(""),
+    });
   };
+
+  const onLocChange = (v: string) => (v === NEARBY ? enableNearby() : setLoc(v));
 
   const list = useMemo(() => {
     /** Distance réelle si la position est connue, sinon celle du jeu de démo. */
@@ -81,7 +82,8 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
 
     const q = query.trim().toLowerCase();
     const filtered = offers.filter((o) => {
-      if (loc && o.arrondissement !== loc) return false;
+      // NEARBY n'est pas un arrondissement : il trie, il ne retranche rien.
+      if (loc && loc !== NEARBY && o.arrondissement !== loc) return false;
       if (cat && o.category !== cat) return false;
       if (avail && dayBucket(o.startsInHours) !== avail) return false;
       if (q) {
@@ -126,13 +128,14 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
   return (
     <div>
       {/* filtres : pastilles ovales, comme les puces de tri en dessous */}
-      <div className="sticky top-16 z-30 border-b border-line bg-cream/90 py-3 backdrop-blur md:top-[4.5rem]">
+      <div className="sticky top-20 z-30 border-b border-line bg-cream/90 py-3 backdrop-blur md:top-24">
         <div className="ff-container flex flex-col gap-3">
           <div className="flex flex-wrap items-center gap-2">
             <PillSelect
               label={t("Localisation", "Location")}
               value={loc}
-              onChange={setLoc}
+              onChange={onLocChange}
+              leadOptions={[nearbyOption(geo.state, t)]}
               options={PARIS_ARRONDISSEMENTS.map((a) => ({ value: a, label: a }))}
             />
             <PillSelect
@@ -153,19 +156,19 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
 
             <button
               type="button"
-              onClick={askGeo}
-              disabled={geo === "asking"}
+              onClick={enableNearby}
+              disabled={geo.state === "asking" || geo.state === "denied"}
               className={cn(
                 "inline-flex shrink-0 items-center gap-2 rounded-full px-4 py-2 text-sm font-medium transition-colors",
-                geo === "granted"
+                geo.state === "granted"
                   ? "bg-brand-deep text-white"
-                  : "border border-brand/35 text-brand hover:bg-brand hover:text-white disabled:opacity-60",
+                  : "border border-brand/35 text-brand hover:bg-brand hover:text-white disabled:opacity-60 disabled:hover:bg-transparent disabled:hover:text-brand",
               )}
             >
               <MapPin className="h-3.5 w-3.5" />
-              {geo === "granted"
+              {geo.state === "granted"
                 ? t("Autour de vous", "Around you")
-                : geo === "asking"
+                : geo.state === "asking"
                   ? t("Localisation…", "Locating…")
                   : t("Activez la géolocalisation", "Turn on location")}
             </button>
@@ -187,7 +190,7 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
             </label>
           </div>
 
-          {geo === "denied" && (
+          {geo.state === "denied" && (
             <p className="text-xs text-brand">
               {t(
                 "Localisation refusée. Choisissez un arrondissement pour filtrer.",
@@ -196,7 +199,12 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
             </p>
           )}
 
-          <div className="flex items-center justify-between gap-3">
+          {/*
+            `flex-wrap` sur la rangée : sans lui, le sélecteur Liste/Carte garde
+            sa largeur et comprime les tris en une colonne d'un mot par ligne.
+            Sur téléphone, le sélecteur descend maintenant sous les tris.
+          */}
+          <div className="flex flex-wrap items-center justify-between gap-3">
             <div className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
               <SlidersHorizontal className="h-4 w-4" />
               <span className="hidden sm:inline">{t("Trier :", "Sort:")}</span>
@@ -264,7 +272,10 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                   key={o.id}
                   onMouseEnter={() => setHover(o.id)}
                   onMouseLeave={() => setHover(null)}
-                  className={cn("rounded-2xl transition-all", hover === o.id && "ring-2 ring-brand ring-offset-2 ring-offset-cream")}
+                  /* `h-full` : le wrapper de survol doit transmettre à la carte la
+                     hauteur que la grille lui donne, sinon elle retombe sur celle
+                     de son contenu et les boutons se désalignent. */
+                  className={cn("h-full rounded-2xl transition-all", hover === o.id && "ring-2 ring-brand ring-offset-2 ring-offset-cream")}
                 >
                   <OfferCard offer={o} />
                 </div>

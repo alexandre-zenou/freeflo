@@ -34,7 +34,7 @@ export default async function OffrePage({ params }: { params: Promise<{ id: stri
   return (
     <>
       <SiteHeader />
-      <main className="pt-16 md:pt-[4.5rem]">
+      <main className="pt-20 md:pt-24">
         <OfferDetail offer={offer} similar={(similar.length ? similar : fill).slice(0, 3)} />
       </main>
       <SiteFooter />

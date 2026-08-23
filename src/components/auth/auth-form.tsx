@@ -16,6 +16,7 @@ export function AuthForm() {
   const params = useSearchParams();
   const [mode, setMode] = useState<Mode>(params.get("mode") === "signup" ? "signup" : "login");
   const [loading, setLoading] = useState(false);
+  const [oauthNotice, setOauthNotice] = useState<"Google" | "Apple" | null>(null);
 
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -23,6 +24,18 @@ export function AuthForm() {
     // Démo : on simule l'authentification puis on entre dans l'app.
     window.setTimeout(() => router.push("/offres"), 700);
   };
+
+  /*
+    Aucun fournisseur OAuth n'est branché en phase 1 (pas de next-auth, pas de
+    Supabase, pas de backend). Ces boutons partageaient le handler du formulaire :
+    ils faisaient donc semblant de connecter l'utilisateur, sans le moindre
+    retour visuel pendant 700 ms, ce qui donnait un bouton mort à l'écran.
+
+    En attendant les identifiants, le clic dit ce qu'il en est au lieu de mentir.
+    Pour brancher le vrai flux : installer le fournisseur, puis remplacer le
+    corps de cette fonction par son appel de connexion avec `provider`.
+  */
+  const oauthSignIn = (provider: "Google" | "Apple") => setOauthNotice(provider);
 
   return (
     <div className="w-full max-w-md">
@@ -75,18 +88,29 @@ export function AuthForm() {
 
       <div className="grid grid-cols-2 gap-3">
         <button
-          onClick={submit}
+          type="button"
+          onClick={() => oauthSignIn("Google")}
           className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-2.5 text-sm text-ink transition-colors hover:border-ink"
         >
           <GoogleMark /> Google
         </button>
         <button
-          onClick={submit}
+          type="button"
+          onClick={() => oauthSignIn("Apple")}
           className="flex items-center justify-center gap-2 rounded-full border border-line bg-paper py-2.5 text-sm text-ink transition-colors hover:border-ink"
         >
           <AppleMark /> Apple
         </button>
       </div>
+
+      {oauthNotice && (
+        <p role="status" className="mt-3 rounded-xl bg-secondary px-3.5 py-2.5 text-sm text-ink-soft">
+          {t(
+            `La connexion ${oauthNotice} n'est pas encore active sur cette démo. Utilisez l'email et le mot de passe ci-dessus.`,
+            `${oauthNotice} sign in is not live on this demo yet. Use the email and password above.`,
+          )}
+        </p>
+      )}
 
       <p className="mt-6 flex items-center justify-center gap-1.5 text-xs text-ink-soft">
         <Lock className="h-3 w-3" /> {t("Démo : aucune donnée n'est envoyée.", "Demo: no data is sent.")}

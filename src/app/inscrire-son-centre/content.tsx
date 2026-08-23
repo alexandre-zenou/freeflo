@@ -32,10 +32,10 @@ const onboarding = [
   },
   {
     n: "04",
-    t: "Encaissez, chaque jour",
-    tEn: "Get paid, every day",
-    d: "Paiement Stripe, virement quotidien. Suivez tout depuis votre tableau de bord.",
-    dEn: "Stripe payment, daily payout. Follow everything from your dashboard.",
+    t: "Encaissez, chaque mois",
+    tEn: "Get paid, every month",
+    d: "Paiement sécurisé, virement mensuel. Suivez tout depuis votre tableau de bord.",
+    dEn: "Secure payment, monthly payout. Follow everything from your dashboard.",
   },
 ];
 
@@ -48,14 +48,23 @@ export function InscrireContent() {
         eyebrow={t("Espace centres de sport", "For sport centres")}
         title={
           <>
-            {t("Une place vide ne rapporte rien. ", "An empty place earns nothing. ")}
-            <span className="accent-em text-gold">{t("Changez ça.", "Change that.")}</span>
+            {t("Chaque place vide vous coûte de l'argent. ", "Every empty place costs you money. ")}
+            <span className="accent-em text-gold">{t("Récupérez-le.", "Take it back.")}</span>
           </>
         }
-        intro={t(
-          "FREEFLO transforme vos créneaux invendus en revenus, sans abonnement ni risque. Vous ne payez qu'une commission quand vous vendez, et elle baisse quand vous bradez.",
-          "FREEFLO turns your unsold slots into revenue, with no subscription and no risk. You only pay a commission when you sell, and it drops as the discount deepens.",
-        )}
+        intro={
+          <>
+            <span className="block font-medium">
+              {t("Amortissez vos coûts fixes grâce à FREEFLO !", "Cover your fixed costs with FREEFLO!")}
+            </span>
+            <span className="mt-3 block">
+              {t(
+                "FREEFLO transforme vos créneaux invendus en revenus, sans abonnement ni risque.",
+                "FREEFLO turns your unsold slots into revenue, with no subscription and no risk.",
+              )}
+            </span>
+          </>
+        }
       />
 
       <section className="ff-container py-20">
@@ -91,7 +100,7 @@ export function InscrireContent() {
         <div className="ff-container">
           <SectionHeading
             eyebrow={t("La mise en route", "Getting started")}
-            title={t("En ligne en 2 minutes, payé dès demain.", "Live in 2 minutes, paid tomorrow.")}
+            title={t("En ligne en 2 minutes, payé chaque mois.", "Live in 2 minutes, paid every month.")}
           />
           <Reveal stagger={0.1} className="mt-12 grid gap-px overflow-hidden rounded-3xl bg-line sm:grid-cols-2 lg:grid-cols-4">
             {onboarding.map((s) => (

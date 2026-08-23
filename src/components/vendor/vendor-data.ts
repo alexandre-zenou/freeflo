@@ -117,15 +117,17 @@ export const activitySeed = [
   { minutesAgo: 9, text: "Vinyasa Flow est passé en sprint final", textEn: "Vinyasa Flow entered the final sprint", kind: "melt" },
   { minutesAgo: 21, text: "Nouvel avis 5★ d'Amélie R. sur Vinyasa Flow", textEn: "New 5★ review from Amélie R. on Vinyasa Flow", kind: "review" },
   { minutesAgo: 34, text: "Sofia M. a réservé Yoga débutant de 20h00", textEn: "Sofia M. booked the 20:00 Yoga for beginners", kind: "sale" },
-  { minutesAgo: 58, text: "Virement quotidien de 168 € envoyé", textEn: "Daily payout of 168 € sent", kind: "payout" },
+  { minutesAgo: 58, text: "Virement mensuel de 168 € envoyé", textEn: "Monthly payout of 168 € sent", kind: "payout" },
 ] as const;
 
+/* Virements mensuels : la liste portait des jours (« Aujourd'hui », « Hier »),
+   ce qui contredisait la promesse de reversement à la fin du mois. */
 export const payouts = [
-  { date: "Aujourd'hui", dateEn: "Today", amount: 126, state: "en route" },
-  { date: "Hier", dateEn: "Yesterday", amount: 168, state: "reçu" },
-  { date: "Samedi", dateEn: "Saturday", amount: 214, state: "reçu" },
-  { date: "Vendredi", dateEn: "Friday", amount: 97, state: "reçu" },
-  { date: "Jeudi", dateEn: "Thursday", amount: 143, state: "reçu" },
+  { date: "Août", dateEn: "August", amount: 126, state: "en route" },
+  { date: "Juillet", dateEn: "July", amount: 168, state: "reçu" },
+  { date: "Juin", dateEn: "June", amount: 214, state: "reçu" },
+  { date: "Mai", dateEn: "May", amount: 97, state: "reçu" },
+  { date: "Avril", dateEn: "April", amount: 143, state: "reçu" },
 ] as const;
 
 /** Jours de la semaine, réutilisés par la grille des heures chaudes. */

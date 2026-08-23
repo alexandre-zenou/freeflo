@@ -6,6 +6,13 @@ const ONE_YEAR = 60 * 60 * 24 * 365;
 const nextConfig: NextConfig = {
   turbopack: { root: __dirname },
 
+  /*
+    Pastille « N » en bas à gauche : c'est l'indicateur de développement de
+    Next.js, jamais servi en production. On le masque pour que `npm run dev`
+    montre exactement ce que verra la cliente.
+  */
+  devIndicators: false,
+
   images: {
     /*
       Chargeur maison : les photos Unsplash sont redimensionnées par Unsplash

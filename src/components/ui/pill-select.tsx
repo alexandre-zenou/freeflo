@@ -7,6 +7,10 @@ import { cn } from "@/lib/utils";
 export interface PillOption {
   value: string;
   label: string;
+  /** Option visible mais inactive, ex. géolocalisation refusée par le navigateur. */
+  disabled?: boolean;
+  /** Petite ligne sous le libellé, pour dire pourquoi une option est inactive. */
+  hint?: string;
 }
 
 /**
@@ -21,18 +25,21 @@ export function PillSelect({
   label,
   value,
   options,
+  leadOptions,
   onChange,
   className,
 }: {
   label: string;
   value: string;
   options: PillOption[];
+  /** Options posées tout en haut, avant « (tous) », séparées du reste de la liste. */
+  leadOptions?: PillOption[];
   onChange: (v: string) => void;
   className?: string;
 }) {
   const [open, setOpen] = useState(false);
   const root = useRef<HTMLDivElement>(null);
-  const selected = options.find((o) => o.value === value);
+  const selected = [...(leadOptions ?? []), ...options].find((o) => o.value === value);
 
   useEffect(() => {
     if (!open) return;
@@ -72,6 +79,24 @@ export function PillSelect({
           aria-label={label}
           className="absolute left-0 top-full z-40 mt-2 max-h-72 min-w-[12rem] overflow-y-auto rounded-2xl bg-paper p-1.5 shadow-lift ring-1 ring-line"
         >
+          {leadOptions?.map((o) => (
+            <Item
+              key={o.value}
+              selected={o.value === value}
+              disabled={o.disabled}
+              hint={o.hint}
+              onSelect={() => {
+                onChange(o.value);
+                setOpen(false);
+              }}
+            >
+              {o.label}
+            </Item>
+          ))}
+          {leadOptions && leadOptions.length > 0 && (
+            <li aria-hidden className="my-1.5 border-t border-line" />
+          )}
+
           <Item
             selected={value === ""}
             onSelect={() => {
@@ -85,6 +110,8 @@ export function PillSelect({
             <Item
               key={o.value}
               selected={o.value === value}
+              disabled={o.disabled}
+              hint={o.hint}
               onSelect={() => {
                 onChange(o.value);
                 setOpen(false);
@@ -102,10 +129,14 @@ export function PillSelect({
 function Item({
   children,
   selected,
+  disabled,
+  hint,
   onSelect,
 }: {
   children: React.ReactNode;
   selected: boolean;
+  disabled?: boolean;
+  hint?: string;
   onSelect: () => void;
 }) {
   return (
@@ -114,14 +145,23 @@ function Item({
         type="button"
         role="option"
         aria-selected={selected}
+        aria-disabled={disabled}
+        disabled={disabled}
         onClick={onSelect}
         className={cn(
           "flex w-full items-center justify-between gap-3 rounded-xl px-3 py-2 text-left text-sm transition-colors",
-          selected ? "bg-brand-tint font-medium text-brand" : "text-ink hover:bg-secondary",
+          disabled
+            ? "cursor-not-allowed text-ink-soft/70"
+            : selected
+              ? "bg-brand-tint font-medium text-brand"
+              : "text-ink hover:bg-secondary",
         )}
       >
-        {children}
-        {selected && <Check className="h-3.5 w-3.5 shrink-0" />}
+        <span>
+          {children}
+          {hint && <span className="mt-0.5 block text-xs text-ink-soft">{hint}</span>}
+        </span>
+        {selected && !disabled && <Check className="h-3.5 w-3.5 shrink-0" />}
       </button>
     </li>
   );

@@ -15,7 +15,7 @@ export default function OffresPage() {
   return (
     <>
       <SiteHeader />
-      <main className="pt-16 md:pt-[4.5rem]">
+      <main className="pt-20 md:pt-24">
         <OffresIntro />
         <div className="mt-6">
           <OffersExplorer offers={offers} />

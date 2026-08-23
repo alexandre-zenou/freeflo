@@ -17,9 +17,12 @@ import { cn } from "@/lib/utils";
  */
 export function Logo({
   className,
+  markClassName,
   onDark = false,
 }: {
   className?: string;
+  /** Taille / couleur du monogramme. Passe après les défauts, donc les écrase. */
+  markClassName?: string;
   onDark?: boolean;
 }) {
   return (
@@ -33,6 +36,7 @@ export function Logo({
         className={cn(
           "block h-9 w-[27px] shrink-0 transition-colors md:h-10 md:w-[30px]",
           onDark ? "bg-white" : "bg-brand",
+          markClassName,
         )}
         style={{
           maskImage: "url(/brand/freeflo-logo.svg)",

@@ -9,7 +9,8 @@ import { PillSelect } from "@/components/ui/pill-select";
 import { RevealOnView } from "@/components/reveal-on-view";
 import { RevealLines } from "@/components/reveal";
 import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
-import { PARIS_ARRONDISSEMENTS } from "@/lib/geo";
+import { distanceKm, NEARBY, PARIS_ARRONDISSEMENTS } from "@/lib/geo";
+import { nearbyOption, useGeolocation } from "@/components/use-geolocation";
 import { categories, categoryOf, offers } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
 import { formatEuro } from "@/lib/format";
@@ -46,17 +47,31 @@ export function MapSearch() {
   const [cat, setCat] = useState("");
   const [avail, setAvail] = useState("");
   const [hover, setHover] = useState<string | null>(null);
+  const geo = useGeolocation();
+  const me = geo.position;
 
-  const list = useMemo(
-    () =>
-      offers.filter((o) => {
-        if (loc && o.arrondissement !== loc) return false;
-        if (cat && o.category !== cat) return false;
-        if (avail && dayBucket(o.startsInHours) !== avail) return false;
-        return true;
-      }),
-    [loc, cat, avail],
-  );
+  /* « Autour de moi » : la position réelle range les résultats du plus proche
+     au plus loin, sans rien retrancher. Refus ou échec, on repose le filtre sur
+     « tous » et l'option devient inactive. */
+  const onLocChange = (v: string) => {
+    if (v !== NEARBY) return setLoc(v);
+    setLoc(NEARBY);
+    geo.request({ denied: () => setLoc("") });
+  };
+
+  const list = useMemo(() => {
+    const filtered = offers.filter((o) => {
+      if (loc && loc !== NEARBY && o.arrondissement !== loc) return false;
+      if (cat && o.category !== cat) return false;
+      if (avail && dayBucket(o.startsInHours) !== avail) return false;
+      return true;
+    });
+    if (loc !== NEARBY || !me) return filtered;
+    return [...filtered].sort(
+      (a, b) =>
+        distanceKm(me, { lat: a.lat, lng: a.lng }) - distanceKm(me, { lat: b.lat, lng: b.lng }),
+    );
+  }, [loc, cat, avail, me]);
 
   const points: MapPoint[] = useMemo(
     () =>
@@ -79,7 +94,8 @@ export function MapSearch() {
         <PillSelect
           label={t("Localisation", "Location")}
           value={loc}
-          onChange={setLoc}
+          onChange={onLocChange}
+          leadOptions={[nearbyOption(geo.state, t)]}
           options={PARIS_ARRONDISSEMENTS.map((a) => ({ value: a, label: a }))}
         />
         <PillSelect
@@ -105,6 +121,15 @@ export function MapSearch() {
           <Search className="h-4 w-4" /> {t("Voir toutes les offres", "See all offers")}
         </Link>
       </div>
+
+      {geo.state === "denied" && (
+        <p className="mt-2 text-xs text-brand">
+          {t(
+            "Localisation refusée. Choisissez un arrondissement pour filtrer.",
+            "Location denied. Pick a district to filter instead.",
+          )}
+        </p>
+      )}
 
       <div className="mt-6 grid gap-4 lg:grid-cols-[1.9fr_1fr]">
         <RevealOnView className="relative aspect-[4/3] w-full overflow-hidden rounded-3xl ring-1 ring-line sm:aspect-[16/10] lg:aspect-auto lg:h-[720px]">
