@@ -40,10 +40,18 @@ export function OfferCard({
   const t = useT();
   const soldOut = offer.placesLeft === 0;
 
+  /*
+    `h-full` : en enfant direct d'une grille, l'étirement suffisait ; mais dès que
+    la carte est enveloppée (vue carte de `/offres`, où un `div` porte l'anneau de
+    survol), c'est le wrapper qui s'étire et le lien gardait la hauteur de son
+    contenu — 20 px d'écart entre deux cartes d'une rangée, et les boutons
+    « Réserver » décalés d'autant. Avec `h-full` la carte remplit son parent dans
+    les deux cas, et le `mt-auto` du bouton fait le reste.
+  */
   return (
     <Link
       href={`/offres/${offer.id}`}
-      className="group flex flex-col overflow-hidden rounded-2xl bg-paper shadow-soft ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-paper shadow-soft ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
     >
       <div className={cn("relative overflow-hidden", dense ? "aspect-[16/9]" : "aspect-[16/10]")}>
         <Image

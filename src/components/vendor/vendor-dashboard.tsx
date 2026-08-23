@@ -82,7 +82,13 @@ export function VendorDashboard() {
 
         <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
           {/* sidebar */}
-          <aside className="flex gap-1 overflow-x-auto rounded-2xl bg-white p-2 ring-1 ring-line lg:h-fit lg:flex-col">
+          {/*
+            Sous `lg`, les 7 onglets font 945 px pour un écran de 350 : en
+            défilement horizontal, iOS n'affiche aucune barre et cinq onglets
+            devenaient introuvables. Ils passent donc à la ligne — tout est
+            visible d'un coup d'œil. La colonne verticale reprend à partir de `lg`.
+          */}
+          <aside className="flex flex-wrap gap-1 rounded-2xl bg-white p-2 ring-1 ring-line lg:h-fit lg:flex-col lg:flex-nowrap">
             {tabs.map((tab_) => (
               <button
                 key={tab_.key}
