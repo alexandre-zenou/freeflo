@@ -294,12 +294,15 @@
   animation: ff-pulse 1.6s ease-in-out infinite;
 }
 
-@keyframes ff-marquee {
-  from { transform: translateX(0); }
-  to { transform: translateX(-50%); }
+/* Le bandeau des catégories défile désormais par `scrollLeft` (voir
+   `sections/categories.tsx`), pour pouvoir être repris à la main : l'ancienne
+   animation `ff-marquee` sur `transform` n'a plus d'objet. Reste à masquer la
+   barre de défilement, le conteneur étant devenu réellement défilable. */
+.no-scrollbar {
+  scrollbar-width: none;
 }
-.marquee-track {
-  animation: ff-marquee 32s linear infinite;
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
 }
 
 /* ---- Leaflet ---- */
