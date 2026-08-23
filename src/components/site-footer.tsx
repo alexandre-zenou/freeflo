@@ -46,8 +46,8 @@ export function SiteFooter() {
   const t = useT();
 
   return (
-    // Filet supérieur : sur les pages dont la dernière section est déjà rouge
-    // (les étapes de « Qui sommes nous »), le pied de page s'y fondrait sans lui.
+    // Filet supérieur : sur les pages dont la dernière section est déjà rouge,
+    // le pied de page s'y fondrait sans lui.
     <footer className="border-t border-gold/25 bg-brand-deep text-white">
       <div className="ff-container grid gap-12 py-16 md:grid-cols-[1.4fr_repeat(3,1fr)]">
         <div className="max-w-xs">

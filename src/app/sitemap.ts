@@ -7,7 +7,6 @@ export default function sitemap(): MetadataRoute.Sitemap {
     "",
     "/offres",
     "/comment-ca-marche",
-    "/qui-sommes-nous",
     "/inscrire-son-centre",
     "/inscription-centre",
     "/mentions-legales",
