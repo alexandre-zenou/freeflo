@@ -18,11 +18,20 @@ export function AuthForm() {
   const [loading, setLoading] = useState(false);
   const [oauthNotice, setOauthNotice] = useState<"Google" | "Apple" | null>(null);
 
+  /*
+    `next` ramène le visiteur là d'où il vient, typiquement l'offre sur laquelle
+    il a cliqué « Réserver ». On n'accepte qu'un chemin interne : une URL absolue,
+    ou un `//hote` que le navigateur lirait comme tel, renverrait le visiteur
+    hors du site depuis un simple lien forgé.
+  */
+  const raw = params.get("next");
+  const next = raw && raw.startsWith("/") && !raw.startsWith("//") ? raw : "/offres";
+
   const submit = (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     // Démo : on simule l'authentification puis on entre dans l'app.
-    window.setTimeout(() => router.push("/offres"), 700);
+    window.setTimeout(() => router.push(next), 700);
   };
 
   /*

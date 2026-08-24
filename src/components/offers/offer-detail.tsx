@@ -1,13 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { ArrowLeft, Star, MapPin, Clock, Users, ShieldCheck } from "lucide-react";
 import type { Offer } from "@/lib/site";
 import { categoryOf } from "@/lib/site";
 import { useLivePrice } from "@/components/use-live-price";
-import { BookingFlow } from "@/components/offers/booking-flow";
 import { LeafletMap } from "@/components/offers/leaflet-map";
 import { OfferCard } from "@/components/offer-card";
 import { formatEuro, slotLabel } from "@/lib/format";
@@ -32,8 +31,8 @@ const includedEn = ["Equipment provided", "Changing rooms & showers", "Qualified
 export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[] }) {
   const t = useT();
   const { locale } = useLocale();
+  const router = useRouter();
   const live = useLivePrice(offer.basePrice, offer.placesLeft, offer.startsInHours);
-  const [booking, setBooking] = useState(false);
   const cat = categoryOf(offer.category);
   const discounted = live.currentPrice < offer.basePrice;
   const placesLabel =
@@ -135,8 +134,17 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
             {offer.gym}. {offer.arrondissement}, {offer.distanceKm} km
           </p>
 
+          {/*
+            On ne demande plus de carte à un visiteur anonyme : « Réserver »
+            envoie vers la connexion, et `next` ramène sur cette offre une fois
+            l'identification faite. Le tunnel de paiement existe toujours
+            (`offers/booking-flow.tsx`) mais n'est plus branché : c'est ici qu'il
+            se rebranchera, derrière la vraie authentification.
+          */}
           <button
-            onClick={() => setBooking(true)}
+            onClick={() =>
+              router.push(`/connexion?next=${encodeURIComponent(`/offres/${offer.id}`)}`)
+            }
             className="mt-6 w-full rounded-full bg-gold-bright px-6 py-4 text-base font-bold text-ink transition-colors hover:bg-gold"
           >
             {t("Réserver la place", "Book this spot")}
@@ -175,16 +183,6 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           </div>
         </div>
       )}
-
-      {/* `key` remonte le composant à chaque ouverture : l'étape repart de zéro
-          sans avoir à remettre l'état à jour dans un effet. */}
-      <BookingFlow
-        key={booking ? "open" : "closed"}
-        offer={offer}
-        price={live.currentPrice}
-        open={booking}
-        onClose={() => setBooking(false)}
-      />
     </div>
   );
 }
