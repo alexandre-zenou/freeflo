@@ -27,10 +27,15 @@ export function OfferCard({
   priority = false,
   dense = false,
   priceTone = "gold",
+  distanceLabel,
 }: {
   offer: Offer;
   priority?: boolean;
   dense?: boolean;
+  /** Distance affichée sous l'adresse. Utilisée par les suggestions de la fiche
+   *  offre ; ailleurs la carte n'en montre pas, la cliente les avait fait
+   *  retirer de l'en-tête (point F35). */
+  distanceLabel?: string;
   /** « bordeaux » : demandé pour le bloc « D'autres créneaux à saisir ». */
   priceTone?: "gold" | "bordeaux";
 }) {
@@ -62,6 +67,30 @@ export function OfferCard({
           priority={priority}
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
+        {/*
+          ATTENTION, décision du 24/08/2026 : ce badge affiche un TAUX DE REMISE.
+          Le retour client du 07/08 l'interdit explicitement (point F34, « ne
+          jamais mettre le taux de réduction ») et c'est pourquoi la pastille de
+          droite montre les places restantes. Ajouté sur demande expresse, à
+          l'essai. Pour le retirer, supprimer ce seul bloc : rien d'autre n'en
+          dépend, la pastille de droite est indépendante.
+
+          La valeur vient de `live`, recalculé chaque seconde : elle suit donc le
+          prix quand le cours franchit un palier, elle n'est jamais figée.
+          En sprint final (moins de 2 h) le badge passe au rouge de la marque :
+          c'est le repère d'urgence, l'or signalant la bonne affaire.
+        */}
+        {discounted && !soldOut && (
+          <span
+            className={cn(
+              "absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums shadow",
+              live.isFinalSprint ? "bg-brand text-white" : "bg-gold-bright text-ink",
+            )}
+          >
+            -{Math.round(live.discountPct)} %
+          </span>
+        )}
+
         <span className="absolute right-3 top-3 rounded-full bg-brand-deep px-2.5 py-1 text-xs font-medium text-white shadow">
           {soldOut
             ? t("complet", "sold out")
@@ -100,7 +129,8 @@ export function OfferCard({
           {offer.gym}, {offer.arrondissement}
         </p>
         <p className="text-sm text-ink-soft">
-          {offer.address}. {offer.distanceKm} km
+          {offer.address}
+          {distanceLabel ? `, ${distanceLabel}` : ""}
         </p>
 
         <p className={cn("mb-4 flex items-center gap-2 text-sm text-ink", dense ? "mt-2.5" : "mt-3")}>

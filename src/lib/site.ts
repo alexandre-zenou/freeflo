@@ -22,11 +22,23 @@ export const site = {
   },
 } as const;
 
-/** Navigation de la maquette cliente : à propos · connexion · espace pro · FR/EN. */
+/**
+ * Navigation : trouver un cours, connexion, puis le CTA centre et FR/EN.
+ *
+ * « Espace pro » n'est PAS ici : il expose les données de l'application et n'est
+ * ouvert qu'au compte d'administration. Le lien apparaît dans l'en-tête pour ce
+ * seul compte (`site-header.tsx`), et `/pro` reste gardée par `ProGuard`.
+ */
 export const nav = {
   primary: [
+    /* La page principale côté client n'avait aucune entrée de menu : on
+       n'y accédait que par un bouton de l'accueil ou par le pied de page.
+       Même libellé que le pied de page, pour ne pas nommer deux fois la
+       même destination différemment. */
+    { label: "Trouver un cours", labelEn: "Find a class", href: "/offres" },
+    /* Connexion en dernier, juste avant le CTA : c'est le compte du visiteur,
+       il se range du côté des actions et non des rubriques du site. */
     { label: "Connexion", labelEn: "Log in", href: "/connexion" },
-    { label: "Espace pro", labelEn: "Pro area", href: "/pro" },
   ],
   /* Le CTA mène à l'entrée du parcours d'inscription (planche 22 du retour
      client), pas à la page qui explique l'intérêt de rejoindre FREEFLO. */
@@ -95,7 +107,6 @@ export interface Offer {
   durationMin: number;
   address: string;
   arrondissement: string;
-  distanceKm: number;
   rating: number;
   reviews: number;
   image: string;
@@ -107,8 +118,20 @@ export interface Offer {
   lng: number;
 }
 
-/** Point « vous êtes ici » de la démo — centre de Paris (Marais). */
-export const userLocation = { lat: 48.8592, lng: 2.3549 } as const;
+/**
+ * Tranche de journée d'une offre, déduite du seul `startsInHours` : on ne
+ * construit JAMAIS de `Date` au rendu, sinon le serveur et le client
+ * calculeraient deux résultats différents et l'hydratation divergerait.
+ *
+ * Partagé par le bandeau de l'accueil (« les cours du jour ») et par le filtre
+ * Disponibilité de `/offres`, pour que « aujourd'hui » veuille dire la même
+ * chose aux deux endroits.
+ */
+export function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
+  if (startsInHours <= 12) return "today";
+  if (startsInHours <= 36) return "tomorrow";
+  return "later";
+}
 
 export const offers: Offer[] = [
   {
@@ -123,7 +146,6 @@ export const offers: Offer[] = [
     durationMin: 60,
     address: "4 rue du Zédé, 75015 Paris",
     arrondissement: "15e",
-    distanceKm: 0.8,
     rating: 4.9,
     reviews: 214,
     image: U("photo-1518611012118-696072aa579a"),
@@ -147,7 +169,6 @@ export const offers: Offer[] = [
     durationMin: 75,
     address: "12 rue Oberkampf, 75011 Paris",
     arrondissement: "11e",
-    distanceKm: 1.6,
     rating: 4.8,
     reviews: 388,
     image: U("photo-1584464491033-06628f3a6b7b"),
@@ -171,7 +192,6 @@ export const offers: Offer[] = [
     durationMin: 60,
     address: "9 rue de Turenne, 75004 Paris",
     arrondissement: "4e",
-    distanceKm: 2.2,
     rating: 4.9,
     reviews: 512,
     image: U("photo-1544367567-0f2fcb009e0b"),
@@ -195,7 +215,6 @@ export const offers: Offer[] = [
     durationMin: 45,
     address: "3 rue de la Roquette, 75011 Paris",
     arrondissement: "11e",
-    distanceKm: 1.1,
     rating: 4.7,
     reviews: 176,
     image: U("photo-1517836357463-d25dfeac3438"),
@@ -219,7 +238,6 @@ export const offers: Offer[] = [
     durationMin: 50,
     address: "18 rue de Provence, 75009 Paris",
     arrondissement: "9e",
-    distanceKm: 3.4,
     rating: 4.8,
     reviews: 297,
     image: "/categories/cycling.jpg",

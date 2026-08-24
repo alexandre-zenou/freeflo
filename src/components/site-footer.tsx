@@ -28,7 +28,6 @@ const columns = [
     links: [
       { label: "Inscrire mon centre", labelEn: "Sign up my centre", href: "/inscription-centre" },
       { label: "Pourquoi FREEFLO", labelEn: "Why FREEFLO", href: "/inscrire-son-centre" },
-      { label: "Espace pro", labelEn: "Pro area", href: "/pro" },
     ],
   },
   {

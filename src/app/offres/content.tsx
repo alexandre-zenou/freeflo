@@ -6,7 +6,7 @@ export function OffresIntro() {
   const t = useT();
   return (
     <div className="ff-container pt-8">
-      <p className="eyebrow mb-3 text-brand">{t("Paris, rayon 3 km", "Paris, 3 km radius")}</p>
+      <p className="eyebrow mb-3 text-brand">{t("Paris, tous arrondissements", "Paris, every district")}</p>
       <h1 className="display text-4xl text-ink sm:text-5xl">
         {t("Ça se libère autour de vous.", "Places are opening up around you.")}
       </h1>

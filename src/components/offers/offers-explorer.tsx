@@ -6,8 +6,8 @@ import { Map as MapIcon, List, SlidersHorizontal, Search, MapPin, X } from "luci
 import { OfferCard } from "@/components/offer-card";
 import { PillSelect } from "@/components/ui/pill-select";
 import { RevealOnView } from "@/components/reveal-on-view";
-import { LeafletMap, type MapPoint, type Monument } from "@/components/offers/leaflet-map";
-import { categories, type Offer } from "@/lib/site";
+import { LeafletMap, type MapPoint } from "@/components/offers/leaflet-map";
+import { categories, dayBucket, type Offer } from "@/lib/site";
 import { computePrice } from "@/lib/pricing";
 import { distanceKm, NEARBY, PARIS_ARRONDISSEMENTS } from "@/lib/geo";
 import { nearbyOption, useGeolocation } from "@/components/use-geolocation";
@@ -21,25 +21,6 @@ const sorts: { key: Sort; label: string; labelEn: string }[] = [
   { key: "proximite", label: "Plus proches", labelEn: "Closest" },
   { key: "prix", label: "Prix le plus bas", labelEn: "Lowest price" },
 ];
-
-/** Repères jaunes demandés par la cliente pour situer la carte. */
-const MONUMENTS: Monument[] = [
-  { label: "Tour Eiffel", lat: 48.8584, lng: 2.2945 },
-  { label: "Louvre", lat: 48.8606, lng: 2.3376 },
-  { label: "Notre-Dame", lat: 48.8530, lng: 2.3499 },
-  { label: "Sacré-Cœur", lat: 48.8867, lng: 2.3431 },
-  { label: "Arc de Triomphe", lat: 48.8738, lng: 2.2950 },
-];
-
-/**
- * Disponibilité déduite du seul `startsInHours` (jamais de `Date` au rendu),
- * pour que serveur et client produisent le même balisage.
- */
-function dayBucket(startsInHours: number): "today" | "tomorrow" | "later" {
-  if (startsInHours <= 12) return "today";
-  if (startsInHours <= 36) return "tomorrow";
-  return "later";
-}
 
 export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const router = useRouter();
@@ -76,10 +57,6 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
   const onLocChange = (v: string) => (v === NEARBY ? enableNearby() : setLoc(v));
 
   const list = useMemo(() => {
-    /** Distance réelle si la position est connue, sinon celle du jeu de démo. */
-    const distanceOf = (o: Offer) =>
-      me ? distanceKm(me, { lat: o.lat, lng: o.lng }) : o.distanceKm;
-
     const q = query.trim().toLowerCase();
     const filtered = offers.filter((o) => {
       // NEARBY n'est pas un arrondissement : il trie, il ne retranche rien.
@@ -95,7 +72,13 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
     });
     return [...filtered].sort((a, b) => {
       if (sort === "urgence") return a.startsInHours - b.startsInHours;
-      if (sort === "proximite") return distanceOf(a) - distanceOf(b);
+      /* « Plus proches » n'a de sens qu'avec une position réelle : sans elle, le
+         bouton est inactif et ce cas ne peut pas être atteint. Aucune distance
+         de repli n'est calculée, faute de point d'où la mesurer. */
+      if (sort === "proximite" && me) {
+        return distanceKm(me, { lat: a.lat, lng: a.lng }) - distanceKm(me, { lat: b.lat, lng: b.lng });
+      }
+      if (sort === "proximite") return a.startsInHours - b.startsInHours;
       return a.basePrice - b.basePrice;
     });
   }, [offers, loc, cat, avail, query, sort, me]);
@@ -208,18 +191,31 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
             <div className="flex flex-wrap items-center gap-2 text-sm text-ink-soft">
               <SlidersHorizontal className="h-4 w-4" />
               <span className="hidden sm:inline">{t("Trier :", "Sort:")}</span>
-              {sorts.map((s) => (
-                <button
-                  key={s.key}
-                  onClick={() => setSort(s.key)}
-                  className={cn(
-                    "rounded-full px-3 py-1 text-sm transition-colors",
-                    sort === s.key ? "bg-brand-tint text-brand" : "hover:text-ink",
-                  )}
-                >
-                  {t(s.label, s.labelEn)}
-                </button>
-              ))}
+              {sorts.map((s) => {
+                /* Sans position, « Plus proches » ne peut rien classer : on le
+                   laisse visible mais inerte, plutôt que de le faire trier sur
+                   une distance inventée. */
+                const needsMe = s.key === "proximite" && !me;
+                return (
+                  <button
+                    key={s.key}
+                    onClick={() => setSort(s.key)}
+                    disabled={needsMe}
+                    title={
+                      needsMe
+                        ? t("Activez la géolocalisation pour trier par distance", "Turn on location to sort by distance")
+                        : undefined
+                    }
+                    className={cn(
+                      "rounded-full px-3 py-1 text-sm transition-colors",
+                      sort === s.key ? "bg-brand-tint text-brand" : "hover:text-ink",
+                      needsMe && "cursor-not-allowed opacity-45 hover:text-ink-soft",
+                    )}
+                  >
+                    {t(s.label, s.labelEn)}
+                  </button>
+                );
+              })}
               {hasFilters && (
                 <button
                   onClick={() => { setLoc(""); setCat(""); setAvail(""); setQuery(""); }}
@@ -286,15 +282,20 @@ export function OffersExplorer({ offers }: { offers: Offer[] }) {
                 <LeafletMap
                   points={points}
                   districts={districts}
-                  monuments={MONUMENTS}
                   activeId={hover}
                   onHover={setHover}
                   onSelect={(id) => router.push(`/offres/${id}`)}
                   showUser
-                  fitBounds
+                  me={me}
+                  onLocate={enableNearby}
+                  locating={geo.state === "asking"}
+                  fitBounds={hasFilters}
                 />
                 <div className="pointer-events-none absolute bottom-3 left-3 z-[400] rounded-full bg-white/85 px-3 py-1 text-xs text-ink-soft backdrop-blur">
-                  {list.length} {t("cours dans un rayon de 3 km", "classes within 3 km")}
+                  {list.length}{" "}
+                  {me
+                    ? t("cours autour de vous", "classes around you")
+                    : t("cours à Paris", "classes in Paris")}
                 </div>
               </RevealOnView>
             </div>

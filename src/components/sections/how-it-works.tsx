@@ -12,7 +12,7 @@ export function HowItWorks() {
   const t = useT();
 
   return (
-    <section className="ff-container py-20 md:py-28">
+    <section className="ff-container pb-12 pt-16 md:pb-20 md:pt-20">
       <RevealLines className="display-italic mx-auto max-w-4xl text-balance text-center text-[clamp(1.75rem,4.2vw,3.1rem)] text-brand">
         {t(
           "Réservez vos séances de sport, sans abonnement, à coût moindre près de chez vous",

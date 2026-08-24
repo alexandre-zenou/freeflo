@@ -85,12 +85,15 @@ jauge chauffe. Or = la bonne affaire, rouge = l'urgence.
 |---|---|
 | `/` | Marketing home (hero, how-it-works, live mechanic, live offers, vendor CTA, FAQ) |
 | `/offres` | Product: list + stylized map, filters, sort — the core client screen |
-| `/offres/[id]` | Offer detail + booking flow (reserve → mock pay → confirmation) — SSG per offer |
+| `/offres/[id]` | Fiche offre, « Réserver » met la place au panier, SSG par offre |
 | `/qui-sommes-nous` | À propos (demandé par la maquette) |
 | `/comment-ca-marche` | Concept / how-it-works |
 | `/inscrire-son-centre` | « Pourquoi FREEFLO » : arguments centres + formulaire |
 | `/inscription-centre` | Entrée du parcours d'inscription (recherche de commerce) |
-| `/pro` | Vendor dashboard mockup ("espace pro" / MyStore) |
+| `/connexion` | Connexion / création de compte (session de démo, voir plus bas) |
+| `/panier` | Panier : les places retenues, puis le paiement en une fois |
+| `/compte` | Espace membre : réservations prises dans la démo |
+| `/pro` | Vendor dashboard mockup ("espace pro" / MyStore), **compte d'administration seul** |
 | `/mentions-legales` · `/cgu-cgv` · `/confidentialite` | Les trois documents légaux, séparés |
 
 ## Retour client du 07/08/2026 (`docs/FEEDBACK-2026-08.md`)
@@ -153,6 +156,53 @@ auparavant, la vidéo et son poster étant retéléchargés à chaque fois).
   catégorie *et* son offre dans `site.ts`.
 - **Vidéo du héros** : `public/video/hero.{mp4,webm}` + `hero-poster.jpg`, encodées depuis
   la capture du client (audio retiré, faststart). Poster affiché si `prefers-reduced-motion`.
+- **Session membre de démo** dans `src/lib/account.tsx` : comptes en dur + comptes créés,
+  session et réservations dans `localStorage`, même patron que `i18n.tsx`
+  (`useSyncExternalStore`, rendu serveur toujours déconnecté, propagation entre onglets).
+  **Compte de test : `demo@freeflo.fr` / `freeflo`** (et `flore@freeflo.fr`, même mot de
+  passe), affiché sur `/connexion` pour que la cliente entre seule dans la démo en ligne.
+  Ce n'est PAS de la sécurité : la vérification vit dans le navigateur.
+  **Rôles** (24/08/2026) : `member` par défaut, et un seul `admin`,
+  **`admin@freeflo.fr` / `freeflo-admin`**, qui ouvre l'espace pro et rien d'autre.
+  `/pro` passe derrière `vendor/pro-guard.tsx` ; « Espace pro » a quitté la navigation
+  publique et le pied de page, et n'apparaît dans l'en-tête que pour ce compte. Une
+  inscription depuis le site ne peut jamais créer d'administrateur.
+  Phase 2 : `src/lib/supabase/*` (déjà écrit, variables `.env.local` encore vides)
+  remplace ce fichier, la forme des données ne bouge pas.
+- **Panier** dans `src/lib/cart.tsx`, même patron. « Réserver » sur une fiche offre
+  n'ouvre plus de paiement : elle **pose la place au panier au prix de l'instant**, et le
+  règlement se fait une seule fois depuis `/panier`. Le prix est bloqué à l'ajout (la
+  dégressivité continue de courir, pas la ligne du panier), et **une place par cours** :
+  ajouter deux fois le même cours ne fait rien, le bouton passe à « Au panier, finaliser ».
+  Le panier est celui du NAVIGATEUR, pas du compte : on remplit sans être connecté, et
+  **la connexion n'est exigée qu'au paiement** (`/connexion?next=/panier`). À la
+  confirmation, chaque ligne devient une réservation du compte et le panier se vide.
+  `offers/checkout-flow.tsx` (ex `booking-flow.tsx`, qui ne traitait qu'une offre) est
+  le tunnel : il travaille sur une **copie** du panier, sinon la carte de confirmation
+  se viderait au moment de s'afficher.
+- **Gestes de la carte** (`offers/leaflet-map.tsx`, Leaflet 1.9) : le pincement à deux
+  doigts est le handler `TouchZoom` de Leaflet, pas du code à nous. Trois réglages le
+  tiennent, plus deux ajouts du 24/08/2026, à ne pas défaire :
+  · `touchZoom: interactive` — son défaut (`Browser.touch`) laissait pincer les cartes
+    **non** interactives, qu'on ne peut ni déplacer ni recadrer ;
+  · `zoomSnap: 0` — sans lui Leaflet recale sur le niveau entier au relâchement, d'où un
+    effet de ressort en fin de pincement. Conséquence assumée : le zoom devient
+    fractionnaire, donc les boutons +/- partent d'un niveau non entier après un geste ;
+  · la molette **seule** ne zoome pas (`scrollWheelZoom: false`) : la carte fait 70 vh,
+    la capturer piégerait le défilement. C'est **Ctrl / ⌘ + molette** qui zoome, centré
+    sur le curseur, ce qui couvre aussi le pincement des trackpads macOS (le navigateur
+    l'envoie comme un `wheel` avec `ctrlKey`). L'écouteur exige `passive: false`.
+  · **Recentrage sur soi** : `me` porte la position réelle (`useGeolocation`), le point
+    « vous êtes ici » quitte alors le repère de démo (`userLocation`, le Marais) et la
+    carte y vole. Le bouton réticule est en HAUT à droite : l'attribution des tuiles
+    tient le bas-droit et doit rester lisible, le contrôle de zoom le haut-gauche.
+  · Les **repères jaunes de monuments** (Tour Eiffel, Louvre…) ont été RETIRÉS le
+    24/08/2026 : ils encombraient la carte sans rien apprendre. Ils venaient d'une
+    annotation de la cliente (« + jaune pour monument »), donc à rétablir sur sa
+    demande : type `Monument`, listes `MONUMENTS` des deux écrans, et la règle
+    `.ff-pin__pill--monument`.
+  Double-clic (zoom avant), Maj + double-clic (arrière) et le clavier sont ceux de
+  Leaflet, rien à maintenir.
 - **Pas de QR code** : le client a tranché pour une confirmation d'identité à l'accueil.
   `components/qr.tsx` a été supprimé — ne pas le réintroduire sans validation.
 - **i18n maison** dans `src/lib/i18n.tsx` : `t("français", "english")`, pas de fichiers de

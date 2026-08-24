@@ -306,12 +306,44 @@
 }
 
 /* ---- Leaflet ---- */
-.leaflet-container {
+/* Sélecteur doublé À DESSEIN : `leaflet.css` est importé par le composant, donc
+   injecté APRÈS cette feuille, et son `.leaflet-container { background: #ddd }`
+   l'emportait à specificité égale. C'était ça, le gris. */
+.leaflet-container.leaflet-container {
   font-family: var(--font-sans), sans-serif;
   background: #f5efe9;
   z-index: 0;
 }
 .leaflet-container a { color: var(--brand); }
+
+/* Doublure de la carte : le même plan SANS les noms de lieux, figé au zoom 11
+   puis étiré. Elle ne se voit que là où la couche nette manque encore.
+   Pas de `filter: blur()` ici : pendant un pincement cette couche est mise à
+   l'échelle, et flouter en direct une image plein écran fait tomber le rendu du
+   navigateur, sur iPhone en particulier. */
+
+/*
+  Pendant un zoom, Leaflet garde les tuiles du niveau précédent et les met à
+  l'échelle, le temps que les nouvelles arrivent. Les noms de villes s'étirent
+  avec elles : « BOULOGNE-BILLANCOURT » traverse l'écran, ou double celui que la
+  couche nette vient d'écrire à sa taille normale.
+
+  On efface donc la couche nette pendant le geste. Reste dessous la doublure
+  sans texte : le dessin des rues suit le zoom, aucun nom ne s'étire, et les
+  noms reviennent en fondu avec les tuiles nettes.
+
+  `!important` est nécessaire, Leaflet écrivant l'opacité de ses couches en
+  style en ligne. Et la classe est posée par le composant sur `zoomstart` /
+  `zoomend`, parce que la classe `leaflet-zoom-anim` de Leaflet n'apparaît PAS
+  lors d'un pincement : le geste passe par une transformation du plan, pas par
+  une animation de zoom.
+*/
+.leaflet-tile-pane .leaflet-layer:not(.ff-tiles-under) {
+  transition: opacity 0.18s ease-out;
+}
+.ff-zooming .leaflet-tile-pane .leaflet-layer:not(.ff-tiles-under) {
+  opacity: 0 !important;
+}
 .leaflet-control-attribution {
   font-size: 10px;
   background: rgba(251, 250, 247, 0.8) !important;
@@ -362,14 +394,35 @@
     background: var(--brand);
     box-shadow: 0 0 0 6px rgba(165, 28, 30, 0.22);
   }
-  /* "you are here" */
+  /*
+    « Vous êtes ici », le point bleu cerné de blanc que tout le monde connaît des
+    applications de cartes. Le bleu n'est pas dans la charte, et c'est voulu : il
+    ne doit se confondre avec aucune pastille de prix (rouge) ni aucun repère de
+    monument (or). Ce point n'apparaît QUE sur une position réellement obtenue.
+  */
   .ff-here {
+    position: relative;
     transform: translate(-50%, -50%);
     width: 14px;
     height: 14px;
     border-radius: 999px;
-    background: var(--ink);
-    box-shadow: 0 0 0 5px rgba(28, 30, 38, 0.18);
+    background: #1a73e8;
+    border: 2.5px solid #fff;
+    box-shadow: 0 0 0 1px rgba(26, 115, 232, 0.35), 0 2px 6px rgba(12, 40, 80, 0.4);
+  }
+  /* Le halo qui respire, purgé par la règle « reduced motion » plus bas. */
+  .ff-here::after {
+    content: "";
+    position: absolute;
+    inset: -9px;
+    border-radius: 999px;
+    background: rgba(26, 115, 232, 0.22);
+    animation: ff-here-pulse 2.4s ease-out infinite;
+  }
+  @keyframes ff-here-pulse {
+    0% { transform: scale(0.6); opacity: 0.9; }
+    70% { transform: scale(1.35); opacity: 0; }
+    100% { transform: scale(1.35); opacity: 0; }
   }
   /* arrondissement label */
   .ff-arr {

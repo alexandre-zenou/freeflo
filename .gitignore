@@ -42,3 +42,6 @@ next-env.d.ts
 .gstack/
 
 !.env.example
+
+# certificat de développement local (jamais versionné)
+/certificates

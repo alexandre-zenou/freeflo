@@ -1,16 +1,18 @@
 "use client";
 
 import Link from "next/link";
-import Image from "next/image";
-import { useRouter } from "next/navigation";
-import { ArrowLeft, Star, MapPin, Clock, Users, ShieldCheck } from "lucide-react";
+import { ArrowLeft, Check, Star, MapPin, Clock, Users, ShieldCheck, Footprints } from "lucide-react";
 import type { Offer } from "@/lib/site";
 import { categoryOf } from "@/lib/site";
 import { useLivePrice } from "@/components/use-live-price";
 import { LeafletMap } from "@/components/offers/leaflet-map";
+import { useGeolocation } from "@/components/use-geolocation";
+import { distanceKm } from "@/lib/geo";
 import { OfferCard } from "@/components/offer-card";
 import { formatEuro, slotLabel } from "@/lib/format";
+import { useSyncExternalStore } from "react";
 import { useLocale, useT } from "@/lib/i18n";
+import { addToCart, useCart } from "@/lib/cart";
 
 /**
  * Fiche offre, refaite d'après la disposition envoyée par la cliente
@@ -28,17 +30,63 @@ import { useLocale, useT } from "@/lib/i18n";
 const included = ["Matériel fourni", "Vestiaires & douches", "Coach diplômé", "Tous niveaux bienvenus"];
 const includedEn = ["Equipment provided", "Changing rooms & showers", "Qualified coach", "All levels welcome"];
 
-export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[] }) {
+/*
+  `isSecureContext`, lu comme un magasin externe plutôt que posé dans un effet :
+  c'est la convention du projet (voir `lib/i18n.tsx`), et la règle de lint
+  interdit `setState` dans un effet. La valeur ne change jamais au cours d'une
+  page, d'où l'abonnement vide. Le rendu serveur répond « sécurisé » : aucun
+  message ne s'affiche avant que le navigateur ait tranché.
+*/
+const noSubscribe = () => () => {};
+const isSecure = () => window.isSecureContext;
+const isSecureOnServer = () => true;
+
+export interface NearbyOffer {
+  offer: Offer;
+  /** Distance depuis le cours consulté, en km (calculée côté serveur). */
+  km: number;
+  sameGym: boolean;
+}
+
+export function OfferDetail({ offer, nearby }: { offer: Offer; nearby: NearbyOffer[] }) {
   const t = useT();
   const { locale } = useLocale();
-  const router = useRouter();
   const live = useLivePrice(offer.basePrice, offer.placesLeft, offer.startsInHours);
+
+  /*
+    Le prix est figé au moment de la mise au panier : la dégressivité continue
+    de courir seconde après seconde, mais le montant annoncé au panier doit
+    être celui qui sera débité, sinon il bougerait sous les yeux du client.
+  */
+  const inCart = useCart().some((i) => i.offerId === offer.id);
   const cat = categoryOf(offer.category);
   const discounted = live.currentPrice < offer.basePrice;
-  const placesLabel =
-    offer.placesLeft > 1
-      ? `${offer.placesLeft} ${t("places restantes", "spots left")}`
-      : `${offer.placesLeft} ${t("place restante", "spot left")}`;
+
+  /*
+    Position du visiteur, SANS demande spontanée : le hook rend la dernière
+    position obtenue si elle date de moins de cinq minutes. Quelqu'un qui a déjà
+    accepté la géolocalisation sur l'accueil ou sur `/offres` voit donc sa
+    position et sa distance sans qu'on le sollicite à nouveau ; les autres ont un
+    bouton. Ouvrir une fiche ne doit pas déclencher une demande de permission.
+  */
+  const geo = useGeolocation();
+  const me = geo.position;
+
+  /*
+    Les navigateurs réservent la géolocalisation aux origines sécurisées.
+    `localhost` bénéficie d'une exception, mais pas une adresse IP en http :
+    depuis un téléphone sur le réseau local, l'appel échoue immédiatement et
+    l'interface annonçait « Localisation refusée », ce qui envoyait chercher la
+    cause du mauvais côté. On distingue donc les deux situations.
+
+    Lu APRÈS le montage : `isSecureContext` n'existe pas au rendu serveur, et le
+    lire pendant le rendu ferait diverger l'hydratation.
+  */
+  const insecure = !useSyncExternalStore(noSubscribe, isSecure, isSecureOnServer);
+  const km = me ? distanceKm(me, { lat: offer.lat, lng: offer.lng }) : null;
+  /* 4,8 km/h : allure de marche en ville. C'est une estimation à vol d'oiseau,
+     d'où le libellé « à pied » et non « temps de trajet ». */
+  const walkMin = km === null ? null : Math.max(1, Math.round((km / 4.8) * 60));
 
   return (
     <div className="bg-paper">
@@ -50,6 +98,65 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           <ArrowLeft className="h-4 w-4" /> {t("Toutes les offres", "All offers")}
         </Link>
 
+        {/*
+          La carte prend la place de la photo, en tête de fiche : ce qu'on
+          cherche ici, c'est OÙ est le cours, pas à quoi ressemble la salle.
+
+          Cadrage serré (zoom 16, l'adresse exacte), et non la vue large de
+          l'accueil. Dès que la position du visiteur est connue, `focus` fait
+          cadrer la carte sur les deux points à la fois : on voit d'un coup le
+          studio, soi-même, et la distance qui sépare les deux.
+        */}
+        <div className="mt-8 overflow-hidden rounded-2xl ring-1 ring-line">
+          <div className="h-[300px] sm:h-[400px]">
+            <LeafletMap
+              points={[{ id: offer.id, lat: offer.lat, lng: offer.lng, label: formatEuro(live.currentPrice) }]}
+              center={[offer.lat, offer.lng]}
+              zoom={16}
+              showUser
+              frameOnUser={false}
+              me={me}
+              onLocate={() => geo.request()}
+              locating={geo.state === "asking"}
+            />
+          </div>
+
+          <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-2 bg-paper px-4 py-3 text-sm">
+            <p className="flex items-center gap-2 text-ink">
+              <MapPin className="h-4 w-4 shrink-0 text-brand" />
+              {offer.address}
+            </p>
+
+            {km !== null ? (
+              <p className="flex items-center gap-2 font-medium text-ink">
+                <Footprints className="h-4 w-4 shrink-0 text-brand" />
+                {t(
+                  `À ${km.toFixed(1)} km de vous, environ ${walkMin} min à pied`,
+                  `${km.toFixed(1)} km away, about ${walkMin} min on foot`,
+                )}
+              </p>
+            ) : (
+              <button
+                type="button"
+                onClick={() => geo.request()}
+                disabled={insecure || geo.state === "asking" || geo.state === "denied"}
+                className="text-left text-brand underline underline-offset-4 transition-colors hover:text-brand-deep disabled:opacity-60 disabled:no-underline"
+              >
+                {insecure
+                  ? t(
+                      "Distance indisponible : la géolocalisation exige une connexion sécurisée (https).",
+                      "Distance unavailable: location needs a secure (https) connection.",
+                    )
+                  : geo.state === "asking"
+                    ? t("Localisation…", "Locating…")
+                    : geo.state === "denied"
+                      ? t("Localisation refusée", "Location denied")
+                      : t("Voir la distance depuis chez vous", "See how far it is from you")}
+              </button>
+            )}
+          </div>
+        </div>
+
         {/* en-tête éditorial */}
         <p className="eyebrow mt-8 text-brand">{t(cat.label, cat.labelEn)}</p>
         <h1 className="display mt-3 text-[clamp(2rem,5vw,3.25rem)] text-ink">{t(offer.title, offer.titleEn)}</h1>
@@ -57,24 +164,6 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
           {offer.gym}. {t("Professeure :", "Instructor:")}{" "}
           <span className="font-bold text-ink">{offer.coach}</span>
         </p>
-
-        {/* photo */}
-        <div className="relative mt-8 aspect-[16/9] overflow-hidden rounded-2xl ring-1 ring-line">
-          <Image
-            src={offer.image}
-            alt={`${offer.title} chez ${offer.gym}`}
-            fill
-            priority
-            sizes="(max-width:1024px) 100vw, 900px"
-            className="object-cover"
-          />
-          <span className="absolute left-4 top-4 rounded-full bg-white/90 px-3 py-1 text-sm font-medium text-ink backdrop-blur">
-            {t(cat.label, cat.labelEn)}
-          </span>
-          <span className="absolute right-4 top-4 rounded-full bg-brand-deep px-3.5 py-1.5 text-sm font-bold text-white shadow">
-            {placesLabel}
-          </span>
-        </div>
 
         <div className="mt-5 flex items-center gap-2 text-sm">
           <Star className="h-4 w-4 fill-gold text-gold" />
@@ -131,54 +220,71 @@ export function OfferDetail({ offer, similar }: { offer: Offer; similar: Offer[]
             </span>
           </div>
           <p className="mt-1 text-white/80">
-            {offer.gym}. {offer.arrondissement}, {offer.distanceKm} km
+            {offer.gym}. {offer.arrondissement}
           </p>
 
           {/*
-            On ne demande plus de carte à un visiteur anonyme : « Réserver »
-            envoie vers la connexion, et `next` ramène sur cette offre une fois
-            l'identification faite. Le tunnel de paiement existe toujours
-            (`offers/booking-flow.tsx`) mais n'est plus branché : c'est ici qu'il
-            se rebranchera, derrière la vraie authentification.
+            « Réserver » pose la place au panier au prix affiché à cet instant,
+            et le paiement se fait une seule fois depuis `/panier`. On ne demande
+            donc ni carte ni compte ici : la connexion n'arrive qu'au paiement.
           */}
-          <button
-            onClick={() =>
-              router.push(`/connexion?next=${encodeURIComponent(`/offres/${offer.id}`)}`)
-            }
-            className="mt-6 w-full rounded-full bg-gold-bright px-6 py-4 text-base font-bold text-ink transition-colors hover:bg-gold"
-          >
-            {t("Réserver la place", "Book this spot")}
-          </button>
-          <p className="mt-4 text-center">
-            <Link href="/offres" className="text-sm text-white/90 underline underline-offset-4 hover:text-gold">
-              {t("Consulter nos autres offres de cours", "Browse our other class offers")}
+          {inCart ? (
+            <Link
+              href="/panier"
+              className="mt-6 flex w-full items-center justify-center gap-2 rounded-full bg-white px-6 py-4 text-base font-bold text-brand-deep transition-colors hover:bg-gold-bright hover:text-ink"
+            >
+              <Check className="h-5 w-5" /> {t("Au panier, finaliser", "In cart, check out")}
             </Link>
+          ) : (
+            <button
+              onClick={() => addToCart(offer.id, live.currentPrice)}
+              className="mt-6 w-full rounded-full bg-gold-bright px-6 py-4 text-base font-bold text-ink transition-colors hover:bg-gold"
+            >
+              {t("Réserver la place", "Book this spot")}
+            </button>
+          )}
+          <p className="mt-4 text-center">
+            {inCart ? (
+              <Link href="/offres" className="text-sm text-white/90 underline underline-offset-4 hover:text-gold">
+                {t("Ajouter un autre cours", "Add another class")}
+              </Link>
+            ) : (
+              <Link href="/offres" className="text-sm text-white/90 underline underline-offset-4 hover:text-gold">
+                {t("Consulter nos autres offres de cours", "Browse our other class offers")}
+              </Link>
+            )}
           </p>
         </div>
 
-        {/* plan + adresse */}
-        <div className="mt-10 overflow-hidden rounded-2xl ring-1 ring-line">
-          <div className="h-52">
-            <LeafletMap
-              points={[{ id: offer.id, lat: offer.lat, lng: offer.lng }]}
-              districts={[{ label: offer.arrondissement, lat: offer.lat + 0.0016, lng: offer.lng }]}
-              center={[offer.lat, offer.lng]}
-              zoom={15}
-              interactive={false}
-            />
-          </div>
-          <p className="flex items-center gap-2 bg-paper px-4 py-3 text-sm text-ink">
-            <MapPin className="h-4 w-4 text-brand" /> {offer.address}
-          </p>
-        </div>
       </div>
 
-      {similar.length > 0 && (
+      {nearby.length > 0 && (
         <div className="ff-container pb-20">
-          <h2 className="display text-2xl text-ink sm:text-3xl">{t("D\u2019autres créneaux à saisir", "More slots worth grabbing")}</h2>
+          <h2 className="display text-2xl text-ink sm:text-3xl">
+            {t("Autres créneaux à proximité", "Other slots nearby")}
+          </h2>
+          <p className="mt-2 text-ink-soft">
+            {t(
+              "Au même centre, ou à quelques minutes de là.",
+              "At the same centre, or a few minutes away.",
+            )}
+          </p>
+
+          {/* Format compact, comme le bandeau de l'accueil, avec la distance
+              depuis CE cours : c'est ce qui rend la suggestion lisible. */}
           <div className="mt-6 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {similar.map((o) => (
-              <OfferCard key={o.id} offer={o} priceTone="bordeaux" />
+            {nearby.map((n) => (
+              <OfferCard
+                key={n.offer.id}
+                offer={n.offer}
+                dense
+                priceTone="bordeaux"
+                distanceLabel={
+                  n.sameGym
+                    ? t("même centre", "same centre")
+                    : t(`à ${n.km.toFixed(1)} km d'ici`, `${n.km.toFixed(1)} km from here`)
+                }
+              />
             ))}
           </div>
         </div>

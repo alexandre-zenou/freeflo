@@ -7,6 +7,21 @@ const nextConfig: NextConfig = {
   turbopack: { root: __dirname },
 
   /*
+    Test depuis un téléphone du réseau local.
+
+    Next bloque par défaut les ressources de développement (`/_next/*`) demandées
+    depuis une autre origine que `localhost`. Le téléphone recevait donc le HTML
+    mais aucun script utile : la page s'affichait, et RIEN n'était cliquable, ni
+    la géolocalisation, ni le panier, ni les filtres. Le serveur le signale dans
+    son journal, pas dans le navigateur, d'où le temps qu'il faut pour le voir.
+
+    Sans effet en production : cette option ne concerne que `next dev`.
+    L'adresse change avec le bail DHCP, d'où le motif large en plus de l'adresse
+    exacte du jour.
+  */
+  allowedDevOrigins: ["192.168.86.244", "192.168.86.*", "*.local"],
+
+  /*
     Pastille « N » en bas à gauche : c'est l'indicateur de développement de
     Next.js, jamais servi en production. On le masque pour que `npm run dev`
     montre exactement ce que verra la cliente.

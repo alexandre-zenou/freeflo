@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { VendorDashboard } from "@/components/vendor/vendor-dashboard";
+import { ProGuard } from "@/components/vendor/pro-guard";
 
 export const metadata: Metadata = {
   title: "Espace pro, tableau de bord",
@@ -15,7 +16,9 @@ export default function ProPage() {
     <>
       <SiteHeader />
       <main className="min-h-dvh bg-secondary/25 pt-20 md:pt-24">
-        <VendorDashboard />
+        <ProGuard>
+          <VendorDashboard />
+        </ProGuard>
       </main>
       <SiteFooter />
     </>

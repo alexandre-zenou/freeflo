@@ -4,7 +4,7 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Reveal, RevealLines } from "@/components/reveal";
 import { OfferCard } from "@/components/offer-card";
-import { offers } from "@/lib/site";
+import { dayBucket, offers } from "@/lib/site";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -12,8 +12,24 @@ import { useT } from "@/lib/i18n";
  * titre capitales + rappel de rareté, lien fantôme à droite, cartes blanches.
  */
 export function LiveOffers() {
-  const shown = offers.slice(0, 4);
+  /*
+    Les cours du JOUR, et eux seuls. Le bandeau prenait jusqu'ici les quatre
+    premières offres du catalogue : le yoga de demain (20 h) y figurait, tandis
+    que le cycling dans 45 min en était absent, faute d'être dans les quatre
+    premières lignes du fichier.
+
+    Tri par échéance : la place qui part le plus vite s'affiche en premier,
+    ce qui est aussi celle dont le prix a le plus fondu.
+  */
+  const shown = offers
+    .filter((o) => dayBucket(o.startsInHours) === "today")
+    .sort((a, b) => a.startsInHours - b.startsInHours)
+    .slice(0, 4);
   const t = useT();
+
+  /* Aucun cours aujourd'hui : on retire le bandeau plutôt que d'afficher un
+     titre rouge suivi d'une grille vide, qui se lirait comme une panne. */
+  if (shown.length === 0) return null;
 
   return (
     /*
