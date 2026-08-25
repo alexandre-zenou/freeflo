@@ -45,3 +45,7 @@ next-env.d.ts
 
 # certificat de développement local (jamais versionné)
 /certificates
+
+# Worker de MapLibre, recopié depuis node_modules par `scripts/copy-maplibre-worker.mjs`
+# avant chaque `dev` et `build` : versionné nulle part, jamais édité à la main.
+/public/maplibre/
