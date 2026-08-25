@@ -305,53 +305,76 @@
   display: none;
 }
 
-/* ---- Leaflet ---- */
-/* Sélecteur doublé À DESSEIN : `leaflet.css` est importé par le composant, donc
-   injecté APRÈS cette feuille, et son `.leaflet-container { background: #ddd }`
-   l'emportait à specificité égale. C'était ça, le gris. */
-.leaflet-container.leaflet-container {
+/* ---- Carte (MapLibre) ---- */
+.maplibregl-map {
   font-family: var(--font-sans), sans-serif;
-  background: #f5efe9;
-  z-index: 0;
 }
-.leaflet-container a { color: var(--brand); }
-
-/* Doublure de la carte : le même plan SANS les noms de lieux, figé au zoom 11
-   puis étiré. Elle ne se voit que là où la couche nette manque encore.
-   Pas de `filter: blur()` ici : pendant un pincement cette couche est mise à
-   l'échelle, et flouter en direct une image plein écran fait tomber le rendu du
-   navigateur, sur iPhone en particulier. */
-
-/*
-  Pendant un zoom, Leaflet garde les tuiles du niveau précédent et les met à
-  l'échelle, le temps que les nouvelles arrivent. Les noms de villes s'étirent
-  avec elles : « BOULOGNE-BILLANCOURT » traverse l'écran, ou double celui que la
-  couche nette vient d'écrire à sa taille normale.
-
-  On efface donc la couche nette pendant le geste. Reste dessous la doublure
-  sans texte : le dessin des rues suit le zoom, aucun nom ne s'étire, et les
-  noms reviennent en fondu avec les tuiles nettes.
-
-  `!important` est nécessaire, Leaflet écrivant l'opacité de ses couches en
-  style en ligne. Et la classe est posée par le composant sur `zoomstart` /
-  `zoomend`, parce que la classe `leaflet-zoom-anim` de Leaflet n'apparaît PAS
-  lors d'un pincement : le geste passe par une transformation du plan, pas par
-  une animation de zoom.
-*/
-.leaflet-tile-pane .leaflet-layer:not(.ff-tiles-under) {
-  transition: opacity 0.18s ease-out;
+.maplibregl-ctrl-attrib a { color: var(--brand); }
+/* Les commandes de zoom, à la rondeur du reste du site. */
+.maplibregl-ctrl-group {
+  border-radius: 999px;
+  overflow: hidden;
+  box-shadow: 0 2px 10px rgba(28, 30, 38, 0.12);
 }
-.ff-zooming .leaflet-tile-pane .leaflet-layer:not(.ff-tiles-under) {
-  opacity: 0 !important;
-}
-.leaflet-control-attribution {
-  font-size: 10px;
-  background: rgba(251, 250, 247, 0.8) !important;
-}
+
 /* Custom markers live in @layer utilities so Turbopack dev emits them reliably
    (unlayered rules after @layer blocks get dropped in dev; they build fine but
    don't hot-reload). No conflict with leaflet.css — these selectors are ours. */
 @layer utilities {
+  /*
+    Double curseur de prix. Deux `input[type=range]` superposés : le rail natif
+    est effacé, seul le pouce reste cliquable, sinon celui du dessus avalerait
+    tous les clics et le curseur du bas deviendrait inatteignable.
+  */
+  .range-dual {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 100%;
+    height: 20px;
+    background: transparent;
+    pointer-events: none;
+  }
+  .range-dual::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    pointer-events: auto;
+    height: 18px;
+    width: 18px;
+    border-radius: 999px;
+    background: var(--brand);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 5px rgba(40, 12, 12, 0.35);
+    cursor: pointer;
+  }
+  .range-dual::-moz-range-thumb {
+    pointer-events: auto;
+    height: 14px;
+    width: 14px;
+    border-radius: 999px;
+    background: var(--brand);
+    border: 2px solid #fff;
+    box-shadow: 0 1px 5px rgba(40, 12, 12, 0.35);
+    cursor: pointer;
+  }
+  .range-dual::-moz-range-track {
+    background: transparent;
+  }
+  /*
+    Le contour de focus natif ceint l'input ENTIER, soit un rectangle sur toute
+    la largeur du panneau, alors que seul le pouce se déplace. On le déplace
+    donc sur le pouce : la navigation au clavier reste signalée, à l'endroit qui
+    bouge réellement.
+  */
+  .range-dual:focus {
+    outline: none;
+  }
+  .range-dual:focus-visible::-webkit-slider-thumb {
+    box-shadow: 0 0 0 4px rgba(165, 28, 30, 0.28);
+  }
+  .range-dual:focus-visible::-moz-range-thumb {
+    box-shadow: 0 0 0 4px rgba(165, 28, 30, 0.28);
+  }
+
   /* price marker */
   .ff-pin {
     transform: translate(-50%, -100%);
@@ -360,17 +383,25 @@
     /* `--pin-i` est posé par leaflet-map.tsx : les pastilles se posent en cascade. */
     animation-delay: calc(0.35s + var(--pin-i, 0) * var(--stagger-flo));
   }
+  /*
+    Pastilles resserrées : le catalogue est passé de 5 à 18 cours, et à
+    l'ancienne taille elles se chevauchaient au point de masquer le plan. On
+    gagne de la place sur les marges et l'interlettrage plutôt que sur la
+    lisibilité du prix, qui reste le seul contenu utile de la pastille.
+  */
   .ff-pin__pill {
     display: inline-flex;
     align-items: center;
     white-space: nowrap;
-    padding: 3px 9px;
+    padding: 2px 7px;
     border-radius: 999px;
-    font-size: 12px;
+    font-size: 11px;
     font-weight: 600;
+    line-height: 1.35;
+    letter-spacing: -0.01em;
     background: #fff;
     color: var(--ink);
-    box-shadow: 0 4px 16px rgba(40, 12, 12, 0.28);
+    box-shadow: 0 3px 12px rgba(40, 12, 12, 0.24);
     transition: transform 0.15s ease;
   }
   /* charte client : pastilles rouges, le jaune est réservé aux monuments */
@@ -379,6 +410,10 @@
     background: var(--gold);
     color: var(--ink);
     font-weight: 500;
+    /* Un repère n'est qu'un décor de situation : il doit s'effacer devant les
+       prix, qui sont l'information que le visiteur vient chercher. */
+    font-size: 10px;
+    padding: 2px 6px;
   }
   .ff-pin__pill--active {
     outline: 2px solid var(--brand-deep);
