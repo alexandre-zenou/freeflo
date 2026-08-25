@@ -25,16 +25,23 @@ const MEMBERS_KEY = "ff-members";
 const BOOKINGS_KEY = "ff-bookings";
 const EVENT = "ff-account-change";
 
-export type Role = "member" | "admin";
+export type Role = "member" | "centre" | "admin";
 
 export interface Member {
   firstName: string;
   lastName: string;
   email: string;
   /**
-   * `admin` ouvre l'espace pro, et rien d'autre : c'est un accès aux DONNÉES de
-   * l'application (offres des centres, commandes, planning), pas un pouvoir sur
-   * les comptes des membres. Toute inscription depuis le site crée un `member`.
+   * Trois rôles, trois interfaces :
+   *
+   * · `member` réserve des places. C'est ce que crée toute inscription depuis
+   *   le site, et le seul rôle ouvert au public.
+   * · `centre` gère SON centre : il voit ses réservations et ses statistiques,
+   *   rien d'autre. Il ne réserve pas, le parcours sportif lui est fermé.
+   * · `admin` voit l'espace pro entier, tous onglets, pour la démonstration.
+   *
+   * Aucun de ces rôles n'est un pouvoir sur les comptes des membres : c'est un
+   * accès à des écrans, pas une autorisation au sens d'un backend.
    */
   role: Role;
 }
@@ -59,11 +66,16 @@ export interface Booking {
 export const demoMembers: StoredMember[] = [
   { firstName: "Thomas", lastName: "Durand", email: "demo@freeflo.fr", password: "freeflo", role: "member" },
   { firstName: "Flore", lastName: "Lemaire", email: "flore@freeflo.fr", password: "freeflo", role: "member" },
+  /* Le compte d'un centre : son prénom porte le nom du studio, c'est lui qui
+     s'affiche dans la barre de navigation une fois connecté. */
+  { firstName: "Studio Bloom", lastName: "Paris 4e", email: "centre@freeflo.fr", password: "freeflo-centre", role: "centre" },
   { firstName: "Admin", lastName: "FREEFLO", email: "admin@freeflo.fr", password: "freeflo-admin", role: "admin" },
 ];
 
 /** Le compte d'administration, seul à ouvrir l'espace pro. */
 export const adminMember = demoMembers.find((m) => m.role === "admin")!;
+/** Le compte de démonstration d'un centre de sport. */
+export const centreMember = demoMembers.find((m) => m.role === "centre")!;
 
 function read(key: string): string {
   try {
@@ -131,7 +143,7 @@ function getSnapshot(): AccountState {
           firstName: found.firstName,
           lastName: found.lastName ?? "",
           email: found.email,
-          role: found.role === "admin" ? "admin" : "member",
+          role: found.role,
         },
         bookings: parse<Record<string, Booking[]>>(bookings, {})[email] ?? [],
       }
@@ -244,6 +256,18 @@ export function useHydrated(): boolean {
   );
 }
 
+/**
+ * Le membre connecté, lu HORS rendu.
+ *
+ * `useMember` ne vaut que dans un composant, et sa valeur date du rendu en
+ * cours : juste après un `signIn`, elle est encore vide. Ce getteur lit le
+ * magasin à l'instant où on l'appelle, ce qu'il faut pour décider vers où
+ * rediriger dans la foulée d'une connexion.
+ */
+export function currentMember(): Member | null {
+  return getSnapshot().member;
+}
+
 /** Raccourci pour les composants qui n'ont besoin que de « qui est connecté ». */
 export function useMember(): Member | null {
   return useAccount().member;
@@ -252,6 +276,19 @@ export function useMember(): Member | null {
 /** `true` seulement pour le compte d'administration, qui ouvre l'espace pro. */
 export function useIsAdmin(): boolean {
   return useMember()?.role === "admin";
+}
+
+/**
+ * « Ce compte appartient-il au côté professionnel ? »
+ *
+ * Centre comme administration : les deux gèrent des créneaux et n'en réservent
+ * pas. C'est ce test, et non `useIsAdmin`, qui doit décider de la navigation et
+ * des pages fermées, sans quoi l'ajout du rôle `centre` laisserait un compte de
+ * centre errer dans le parcours sportif.
+ */
+export function useIsPro(): boolean {
+  const role = useMember()?.role;
+  return role === "admin" || role === "centre";
 }
 
 /** Déconnexion stable en référence, pour un `onClick` ou un effet. */

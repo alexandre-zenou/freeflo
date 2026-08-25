@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { Clock, LogOut, MapPin, ShieldCheck } from "lucide-react";
+import { ArrowRight, Clock, LogOut, MapPin, ShieldCheck } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { offerById, categoryOf } from "@/lib/site";
 import { formatEuro, slotLabel } from "@/lib/format";
@@ -56,6 +56,56 @@ export function AccountView() {
   }
 
   const fullName = [member.firstName, member.lastName].filter(Boolean).join(" ");
+
+  /*
+    Les comptes professionnels, centre comme administration, ne réservent rien :
+    ils mettent des places en vente. Leur montrer « Mes réservations, aucune
+    pour le moment » puis les inviter à voir les offres n'a aucun sens, c'est le
+    parcours du client. Leur compte se réduit à leur identité et à la porte de
+    l'espace pro.
+  */
+  if (member.role !== "member") {
+    return (
+      <div className="ff-container max-w-3xl py-16">
+        <p className="eyebrow text-brand">
+          {member.role === "centre"
+            ? t("Compte centre de sport", "Sport centre account")
+            : t("Compte administrateur", "Admin account")}
+        </p>
+        <div className="mt-3 flex flex-wrap items-end justify-between gap-4">
+          <div>
+            <h1 className="display text-[clamp(2rem,5vw,3rem)] text-ink">
+              {t(`Bonjour, ${member.firstName}.`, `Hello, ${member.firstName}.`)}
+            </h1>
+            <p className="mt-2 text-sm text-ink-soft">
+              {fullName}, {member.email}
+            </p>
+          </div>
+          <button
+            onClick={signOut}
+            className="flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-sm text-ink transition-colors hover:border-brand hover:text-brand"
+          >
+            <LogOut className="h-4 w-4" /> {t("Se déconnecter", "Log out")}
+          </button>
+        </div>
+
+        <div className="mt-10 rounded-3xl border border-line bg-paper px-6 py-8">
+          <h2 className="display text-2xl text-ink">{t("Espace pro", "Pro area")}</h2>
+          <p className="mt-2 text-sm text-ink-soft">
+            {t(
+              "Vos créneaux, vos réservations reçues et les réglages de votre centre.",
+              "Your slots, the bookings you receive, and your centre settings.",
+            )}
+          </p>
+          <Link href="/pro">
+            <Button variant="gold" size="lg" className="mt-6">
+              {t("Ouvrir l'espace pro", "Open the pro area")} <ArrowRight className="h-4 w-4" />
+            </Button>
+          </Link>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="ff-container max-w-3xl py-16">

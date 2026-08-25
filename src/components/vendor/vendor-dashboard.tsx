@@ -23,6 +23,7 @@ import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import { OfferFormModal } from "@/components/vendor/offer-form-modal";
 import { initialVendorOffers, type VendorOffer } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
+import { useMember } from "@/lib/account";
 
 /**
  * Espace pro — second niveau de la charte : fond blanc (annotation « mettre un
@@ -33,14 +34,41 @@ const tabs = [
   { key: "planning", label: "Planning", labelEn: "Planning", icon: <CalendarDays className="h-4 w-4" /> },
   { key: "offers", label: "Mes offres", labelEn: "My offers", icon: <Ticket className="h-4 w-4" /> },
   { key: "stats", label: "Statistiques", labelEn: "Statistics", icon: <TrendingUp className="h-4 w-4" /> },
-  { key: "orders", label: "Commandes", labelEn: "Orders", icon: <ClipboardList className="h-4 w-4" /> },
+  { key: "orders", label: "Réservations", labelEn: "Bookings", icon: <ClipboardList className="h-4 w-4" /> },
   { key: "reviews", label: "Avis", labelEn: "Reviews", icon: <Star className="h-4 w-4" /> },
   { key: "settings", label: "Paramètres", labelEn: "Settings", icon: <Settings className="h-4 w-4" /> },
 ] as const;
 
+/**
+ * Ce qu'un centre voit de l'espace pro : ses réservations et ses statistiques.
+ *
+ * Les autres onglets pilotent le catalogue et les réglages de la plateforme,
+ * ou donnent à voir les données de TOUS les centres : ils restent réservés au
+ * compte d'administration, qui sert la démonstration d'ensemble.
+ */
+const ONGLETS_CENTRE = ["stats", "orders"] as const;
+
 export function VendorDashboard() {
   const t = useT();
+  const member = useMember();
+  const estCentre = member?.role === "centre";
+  /* Le compte d'un centre porte le nom du studio dans son prénom. */
+  const nomAffiche = estCentre && member ? member.firstName : "Studio Bloom";
+  const onglets = estCentre
+    ? tabs.filter((o) => (ONGLETS_CENTRE as readonly string[]).includes(o.key))
+    : tabs;
+
   const [tab, setTab] = useState<(typeof tabs)[number]["key"]>("overview");
+
+  /*
+    L'onglet affiché est DÉDUIT, pas corrigé après coup dans un effet : le rendu
+    serveur est toujours déconnecté, l'onglet initial vaut donc « Tableau de
+    bord », que le centre n'a pas. Sans cette déduction, il tomberait sur une
+    page vide le temps de l'hydratation, et la règle du projet interdit de
+    remettre l'état à jour depuis un effet.
+  */
+  const ongletActif =
+    estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "stats" : tab;
   const [offers, setOffers] = useState<VendorOffer[]>(initialVendorOffers);
   const [drawerOpen, setDrawerOpen] = useState(false);
   /** Offre en cours de modification (bouton « Modifier » de Mes offres). */
@@ -70,14 +98,20 @@ export function VendorDashboard() {
         <div className="mb-6 flex flex-wrap items-end justify-between gap-4">
           <div>
             <p className="eyebrow text-pro-accent">{t("Espace pro, démo", "Pro area, demo")}</p>
-            <h1 className="pro-display mt-1 text-3xl text-ink sm:text-4xl">{t("Bonjour, Studio Bloom", "Hello, Studio Bloom")}</h1>
+            <h1 className="pro-display mt-1 text-3xl text-ink sm:text-4xl">
+              {t(`Bonjour, ${nomAffiche}`, `Hello, ${nomAffiche}`)}
+            </h1>
           </div>
-          <button
-            onClick={() => setDrawerOpen(true)}
-            className="inline-flex items-center gap-2 rounded-full bg-pro-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
-          >
-            <Plus className="h-4 w-4" /> {t("Créer une offre", "Create an offer")}
-          </button>
+          {/* Publier une offre relève de la gestion du catalogue, pas des deux
+              onglets ouverts au centre : le bouton suit la même règle qu'eux. */}
+          {!estCentre && (
+            <button
+              onClick={() => setDrawerOpen(true)}
+              className="inline-flex items-center gap-2 rounded-full bg-pro-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
+            >
+              <Plus className="h-4 w-4" /> {t("Créer une offre", "Create an offer")}
+            </button>
+          )}
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
@@ -89,13 +123,13 @@ export function VendorDashboard() {
             visible d'un coup d'œil. La colonne verticale reprend à partir de `lg`.
           */}
           <aside className="flex flex-wrap gap-1 rounded-2xl bg-white p-2 ring-1 ring-line lg:h-fit lg:flex-col lg:flex-nowrap">
-            {tabs.map((tab_) => (
+            {onglets.map((tab_) => (
               <button
                 key={tab_.key}
                 onClick={() => setTab(tab_.key)}
                 className={cn(
                   "flex shrink-0 items-center gap-2.5 rounded-xl px-4 py-2.5 text-sm transition-colors",
-                  tab === tab_.key
+                  ongletActif === tab_.key
                     ? "bg-pro-accent text-white"
                     : "text-ink-soft hover:bg-pro-surface hover:text-ink",
                 )}
@@ -107,9 +141,9 @@ export function VendorDashboard() {
 
           {/* content */}
           <div className="min-w-0">
-            {tab === "overview" && <OverviewTab offers={offers} />}
-            {tab === "planning" && <PlanningTab offers={offers} onPublish={addOffer} />}
-            {tab === "offers" && (
+            {ongletActif === "overview" && <OverviewTab offers={offers} />}
+            {ongletActif === "planning" && <PlanningTab offers={offers} onPublish={addOffer} />}
+            {ongletActif === "offers" && (
               <OffersTab
                 offers={offers}
                 onDuplicate={duplicate}
@@ -117,10 +151,10 @@ export function VendorDashboard() {
                 onCreate={() => setDrawerOpen(true)}
               />
             )}
-            {tab === "stats" && <StatsTab />}
-            {tab === "orders" && <OrdersTab />}
-            {tab === "reviews" && <ReviewsTab />}
-            {tab === "settings" && <SettingsTab />}
+            {ongletActif === "stats" && <StatsTab />}
+            {ongletActif === "orders" && <OrdersTab />}
+            {ongletActif === "reviews" && <ReviewsTab />}
+            {ongletActif === "settings" && <SettingsTab />}
           </div>
         </div>
 

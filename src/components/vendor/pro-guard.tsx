@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
-import { adminMember, useHydrated, useMember } from "@/lib/account";
+import { adminMember, centreMember, useHydrated, useMember } from "@/lib/account";
 
 /**
  * Porte de l'espace pro. Seul le compte d'administration passe : l'espace pro
@@ -33,7 +33,7 @@ export function ProGuard({ children }: { children: React.ReactNode }) {
     );
   }
 
-  if (member?.role === "admin") return <>{children}</>;
+  if (member?.role === "admin" || member?.role === "centre") return <>{children}</>;
 
   return (
     <div className="ff-container max-w-xl py-20">
@@ -41,17 +41,17 @@ export function ProGuard({ children }: { children: React.ReactNode }) {
         <Lock className="h-6 w-6" />
       </span>
       <h1 className="pro-display mt-6 text-3xl text-pro-accent">
-        {t("Accès réservé à l'administration.", "Administration access only.")}
+        {t("Accès réservé aux centres.", "Centres only.")}
       </h1>
       <p className="mt-3 text-ink-soft">
         {member
           ? t(
-              "Votre compte est un compte membre. L'espace pro et les données des centres demandent le compte d'administration.",
-              "Yours is a member account. The pro area and the centres' data require the administration account.",
+              "Votre compte est un compte membre. L'espace pro demande le compte d'un centre de sport, ou celui de l'administration.",
+              "Yours is a member account. The pro area requires a sport centre account, or the administration one.",
             )
           : t(
-              "Connectez-vous avec le compte d'administration pour ouvrir l'espace pro.",
-              "Log in with the administration account to open the pro area.",
+              "Connectez-vous avec le compte d'un centre de sport pour ouvrir l'espace pro.",
+              "Log in with a sport centre account to open the pro area.",
             )}
       </p>
 
@@ -63,7 +63,12 @@ export function ProGuard({ children }: { children: React.ReactNode }) {
 
       {/* Démo : l'identifiant est donné, sinon la cliente ne peut pas entrer. */}
       <p className="mt-6 rounded-2xl border border-dashed border-line bg-paper px-4 py-3 text-sm text-ink-soft">
-        {t("Démonstration, compte d'administration :", "Demo, administration account:")}{" "}
+        {t("Démonstration, compte d'un centre :", "Demo, a centre's account:")}{" "}
+        <span className="font-medium text-ink">{centreMember.email}</span>,{" "}
+        {t("mot de passe", "password")}{" "}
+        <span className="font-mono text-ink">{centreMember.password}</span>
+        <br />
+        {t("Administration, tous les onglets :", "Administration, every tab:")}{" "}
         <span className="font-medium text-ink">{adminMember.email}</span>,{" "}
         {t("mot de passe", "password")}{" "}
         <span className="font-mono text-ink">{adminMember.password}</span>

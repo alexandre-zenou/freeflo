@@ -26,13 +26,33 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
     « Espace pro » ne fait plus partie de la navigation publique : il n'apparaît
     que pour le compte d'administration, seul à pouvoir l'ouvrir (`ProGuard`).
   */
+  const isPro = member?.role === "admin" || member?.role === "centre";
+
+  /*
+    Deux entrées disparaissent selon qui regarde, pour ne pas proposer une
+    action qui n'a plus de sens :
+
+    · « Inscrire mon centre » n'est montré qu'aux visiteurs NON connectés. Une
+      fois identifié, on a déjà un compte : le parcours d'inscription d'un
+      centre part d'une recherche de commerce, il n'a rien à dire à quelqu'un
+      qui est déjà entré.
+
+    · « Trouver un cours » et le PANIER disparaissent pour les comptes du côté
+      professionnel, centre comme administration. Ils gèrent des créneaux et
+      n'en réservent pas : une icône de panier dans leur en-tête ne mènerait
+      qu'à une page vide.
+  */
+  const showVendorCta = !member;
+
   const primary = [
-    ...nav.primary.map((l) =>
-      l.href === "/connexion" && member
-        ? { href: "/compte", label: member.firstName, labelEn: member.firstName, account: true }
-        : { ...l, account: false },
-    ),
-    ...(member?.role === "admin"
+    ...nav.primary
+      .filter((l) => !(isPro && l.href === "/offres"))
+      .map((l) =>
+        l.href === "/connexion" && member
+          ? { href: "/compte", label: member.firstName, labelEn: member.firstName, account: true }
+          : { ...l, account: false },
+      ),
+    ...(isPro
       ? [{ href: "/pro", label: "Espace pro", labelEn: "Pro area", account: false }]
       : []),
   ];
@@ -90,6 +110,7 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
                 {t(l.label, l.labelEn)}
               </Link>
             ))}
+            {showVendorCta && (
             <Link
               href={nav.vendorCta.href}
               className={cn(
@@ -101,15 +122,16 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
             >
               {t(nav.vendorCta.label, nav.vendorCta.labelEn)}
             </Link>
+            )}
           </nav>
-          <CartLink count={cartCount} onDark={onDark} label={t("Panier", "Cart")} />
+          {!isPro && <CartLink count={cartCount} onDark={onDark} label={t("Panier", "Cart")} />}
           <LocaleSwitch onDark={onDark} />
         </div>
 
         {/* Le panier reste atteignable sur mobile sans ouvrir le menu : c'est
             l'étape suivante du parcours, pas une rubrique du site. */}
         <div className="flex items-center gap-4 md:hidden">
-          <CartLink count={cartCount} onDark={onDark} label={t("Panier", "Cart")} />
+          {!isPro && <CartLink count={cartCount} onDark={onDark} label={t("Panier", "Cart")} />}
           <button
             className={cn(onDark ? "text-white" : "text-ink")}
             onClick={() => setOpen((v) => !v)}
@@ -125,7 +147,10 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
       {open && (
         <div className="border-t border-line bg-cream md:hidden">
           <div className="ff-container flex flex-col gap-1 py-4">
-            {[...primary, { ...nav.vendorCta, account: false }].map((l) => (
+            {[
+              ...primary,
+              ...(showVendorCta ? [{ ...nav.vendorCta, account: false }] : []),
+            ].map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -136,15 +161,17 @@ export function SiteHeader({ overHero = false }: { overHero?: boolean }) {
                 {t(l.label, l.labelEn)}
               </Link>
             ))}
-            <Link
-              href="/panier"
-              onClick={() => setOpen(false)}
-              className="flex items-center gap-2 rounded-lg px-2 py-3 text-ink hover:bg-secondary"
-            >
-              <ShoppingBag className="h-4 w-4" />
-              {t("Panier", "Cart")}
-              {cartCount > 0 && ` (${cartCount})`}
-            </Link>
+            {!isPro && (
+              <Link
+                href="/panier"
+                onClick={() => setOpen(false)}
+                className="flex items-center gap-2 rounded-lg px-2 py-3 text-ink hover:bg-secondary"
+              >
+                <ShoppingBag className="h-4 w-4" />
+                {t("Panier", "Cart")}
+                {cartCount > 0 && ` (${cartCount})`}
+              </Link>
+            )}
             <div className="px-2 pt-2">
               <LocaleSwitch onDark={false} />
             </div>

@@ -4,6 +4,7 @@ import Link from "next/link";
 import { Logo } from "@/components/logo";
 import { site } from "@/lib/site";
 import { useT } from "@/lib/i18n";
+import { useMember } from "@/lib/account";
 
 /**
  * Pied de page.
@@ -27,7 +28,6 @@ const columns = [
     titleEn: "For centres",
     links: [
       { label: "Inscrire mon centre", labelEn: "Sign up my centre", href: "/inscription-centre" },
-      { label: "Pourquoi FREEFLO", labelEn: "Why FREEFLO", href: "/inscrire-son-centre" },
     ],
   },
   {
@@ -43,6 +43,28 @@ const columns = [
 
 export function SiteFooter() {
   const t = useT();
+  const member = useMember();
+
+  /*
+    « Inscrire mon centre » ne s'adresse qu'aux visiteurs non connectés, comme
+    dans l'en-tête : une fois identifié, on a déjà un compte, et le parcours
+    d'inscription d'un centre part d'une recherche de commerce.
+
+    Une colonne vidée de tous ses liens disparaît : garder un intitulé « Les
+    centres » au-dessus du vide se lirait comme une page cassée.
+  */
+  const isPro = member?.role === "admin" || member?.role === "centre";
+
+  const visibles = columns
+    /* L'administration ne voit plus le parcours sportif : ni « Trouver un
+       cours », ni « Catégories », qui mènent à des pages dont sa navigation et
+       ses gardes l'écartent déjà. Elle garde le légal et les pages centres. */
+    .filter((col) => !(isPro && col.title === "Découvrir"))
+    .map((col) => ({
+      ...col,
+      links: col.links.filter((l) => !(member && l.href === "/inscription-centre")),
+    }))
+    .filter((col) => col.links.length > 0);
 
   return (
     // Filet supérieur : sur les pages dont la dernière section est déjà rouge,
@@ -57,14 +79,9 @@ export function SiteFooter() {
               "FREEFLO releases unsold sport class places near you. The closer the class, the lower the price. Book at the last minute, and make the most of it!",
             )}
           </p>
-          <div className="mt-6 flex gap-4 text-sm text-white/80">
-            <a href={site.social.instagram} className="transition-colors hover:text-gold">Instagram</a>
-            <a href={site.social.tiktok} className="transition-colors hover:text-gold">TikTok</a>
-            <a href={site.social.linkedin} className="transition-colors hover:text-gold">LinkedIn</a>
-          </div>
         </div>
 
-        {columns.map((col) => (
+        {visibles.map((col) => (
           <div key={col.title}>
             <h3 className="eyebrow text-gold">{t(col.title, col.titleEn)}</h3>
             <ul className="mt-4 space-y-3">
