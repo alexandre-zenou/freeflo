@@ -397,6 +397,11 @@ export function MapSearch({
           <ul ref={listeRef} className="divide-y divide-line overflow-y-auto">
             {demain.map((o) => {
               const available = o.placesLeft > 0;
+              const prix = prixDe.get(o.id) ?? 0;
+              /* Le prix plein n'est barré que s'il y a vraiment une remise :
+                 au plein tarif, on afficherait deux fois le même nombre dont un
+                 barré, ce qui se lit comme une erreur. */
+              const remise = prix < o.basePrice;
               return (
                 <li key={o.id}>
                   <button
@@ -448,15 +453,26 @@ export function MapSearch({
                     </span>
 
                     {/*
-                      Le prix du moment, à droite et centré sur toute la hauteur
-                      de la ligne : c'est le même nombre que la pastille de la
-                      carte, il vient du même `prixDe`, et il ne peut donc pas
-                      la contredire. `tabular-nums` aligne les chiffres d'une
-                      ligne à l'autre, `shrink-0` l'empêche d'être écrasé par un
-                      nom de studio long.
+                      Prix plein barré au-dessus, prix du moment en dessous,
+                      alignés à droite. Le prix plein est `basePrice`, la vraie
+                      donnée du catalogue : c'est le même couple que sur les
+                      grandes vignettes, et le même nombre que la pastille de la
+                      carte, qui vient du même `prixDe`. Rien ne peut donc se
+                      contredire d'un écran à l'autre.
+
+                      `tabular-nums` aligne les chiffres d'une ligne à l'autre,
+                      `shrink-0` empêche le bloc d'être écrasé par un nom de
+                      studio long.
                     */}
-                    <span className="shrink-0 pl-2 text-base font-bold tabular-nums text-brand">
-                      {formatEuro(prixDe.get(o.id) ?? 0)}
+                    <span className="flex shrink-0 flex-col items-end pl-2 leading-tight">
+                      {remise && (
+                        <span className="text-xs tabular-nums text-ink-soft/70 line-through">
+                          {formatEuro(o.basePrice)}
+                        </span>
+                      )}
+                      <span className="text-sm font-bold tabular-nums text-brand">
+                        {formatEuro(prix)}
+                      </span>
                     </span>
                   </button>
                 </li>
