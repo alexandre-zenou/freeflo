@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { MemberGuard } from "@/components/member-guard";
 import { CartView } from "@/components/offers/cart-view";
 
 export const metadata: Metadata = {
@@ -14,7 +15,9 @@ export default function PanierPage() {
     <>
       <SiteHeader />
       <main className="min-h-[70dvh] bg-cream pt-28 md:pt-32">
-        <CartView />
+        <MemberGuard>
+          <CartView />
+        </MemberGuard>
       </main>
       <SiteFooter />
     </>

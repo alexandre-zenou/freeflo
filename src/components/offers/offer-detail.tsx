@@ -5,7 +5,7 @@ import { ArrowLeft, Check, Star, MapPin, Clock, Users, ShieldCheck, Footprints }
 import type { Offer } from "@/lib/site";
 import { categoryOf } from "@/lib/site";
 import { useLivePrice } from "@/components/use-live-price";
-import { LeafletMap } from "@/components/offers/leaflet-map";
+import { MapView } from "@/components/offers/map-view";
 import { useGeolocation } from "@/components/use-geolocation";
 import { distanceKm } from "@/lib/geo";
 import { OfferCard } from "@/components/offer-card";
@@ -109,7 +109,7 @@ export function OfferDetail({ offer, nearby }: { offer: Offer; nearby: NearbyOff
         */}
         <div className="mt-8 overflow-hidden rounded-2xl ring-1 ring-line">
           <div className="h-[300px] sm:h-[400px]">
-            <LeafletMap
+            <MapView
               points={[{ id: offer.id, lat: offer.lat, lng: offer.lng, label: formatEuro(live.currentPrice) }]}
               center={[offer.lat, offer.lng]}
               zoom={16}
@@ -204,11 +204,11 @@ export function OfferDetail({ offer, nearby }: { offer: Offer; nearby: NearbyOff
             <Clock className="h-4 w-4 shrink-0 text-gold" />
             {offer.placesLeft > 1
               ? t(
-                  `Il ne te reste plus que ${offer.placesLeft} places vacantes pour ce cours !`,
+                  `Il ne te reste plus que ${offer.placesLeft} places pour ce cours !`,
                   `Only ${offer.placesLeft} spots left for this class!`,
                 )
               : t(
-                  "Il ne te reste plus qu'une place vacante pour ce cours !",
+                  "Il ne te reste plus qu'une place pour ce cours !",
                   "Only one spot left for this class!",
                 )}
           </p>

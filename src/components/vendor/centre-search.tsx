@@ -41,7 +41,7 @@ export function CentreSearch() {
     e.preventDefault();
     if (!canContinue) return;
     // L'étape suivante est le formulaire complet (SIRET, IBAN, coordonnées).
-    router.push("/inscrire-son-centre#signup");
+    router.push("/inscription-centre");
   };
 
   return (

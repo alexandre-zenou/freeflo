@@ -28,14 +28,31 @@ export function OfferCard({
   dense = false,
   priceTone = "gold",
   distanceLabel,
+  dateLabel,
+  showDistrict = true,
 }: {
   offer: Offer;
   priority?: boolean;
   dense?: boolean;
+  /**
+   * Arrondissement accolé au nom du centre, « The New Me, 15e ».
+   *
+   * Le bandeau « Réservez maintenant » s'en passe (demande du 25/08/2026) :
+   * l'adresse complète juste en dessous le porte déjà, « 75015 Paris ».
+   */
+  showDistrict?: boolean;
   /** Distance affichée sous l'adresse. Utilisée par les suggestions de la fiche
    *  offre ; ailleurs la carte n'en montre pas, la cliente les avait fait
    *  retirer de l'en-tête (point F35). */
   distanceLabel?: string;
+  /**
+   * Jour et date du créneau, en badge sur la photo.
+   *
+   * Passé par l'appelant plutôt que calculé ici : la date exige `Date.now()`,
+   * qui n'existe pas au rendu serveur. C'est à l'écran qui l'affiche de décider
+   * quand il est légitime de la produire.
+   */
+  dateLabel?: string;
   /** « bordeaux » : demandé pour le bloc « D'autres créneaux à saisir ». */
   priceTone?: "gold" | "bordeaux";
 }) {
@@ -52,11 +69,30 @@ export function OfferCard({
     contenu — 20 px d'écart entre deux cartes d'une rangée, et les boutons
     « Réserver » décalés d'autant. Avec `h-full` la carte remplit son parent dans
     les deux cas, et le `mt-auto` du bouton fait le reste.
+
+    Survol : le contour rouge se fait avec `outline`, ni `border` ni `ring`.
+
+    · Pas `border` : la carte n'en a aucune, en ajouter une au survol
+      l'élargirait de 2 px et ferait sauter toute la grille au passage de la
+      souris.
+    · Pas `ring` : les utilitaires `ring` de Tailwind sont des `box-shadow`,
+      donc peints comme des OMBRES et rastérisés. Au zoom du navigateur, le
+      trait paraissait mou quand le texte, lui, était retracé net. Un `outline`
+      est tracé comme un trait et reste franc à tous les niveaux de zoom.
+
+    `-outline-offset` le ramène à l'intérieur du bord : posé à l'extérieur, il
+    ne suivrait pas l'arrondi de la photo détourée par `overflow-hidden`.
+
+    Le survol ne DÉPLACE plus la carte : le `-translate-y-1` qui la soulevait de
+    4 px la faisait sortir de la ligne de ses voisines, et une carte survolée
+    paraissait à la fois plus grande et mal alignée (retour du 25/08/2026). Ne
+    changent désormais que la couleur du contour, l'ombre et le zoom de la
+    photo, tous trois sans effet sur la géométrie de la grille.
   */
   return (
     <Link
       href={`/offres/${offer.id}`}
-      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-paper shadow-soft ring-1 ring-line transition-all duration-300 hover:-translate-y-1 hover:shadow-lift"
+      className="group flex h-full flex-col overflow-hidden rounded-2xl bg-paper shadow-soft outline outline-1 -outline-offset-1 outline-line transition-all duration-300 hover:shadow-lift hover:outline-2 hover:-outline-offset-2 hover:outline-brand"
     >
       <div className={cn("relative overflow-hidden", dense ? "aspect-[16/9]" : "aspect-[16/10]")}>
         <Image
@@ -67,27 +103,13 @@ export function OfferCard({
           priority={priority}
           className="object-cover transition-transform duration-700 group-hover:scale-105"
         />
-        {/*
-          ATTENTION, décision du 24/08/2026 : ce badge affiche un TAUX DE REMISE.
-          Le retour client du 07/08 l'interdit explicitement (point F34, « ne
-          jamais mettre le taux de réduction ») et c'est pourquoi la pastille de
-          droite montre les places restantes. Ajouté sur demande expresse, à
-          l'essai. Pour le retirer, supprimer ce seul bloc : rien d'autre n'en
-          dépend, la pastille de droite est indépendante.
-
-          La valeur vient de `live`, recalculé chaque seconde : elle suit donc le
-          prix quand le cours franchit un palier, elle n'est jamais figée.
-          En sprint final (moins de 2 h) le badge passe au rouge de la marque :
-          c'est le repère d'urgence, l'or signalant la bonne affaire.
-        */}
-        {discounted && !soldOut && (
-          <span
-            className={cn(
-              "absolute left-3 top-3 rounded-full px-2.5 py-1 text-xs font-bold tabular-nums shadow",
-              live.isFinalSprint ? "bg-brand text-white" : "bg-gold-bright text-ink",
-            )}
-          >
-            -{Math.round(live.discountPct)} %
+        {/* Date à gauche, places à droite : les deux badges se partagent la
+            largeur sans jamais se chevaucher, même sur une carte `dense`.
+            Fond clair contre le bordeaux d'en face, pour qu'on les distingue
+            au premier coup d'œil. */}
+        {dateLabel && (
+          <span className="absolute left-3 top-3 rounded-full bg-paper/95 px-2.5 py-1 text-xs font-bold tabular-nums text-ink shadow backdrop-blur">
+            {dateLabel}
           </span>
         )}
 
@@ -126,7 +148,8 @@ export function OfferCard({
 
         {/* Adresse condensée : la maquette tient sur deux lignes, pas quatre. */}
         <p className="mt-1.5 text-sm text-ink">
-          {offer.gym}, {offer.arrondissement}
+          {offer.gym}
+          {showDistrict ? `, ${offer.arrondissement}` : ""}
         </p>
         <p className="text-sm text-ink-soft">
           {offer.address}

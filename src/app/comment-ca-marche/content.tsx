@@ -30,7 +30,7 @@ export function CommentCaMarcheHero() {
           </Link>
         </Button>
         <Button asChild size="lg" variant="ghostline">
-          <Link href="/inscrire-son-centre">{t("Je gère un centre", "I run a centre")}</Link>
+          <Link href="/inscription-centre">{t("Je gère un centre", "I run a centre")}</Link>
         </Button>
       </div>
     </PageHero>

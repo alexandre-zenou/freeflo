@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import { notFound } from "next/navigation";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
+import { MemberGuard } from "@/components/member-guard";
 import { OfferDetail } from "@/components/offers/offer-detail";
 import { offers, offerById } from "@/lib/site";
 import { distanceKm } from "@/lib/geo";
@@ -54,7 +55,9 @@ export default async function OffrePage({ params }: { params: Promise<{ id: stri
     <>
       <SiteHeader />
       <main className="pt-20 md:pt-24">
-        <OfferDetail offer={offer} nearby={nearby} />
+        <MemberGuard>
+          <OfferDetail offer={offer} nearby={nearby} />
+        </MemberGuard>
       </main>
       <SiteFooter />
     </>

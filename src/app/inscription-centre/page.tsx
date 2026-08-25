@@ -10,13 +10,14 @@ export const metadata: Metadata = {
 };
 
 /**
- * Page demandée par la cliente (planche 22) : l'entrée du parcours d'inscription
- * d'un centre. Fond rouge, écriture blanche, un champ de recherche de commerce,
- * bouton « Continuer » jaune, lien « Connectez-vous » jaune, et les liens vers la
- * politique de confidentialité et les CGU.
+ * Le parcours d'inscription d'un centre, sur fond rouge (planche 22).
  *
- * C'est ici qu'atterrit « Inscrire mon centre » depuis l'en-tête et le pied de
- * page ; `/inscrire-son-centre` reste la page qui explique l'intérêt de venir.
+ * C'est la SEULE page côté centres : toutes les entrées y mènent, « Inscrire
+ * mon centre » de l'en-tête et du pied de page, « Je gère un centre » de
+ * « Comment ça marche », et « Espace pro » du formulaire de connexion. La page
+ * « Pourquoi FREEFLO » (`/inscrire-son-centre`), qui exposait les arguments
+ * avant le formulaire, a été supprimée en 08/2026 : elle faisait doublon avec
+ * la vignette d'inscription, qui porte déjà sa promesse.
  */
 export default function InscriptionCentrePage() {
   return (

@@ -4,31 +4,42 @@ import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { Reveal, RevealLines } from "@/components/reveal";
 import { OfferCard } from "@/components/offer-card";
-import { dayBucket, offers } from "@/lib/site";
-import { useT } from "@/lib/i18n";
+import { offers } from "@/lib/site";
+import { dayDateLabel, isThisWeek } from "@/lib/format";
+import { useHydrated } from "@/lib/account";
+import { useLocale, useT } from "@/lib/i18n";
 
 /**
  * Bandeau « RÉSERVEZ MAINTENANT » de la maquette : fond rouge profond,
  * titre capitales + rappel de rareté, lien fantôme à droite, cartes blanches.
  */
 export function LiveOffers() {
-  /*
-    Les cours du JOUR, et eux seuls. Le bandeau prenait jusqu'ici les quatre
-    premières offres du catalogue : le yoga de demain (20 h) y figurait, tandis
-    que le cycling dans 45 min en était absent, faute d'être dans les quatre
-    premières lignes du fichier.
+  const t = useT();
+  const { locale } = useLocale();
 
-    Tri par échéance : la place qui part le plus vite s'affiche en premier,
-    ce qui est aussi celle dont le prix a le plus fondu.
+  /*
+    Les créneaux de la SEMAINE EN COURS, du lundi au dimanche.
+
+    La fenêtre est calendaire, donc elle exige une `Date` : or cette page est
+    prégénérée au build, et le jour de la semaine y est celui de la compilation,
+    pas celui de la visite. On attend donc l'hydratation pour l'appliquer.
+
+    Avant hydratation, on affiche les sept prochains jours, calculés sur le seul
+    `startsInHours`. C'est un sur-ensemble : le HTML statique et le premier rendu
+    du navigateur sont identiques, l'hydratation ne diverge pas, et la liste ne
+    fait que se resserrer ensuite.
+
+    Tri inchangé, par échéance : la place qui part le plus vite d'abord, qui est
+    aussi celle dont le prix a le plus fondu.
   */
+  const hydrated = useHydrated();
   const shown = offers
-    .filter((o) => dayBucket(o.startsInHours) === "today")
+    .filter((o) => (hydrated ? isThisWeek(o.startsInHours) : o.startsInHours <= 168))
     .sort((a, b) => a.startsInHours - b.startsInHours)
     .slice(0, 4);
-  const t = useT();
 
-  /* Aucun cours aujourd'hui : on retire le bandeau plutôt que d'afficher un
-     titre rouge suivi d'une grille vide, qui se lirait comme une panne. */
+  /* Aucun créneau cette semaine : on retire le bandeau plutôt que d'afficher
+     un titre rouge suivi d'une grille vide, qui se lirait comme une panne. */
   if (shown.length === 0) return null;
 
   return (
@@ -42,11 +53,11 @@ export function LiveOffers() {
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
             <RevealLines className="display text-[clamp(1.9rem,3.6vw,2.8rem)] uppercase text-white">
-              {t("Réservez maintenant", "Book now")}
+              {t("Nos bons plans de la semaine", "Our deals of the week")}
             </RevealLines>
             <p className="mt-2 text-lg text-white/90">
               {t(
-                "Les places s'écoulent vite, et sont limitées !",
+                "Les places s'écoulent vite, et sont limitées.",
                 "Spots go fast, and there aren't many.",
               )}
             </p>
@@ -61,7 +72,15 @@ export function LiveOffers() {
 
         <Reveal stagger={0.1} className="mt-10 grid gap-5 sm:grid-cols-2 lg:grid-cols-4">
           {shown.map((o) => (
-            <OfferCard key={o.id} offer={o} dense />
+            <OfferCard
+              key={o.id}
+              offer={o}
+              dense
+              showDistrict={false}
+              /* La date n'est produite qu'une fois hydraté, pour la même raison
+                 que le filtre : elle n'existe pas au rendu statique. */
+              dateLabel={hydrated ? dayDateLabel(o.startsInHours, locale) : undefined}
+            />
           ))}
         </Reveal>
       </div>
