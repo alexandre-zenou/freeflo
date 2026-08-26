@@ -47,6 +47,43 @@ export const initialVendorOffers: VendorOffer[] = [
   { id: "v-boxe", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44, day: 4, time: "19:00" },
 ];
 
+/* ——— Rendez-vous individuels ———
+   Un centre ne vend pas que des places de cours collectif : il vend aussi du
+   temps en tête à tête (coaching, bilan, séance d'essai). C'est une place pour
+   une personne, à une heure donnée, à un prix fixe. Pas de dégressivité ici :
+   un rendez-vous n'a pas de salle à remplir, il est pris ou il ne l'est pas. */
+
+export interface VendorAppointment {
+  id: string;
+  /** Type de rendez-vous, choisi dans `APPOINTMENT_TYPES`. */
+  kind: string;
+  kindEn: string;
+  /** Coach ou praticien qui reçoit, facultatif. */
+  coach?: string;
+  /** Jour de la semaine affichée, 0 = lundi (même repère que `weekDays`). */
+  day: number;
+  time: string;
+  durationMin: number;
+  price: number;
+  /** Nom du client quand le créneau est déjà pris, sinon `undefined`. */
+  bookedBy?: string;
+}
+
+/** Les trois formats que la cliente cite : essai, coaching, bilan. */
+export const APPOINTMENT_TYPES = [
+  { fr: "Coaching individuel", en: "One-to-one coaching" },
+  { fr: "Séance d'essai", en: "Trial session" },
+  { fr: "Bilan et objectifs", en: "Assessment and goals" },
+] as const;
+
+export const APPOINTMENT_DURATIONS = [30, 45, 60, 90] as const;
+
+export const initialVendorAppointments: VendorAppointment[] = [
+  { id: "rdv-1", kind: "Coaching individuel", kindEn: "One-to-one coaching", coach: "Camille", day: 2, time: "08:00", durationMin: 60, price: 45 },
+  { id: "rdv-2", kind: "Séance d'essai", kindEn: "Trial session", coach: "Camille", day: 2, time: "17:00", durationMin: 30, price: 15, bookedBy: "Sofia M." },
+  { id: "rdv-3", kind: "Bilan et objectifs", kindEn: "Assessment and goals", coach: "Nadia", day: 4, time: "13:30", durationMin: 45, price: 35 },
+];
+
 /** Colonnes et statuts repris de la maquette : client · cours · créneau · statut. */
 export interface VendorOrder {
   name: string;

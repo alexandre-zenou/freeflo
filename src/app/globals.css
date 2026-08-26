@@ -399,13 +399,14 @@
     font-weight: 600;
     line-height: 1.35;
     letter-spacing: -0.01em;
-    background: #fff;
-    color: var(--ink);
+    background: var(--brand);
+    color: #fff;
     box-shadow: 0 3px 12px rgba(40, 12, 12, 0.24);
     transition: transform 0.15s ease;
   }
-  /* charte client : pastilles rouges, le jaune est réservé aux monuments */
-  .ff-pin__pill--hot { background: var(--brand); color: #fff; }
+  /* Toutes les pastilles sont rouges, et non les seules urgentes : la carte se
+     lit d'un coup d'œil comme une seule famille de repères. Le jaune reste
+     réservé aux monuments. */
   .ff-pin__pill--monument {
     background: var(--gold);
     color: var(--ink);
@@ -416,7 +417,9 @@
     padding: 2px 6px;
   }
   .ff-pin__pill--active {
-    outline: 2px solid var(--brand-deep);
+    /* Blanc, et non bordeaux : sur une pastille rouge, un cerne rouge foncé ne
+       se voyait plus. */
+    outline: 2px solid #fff;
     outline-offset: 1px;
     transform: scale(1.1);
   }
@@ -475,3 +478,4 @@
   * { animation-duration: 0.001ms !important; animation-iteration-count: 1 !important; scroll-behavior: auto !important; }
   .js [data-reveal] { opacity: 1; transform: none; }
 }
+

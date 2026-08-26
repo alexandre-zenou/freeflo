@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { ConceptTimeline } from "@/components/sections/concept-timeline";
 import { Faq } from "@/components/sections/faq";
 import { CommentCaMarcheHero } from "./content";
@@ -14,13 +12,11 @@ export const metadata: Metadata = {
 export default function CommentCaMarchePage() {
   return (
     <>
-      <SiteHeader />
       <main>
         <CommentCaMarcheHero />
         <ConceptTimeline />
         <Faq />
       </main>
-      <SiteFooter />
     </>
   );
 }

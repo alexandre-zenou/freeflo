@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { InscriptionCentreContent } from "./content";
 
 export const metadata: Metadata = {
@@ -22,11 +20,9 @@ export const metadata: Metadata = {
 export default function InscriptionCentrePage() {
   return (
     <>
-      <SiteHeader />
       <main className="brand-mesh grain relative min-h-dvh pt-20 md:pt-24">
         <InscriptionCentreContent />
       </main>
-      <SiteFooter />
     </>
   );
 }

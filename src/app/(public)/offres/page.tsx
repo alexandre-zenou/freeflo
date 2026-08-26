@@ -1,6 +1,4 @@
 import type { Metadata } from "next";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { MemberGuard } from "@/components/member-guard";
 import { Suspense } from "react";
 import { OffresSearch } from "./search";
@@ -14,7 +12,6 @@ export const metadata: Metadata = {
 export default function OffresPage() {
   return (
     <>
-      <SiteHeader />
       <main className="pt-20 md:pt-24">
         <MemberGuard>
           {/*
@@ -40,7 +37,6 @@ export default function OffresPage() {
           </div>
         </MemberGuard>
       </main>
-      <SiteFooter />
     </>
   );
 }

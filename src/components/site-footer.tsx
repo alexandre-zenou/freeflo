@@ -20,7 +20,6 @@ const columns = [
     links: [
       { label: "Trouver un cours", labelEn: "Find a class", href: "/offres" },
       { label: "Comment ça fonctionne", labelEn: "How it works", href: "/comment-ca-marche" },
-      { label: "Catégories", labelEn: "Categories", href: "/offres" },
     ],
   },
   {
@@ -56,9 +55,9 @@ export function SiteFooter() {
   const isPro = member?.role === "admin" || member?.role === "centre";
 
   const visibles = columns
-    /* L'administration ne voit plus le parcours sportif : ni « Trouver un
-       cours », ni « Catégories », qui mènent à des pages dont sa navigation et
-       ses gardes l'écartent déjà. Elle garde le légal et les pages centres. */
+    /* L'administration ne voit plus le parcours sportif : la colonne
+       « Découvrir » mène à des pages dont sa navigation et ses gardes
+       l'écartent déjà. Elle garde le légal et les pages centres. */
     .filter((col) => !(isPro && col.title === "Découvrir"))
     .map((col) => ({
       ...col,

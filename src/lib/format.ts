@@ -138,3 +138,25 @@ export function slotLabel(
       : d.toLocaleDateString(tag, { weekday: "long" });
   return `${day} ${time}`;
 }
+
+/**
+ * Date d'un cours PASSÉ, à partir d'un nombre de jours écoulés.
+ *
+ * Miroir de `dayDateLabel`, dans l'autre sens : l'historique de démonstration
+ * porte des écarts relatifs (`daysAgo`), pour la même raison que les offres
+ * portent `startsInHours`. Une date figée dans les données vieillirait, et
+ * l'historique finirait par annoncer des cours d'il y a deux ans.
+ */
+export function daysAgoLabel(
+  daysAgo: number,
+  locale: Locale = "fr",
+  now: number = Date.now(),
+): string {
+  const d = new Date(now - daysAgo * 86_400_000);
+  const brut = d.toLocaleDateString(locale === "en" ? "en-GB" : "fr-FR", {
+    weekday: "long",
+    day: "numeric",
+    month: "long",
+  });
+  return brut.charAt(0).toUpperCase() + brut.slice(1);
+}

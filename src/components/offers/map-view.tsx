@@ -33,7 +33,6 @@ export interface MapPoint {
   lat: number;
   lng: number;
   label?: string;
-  hot?: boolean;
 }
 
 export interface District {
@@ -166,7 +165,7 @@ export function MapView({
 
   const sig = useMemo(
     () =>
-      points.map((p) => `${p.id}:${p.label ?? ""}:${p.hot ? 1 : 0}`).join("|") +
+      points.map((p) => `${p.id}:${p.label ?? ""}`).join("|") +
       "||" +
       districts.map((d) => d.label).join(","),
     [points, districts],
@@ -326,7 +325,7 @@ export function MapView({
       // `--pin-i` échelonne l'apparition (cf. `ff-pin-drop` dans globals.css) :
       // la carte se dévoile, puis les prix se posent un par un.
       const html = p.label
-        ? `<div class="ff-pin" style="--pin-i:${i}"><span class="ff-pin__pill ${p.hot ? "ff-pin__pill--hot" : ""}">${p.label}</span></div>`
+        ? `<div class="ff-pin" style="--pin-i:${i}"><span class="ff-pin__pill">${p.label}</span></div>`
         : '<div class="ff-dot"></div>';
       const el = markerEl(html);
       el.addEventListener("mouseenter", () => onHoverRef.current?.(p.id));

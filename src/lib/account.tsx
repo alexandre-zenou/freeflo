@@ -56,6 +56,19 @@ export interface Booking {
   price: number;
   ref: string;
   bookedAt: number;
+  /**
+   * Début du cours, en horodatage ABSOLU, figé à la réservation.
+   *
+   * Les offres de démo ne portent qu'un `startsInHours` relatif à « maintenant »
+   * (voir `site.ts`) : lu deux jours plus tard, il annonce toujours le même
+   * délai, et une réservation ne deviendrait donc jamais passée. C'est ce champ
+   * qui fait basculer un cours de « À venir » vers « Historique ».
+   *
+   * Facultatif : les réservations déjà dans le navigateur d'un visiteur ont été
+   * écrites avant lui. Sans valeur, un cours est traité comme à venir, ce qui
+   * est le défaut le moins surprenant.
+   */
+  startsAt?: number;
 }
 
 /**
@@ -214,6 +227,20 @@ function saveBookings(email: string, list: Booking[]) {
 }
 
 /** Enregistre la réservation sur le compte connecté. Sans session, ne fait rien. */
+/**
+ * Un cours est-il déjà passé ?
+ *
+ * `now` en paramètre par défaut, comme les fonctions de `lib/format.ts` : cela
+ * garde l'impureté hors des composants, où la règle `react-hooks/purity`
+ * interdit `Date.now()` pendant le rendu.
+ *
+ * Sans `startsAt`, la réservation a été écrite avant l'ajout du champ : elle
+ * compte comme à venir, ce qui est le défaut le moins surprenant.
+ */
+export function isPastBooking(b: Booking, now: number = Date.now()): boolean {
+  return (b.startsAt ?? Infinity) <= now;
+}
+
 export function addBooking(booking: Booking) {
   const { member, bookings } = getSnapshot();
   if (!member) return;

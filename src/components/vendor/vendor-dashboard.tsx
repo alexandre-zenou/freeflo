@@ -4,6 +4,7 @@ import { useState } from "react";
 import {
   LayoutDashboard,
   CalendarDays,
+  CalendarClock,
   Ticket,
   ClipboardList,
   Settings,
@@ -15,13 +16,19 @@ import { cn } from "@/lib/utils";
 import { OverviewTab } from "@/components/vendor/overview-tab";
 import { PlanningTab } from "@/components/vendor/planning-tab";
 import { OffersTab } from "@/components/vendor/offers-tab";
+import { AppointmentsTab } from "@/components/vendor/appointments-tab";
 import { StatsTab } from "@/components/vendor/stats-tab";
 import { OrdersTab } from "@/components/vendor/orders-tab";
 import { ReviewsTab } from "@/components/vendor/reviews-tab";
 import { SettingsTab } from "@/components/vendor/settings-tab";
 import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import { OfferFormModal } from "@/components/vendor/offer-form-modal";
-import { initialVendorOffers, type VendorOffer } from "@/components/vendor/vendor-data";
+import {
+  initialVendorAppointments,
+  initialVendorOffers,
+  type VendorAppointment,
+  type VendorOffer,
+} from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
 import { useMember } from "@/lib/account";
 
@@ -33,6 +40,7 @@ const tabs = [
   { key: "overview", label: "Tableau de bord", labelEn: "Dashboard", icon: <LayoutDashboard className="h-4 w-4" /> },
   { key: "planning", label: "Planning", labelEn: "Planning", icon: <CalendarDays className="h-4 w-4" /> },
   { key: "offers", label: "Mes offres", labelEn: "My offers", icon: <Ticket className="h-4 w-4" /> },
+  { key: "appointments", label: "Rendez-vous", labelEn: "Appointments", icon: <CalendarClock className="h-4 w-4" /> },
   { key: "stats", label: "Statistiques", labelEn: "Statistics", icon: <TrendingUp className="h-4 w-4" /> },
   { key: "orders", label: "Réservations", labelEn: "Bookings", icon: <ClipboardList className="h-4 w-4" /> },
   { key: "reviews", label: "Avis", labelEn: "Reviews", icon: <Star className="h-4 w-4" /> },
@@ -40,13 +48,15 @@ const tabs = [
 ] as const;
 
 /**
- * Ce qu'un centre voit de l'espace pro : ses réservations et ses statistiques.
+ * Ce qu'un centre voit de l'espace pro : ses rendez-vous, ses réservations et
+ * ses statistiques. Les rendez-vous sont son propre temps, il est donc le seul
+ * à pouvoir les poser.
  *
  * Les autres onglets pilotent le catalogue et les réglages de la plateforme,
  * ou donnent à voir les données de TOUS les centres : ils restent réservés au
  * compte d'administration, qui sert la démonstration d'ensemble.
  */
-const ONGLETS_CENTRE = ["stats", "orders"] as const;
+const ONGLETS_CENTRE = ["appointments", "stats", "orders"] as const;
 
 export function VendorDashboard() {
   const t = useT();
@@ -68,8 +78,9 @@ export function VendorDashboard() {
     remettre l'état à jour depuis un effet.
   */
   const ongletActif =
-    estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "stats" : tab;
+    estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "appointments" : tab;
   const [offers, setOffers] = useState<VendorOffer[]>(initialVendorOffers);
+  const [appointments, setAppointments] = useState<VendorAppointment[]>(initialVendorAppointments);
   const [drawerOpen, setDrawerOpen] = useState(false);
   /** Offre en cours de modification (bouton « Modifier » de Mes offres). */
   const [editing, setEditing] = useState<VendorOffer | null>(null);
@@ -149,6 +160,13 @@ export function VendorDashboard() {
                 onDuplicate={duplicate}
                 onEdit={setEditing}
                 onCreate={() => setDrawerOpen(true)}
+              />
+            )}
+            {ongletActif === "appointments" && (
+              <AppointmentsTab
+                appointments={appointments}
+                onAdd={(rdv) => setAppointments((prev) => [...prev, rdv])}
+                onRemove={(id) => setAppointments((prev) => prev.filter((r) => r.id !== id))}
               />
             )}
             {ongletActif === "stats" && <StatsTab />}

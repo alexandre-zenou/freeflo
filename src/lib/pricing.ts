@@ -106,3 +106,22 @@ function round2(n: number): number {
 function clamp01(n: number): number {
   return Math.min(1, Math.max(0, n));
 }
+
+/**
+ * Prix plancher théorique d'une offre : la remise la plus forte de toute la
+ * grille, quelles que soient l'échéance et les places restantes.
+ *
+ * Sert au CONTRÔLE du montant côté serveur. Le panier fige le prix à l'ajout
+ * (voir `lib/cart.ts`), et la démo fait courir la dégressivité en temps
+ * accéléré : le serveur ne peut donc pas retrouver au centime près le prix que
+ * le navigateur avait affiché. Ce qu'il peut faire, et doit faire, c'est
+ * refuser un montant impossible — c'est ce qui empêche de payer une place 1 c
+ * en modifiant le panier depuis la console.
+ *
+ * En phase 2, le prix ne viendra plus du client du tout : il sera relu en base
+ * au moment de créer le PaymentIntent, et ce garde-fou deviendra inutile.
+ */
+export function lowestPossiblePrice(basePrice: number): number {
+  const maxDiscount = Math.max(...TIERS.flatMap((t) => t.discount));
+  return round2(basePrice * (1 - maxDiscount / 100));
+}

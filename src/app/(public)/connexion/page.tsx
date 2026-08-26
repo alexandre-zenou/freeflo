@@ -1,7 +1,5 @@
 import type { Metadata } from "next";
 import { Suspense } from "react";
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { AuthForm } from "@/components/auth/auth-form";
 import { ConnexionBrandPanel } from "./brand-panel";
 
@@ -14,7 +12,6 @@ export const metadata: Metadata = {
 export default function ConnexionPage() {
   return (
     <>
-      <SiteHeader />
       <main className="pt-20 md:pt-24">
         <div className="grid min-h-[calc(100dvh-6rem)] lg:grid-cols-2">
           <ConnexionBrandPanel />
@@ -39,7 +36,6 @@ export default function ConnexionPage() {
           </div>
         </div>
       </main>
-      <SiteFooter />
     </>
   );
 }

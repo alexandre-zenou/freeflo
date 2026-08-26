@@ -12,15 +12,21 @@ export function CommentCaMarcheHero() {
   return (
     <PageHero
       eyebrow={t("Le concept", "The idea")}
+      /*
+        Trois fragments et non deux : le segment en or n'occupe pas la même
+        place dans les deux langues. Il finit le titre français et se glisse
+        au milieu de l'anglais, où « last-minute » qualifie « sport deal ».
+      */
       title={
         <>
-          {t("Le bon plan sport, ", "The good sport deal, ")}
-          <span className="accent-em text-gold">{t("en direct.", "live.")}</span>
+          {t("Le bon plan sport ", "The ")}
+          <span className="accent-em text-gold">{t("de dernière minute", "last-minute")}</span>
+          {t("", " sport deal")}
         </>
       }
       intro={t(
-        "Les salles ont des places vides à chaque créneau. FREEFLO les libère à prix cassé, en temps réel, pour les sportifs près de chez elles. Tout le monde y gagne.",
-        "Studios have empty places at every slot. FREEFLO releases them at a cut price, in real time, to people training nearby. Everyone wins.",
+        "FREEFLO permet de réserver des cours de pilates, yoga, boxe ou HIIT en dernière minute, à prix réduit, en valorisant les places vides des studios pour encourager l'activité sportive.",
+        "FREEFLO lets you book Pilates, yoga, boxing or HIIT classes at the last minute, at a reduced price, by putting studios' empty places to use and getting more people moving.",
       )}
     >
       <div className="mt-8 flex flex-wrap gap-3">

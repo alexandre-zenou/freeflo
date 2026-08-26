@@ -209,11 +209,9 @@ export function MapSearch({
   }, [cat, me, prixDe, plage, studios]);
 
   /*
-    Le panneau de gauche ne montre plus des CENTRES triés par distance, mais les
-    CRÉNEAUX DE DEMAIN, du plus tôt au plus tard. La carte, elle, continue
-    d'afficher tout le catalogue filtré : c'est volontaire, et c'est aussi la
-    limite de ce parti pris. Le compteur du panneau et le nombre de pastilles
-    ne coïncident donc plus.
+    Le panneau de gauche ne montre pas des CENTRES triés par distance, mais des
+    CRÉNEAUX, du plus tôt au plus tard : ceux de demain par défaut, ceux du jour
+    choisi si le calendrier est là.
 
     « Demain » se déduit du seul `startsInHours`, jamais d'une `Date` : le
     serveur et le navigateur doivent produire le même balisage.
@@ -228,6 +226,28 @@ export function MapSearch({
         )
         .sort((a, b) => a.startsInHours - b.startsInHours),
     [list, calendrier, jour],
+  );
+
+  /*
+    Le créneau choisi sur la CARTE peut ne pas figurer dans le panneau : sur
+    l'accueil, la carte porte tout le catalogue alors que la liste se limite à
+    demain. Cliquer une pastille cochait alors une ligne qui n'existait pas, et
+    il ne se passait rien de visible. (Avec le calendrier, les deux portent le
+    même jour, ce cas ne s'y présente plus.)
+
+    Il est donc ajouté en tête, signalé comme venu de la carte. Le compteur de
+    l'en-tête, lui, continue de compter le seul jour annoncé : il dit « 5
+    créneaux demain », il ne doit pas en compter six parce qu'on a cliqué
+    ailleurs sur la carte.
+  */
+  const horsListe = useMemo(() => {
+    if (calendrier || !selected || demain.some((o) => o.id === selected)) return null;
+    return list.find((o) => o.id === selected) ?? null;
+  }, [calendrier, selected, demain, list]);
+
+  const affichees = useMemo(
+    () => (horsListe ? [horsListe, ...demain] : demain),
+    [horsListe, demain],
   );
 
   /*
@@ -266,21 +286,53 @@ export function MapSearch({
     return liste;
   }, [calendrier, hydrated, prixDe]);
 
+  /*
+    Ce que la CARTE montre.
+
+    Dès qu'il y a un calendrier, la carte montre EXACTEMENT le jour du panneau,
+    y compris à l'ouverture, où c'est demain qui est mis en avant sans que
+    personne ait cliqué. Sinon un jeudi sélectionné laissait la carte piquée des
+    prix du lundi et du mardi : les pastilles annonçaient des créneaux que la
+    liste, à côté, ne contenait pas, et le décompte du panneau ne correspondait
+    à rien de visible.
+
+    Sur l'accueil, qui n'a pas de calendrier, la carte garde tout le catalogue
+    filtré. C'est voulu : le panneau y montre « demain » comme un aperçu, alors
+    que la carte sert à découvrir ce qui existe autour de soi. Resserrer la
+    carte sur le seul lendemain la viderait des trois quarts de ses repères.
+  */
+  const surCarte = calendrier ? demain : list;
+
   /* Sans filtre ET sans position, la carte reste sur la vue d'ensemble de
-     Paris. Dès que le visiteur resserre sa recherche, elle suit ses résultats. */
-  const hasFilters = Boolean(cat);
+     Paris. Dès que le visiteur resserre sa recherche, elle suit ses résultats,
+     un jour affiché comptant comme un resserrement. */
+  const hasFilters = Boolean(cat) || calendrier;
 
   /* Les trois cours les plus proches : ils règlent le cadrage de la carte quand
-     la position arrive, pour que le zoom montre le voisinage et non la France. */
-  const focus = useMemo(() => (me ? list.slice(0, 3) : []), [list, me]);
+     la position arrive, pour que le zoom montre le voisinage et non la France.
+     Retriés par distance : `demain` est ordonné par heure de début, or c'est la
+     proximité qui doit décider du cadrage. */
+  const focus = useMemo(
+    () =>
+      me
+        ? [...surCarte]
+            .sort(
+              (a, b) =>
+                distanceKm(me, { lat: a.lat, lng: a.lng }) -
+                distanceKm(me, { lat: b.lat, lng: b.lng }),
+            )
+            .slice(0, 3)
+        : [],
+    [surCarte, me],
+  );
 
   const points: MapPoint[] = useMemo(
     () =>
-      list.map((o) => {
+      surCarte.map((o) => {
         const p = computePrice(o.basePrice, o.placesLeft, o.startsInHours);
-        return { id: o.id, lat: o.lat, lng: o.lng, label: formatEuro(p.currentPrice), hot: p.heat > 0.6 };
+        return { id: o.id, lat: o.lat, lng: o.lng, label: formatEuro(p.currentPrice) };
       }),
-    [list],
+    [surCarte],
   );
 
   return (
@@ -324,7 +376,17 @@ export function MapSearch({
            de laisser la page sauter quand la bande apparaît. */
         <div className="mt-6">
           {jours.length > 0 ? (
-            <PriceCalendar days={jours} selected={jour ?? dayIso(24)} onSelect={setJour} />
+            <PriceCalendar
+              days={jours}
+              selected={jour ?? dayIso(24)}
+              /* Changer de jour vide la sélection : sinon le créneau du
+                 vendredi restait en tête du panneau, et surligné, alors que la
+                 carte était passée au mercredi. */
+              onSelect={(iso) => {
+                setJour(iso);
+                setSelected(null);
+              }}
+            />
           ) : (
             <div className="h-[7.5rem] animate-pulse rounded-2xl bg-secondary/60" />
           )}
@@ -407,7 +469,7 @@ export function MapSearch({
             </span>
           </p>
           <ul ref={listeRef} className="divide-y divide-line overflow-y-auto">
-            {demain.map((o) => {
+            {affichees.map((o) => {
               const available = o.placesLeft > 0;
               const prix = prixDe.get(o.id) ?? 0;
               /* Le prix plein n'est barré que s'il y a vraiment une remise :
@@ -430,6 +492,17 @@ export function MapSearch({
                       <Image src={o.image} alt="" fill sizes="48px" className="object-cover" />
                     </span>
                     <span className="min-w-0 flex-1">
+                      {/* Venu de la carte et non du jour annoncé : on le dit,
+                          sinon la ligne se lirait comme un créneau du jour et
+                          contredirait le compteur juste au-dessus. */}
+                      {horsListe?.id === o.id && hydrated && (
+                        <span className="mb-0.5 block text-xs font-medium text-brand">
+                          {t(
+                            `Choisi sur la carte, ${isoDayLabel(dayIso(o.startsInHours), locale)}`,
+                            `Picked on the map, ${isoDayLabel(dayIso(o.startsInHours), locale)}`,
+                          )}
+                        </span>
+                      )}
                       <span className="block truncate text-sm font-medium text-ink">{o.gym}</span>
                       {/*
                         Séparateur : la virgule, pas le point médian. Le retour
@@ -454,33 +527,17 @@ export function MapSearch({
                           </>
                         )}
                       </span>
-                      <span
-                        className={cn(
-                          "mt-0.5 block text-xs font-medium",
-                          available ? "text-emerald-700" : "text-brand",
-                        )}
-                      >
-                        {available ? t("Disponible", "Available") : t("Non disponible", "Unavailable")}
-                      </span>
-
-                      {/* Gris chaud de la palette, et non le vert du statut : deux
-                          lignes vertes empilées se liraient comme une seule
-                          information redondante. Le statut dit s'il reste des
-                          places, le décompte dit combien, ce sont deux choses.
-
-                          Le décompte ne s'affiche que si des places restent :
-                          « Non disponible » dit déjà qu'il n'y en a plus, et
-                          « Il reste 0 place » en dessous serait redondant.
-                          `placesLeft` est la donnée du catalogue, la même qui
-                          décide du statut juste au-dessus : les deux lignes ne
-                          peuvent donc pas se contredire. */}
-                      {available && (
-                        <span className="mt-0.5 block text-xs font-medium text-ink-soft">
-                          {o.placesLeft > 1
+                      {/* Le décompte a remplacé la ligne « Disponible » : il dit
+                          déjà qu'il reste des places, et combien, en une seule
+                          ligne. Quand il n'en reste plus, « Complet » prend sa
+                          place, au même endroit et dans le même rouge. */}
+                      <span className="mt-0.5 block text-xs font-bold text-brand">
+                        {!available
+                          ? t("Complet", "Sold out")
+                          : o.placesLeft > 1
                             ? t(`Il reste ${o.placesLeft} places`, `${o.placesLeft} spots left`)
                             : t("Il reste 1 place", "1 spot left")}
-                        </span>
-                      )}
+                      </span>
                     </span>
 
                     {/*

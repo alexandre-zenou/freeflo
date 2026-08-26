@@ -1,7 +1,5 @@
 "use client";
 
-import { SiteHeader } from "@/components/site-header";
-import { SiteFooter } from "@/components/site-footer";
 import { PageHero } from "@/components/page-hero";
 import { useT } from "@/lib/i18n";
 import type { LegalSection } from "@/lib/legal";
@@ -24,7 +22,6 @@ export function LegalDocument({
 
   return (
     <>
-      <SiteHeader />
       <main>
         <PageHero compact eyebrow={t(eyebrow, eyebrowEn)} title={t(title, titleEn)} />
         <section className="ff-container max-w-3xl py-16">
@@ -44,7 +41,6 @@ export function LegalDocument({
           </p>
         </section>
       </main>
-      <SiteFooter />
     </>
   );
 }

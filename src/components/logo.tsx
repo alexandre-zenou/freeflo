@@ -15,6 +15,42 @@ import { cn } from "@/lib/utils";
  * est illisible à cette taille, et un lecteur d'écran ne lit pas une image de
  * fond.
  */
+/**
+ * Le monogramme SEUL, sans lien.
+ *
+ * L'espace connecté l'affiche tel quel : sa seule porte de sortie est « Se
+ * déconnecter », donc un logo cliquable vers l'accueil y serait précisément le
+ * raccourci qu'on veut fermer.
+ */
+export function LogoMark({
+  className,
+  onDark = false,
+}: {
+  className?: string;
+  onDark?: boolean;
+}) {
+  return (
+    <span
+      aria-hidden
+      className={cn(
+        "block h-9 w-[27px] shrink-0 transition-colors md:h-10 md:w-[30px]",
+        onDark ? "bg-white" : "bg-brand",
+        className,
+      )}
+      style={{
+        maskImage: "url(/brand/freeflo-logo.svg)",
+        WebkitMaskImage: "url(/brand/freeflo-logo.svg)",
+        maskSize: "contain",
+        WebkitMaskSize: "contain",
+        maskRepeat: "no-repeat",
+        WebkitMaskRepeat: "no-repeat",
+        maskPosition: "center",
+        WebkitMaskPosition: "center",
+      }}
+    />
+  );
+}
+
 export function Logo({
   className,
   markClassName,
@@ -31,24 +67,7 @@ export function Logo({
       aria-label="FREEFLO, accueil"
       className={cn("inline-flex items-center", className)}
     >
-      <span
-        aria-hidden
-        className={cn(
-          "block h-9 w-[27px] shrink-0 transition-colors md:h-10 md:w-[30px]",
-          onDark ? "bg-white" : "bg-brand",
-          markClassName,
-        )}
-        style={{
-          maskImage: "url(/brand/freeflo-logo.svg)",
-          WebkitMaskImage: "url(/brand/freeflo-logo.svg)",
-          maskSize: "contain",
-          WebkitMaskSize: "contain",
-          maskRepeat: "no-repeat",
-          WebkitMaskRepeat: "no-repeat",
-          maskPosition: "center",
-          WebkitMaskPosition: "center",
-        }}
-      />
+      <LogoMark onDark={onDark} className={markClassName} />
     </Link>
   );
 }

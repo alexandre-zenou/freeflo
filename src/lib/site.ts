@@ -670,3 +670,36 @@ export const stats = [
   { value: "0 €", label: "d'abonnement pour les centres", labelEn: "subscription for centres" },
   { value: "24 h", label: "délai de virement aux centres", labelEn: "until centres are paid out" },
 ] as const;
+
+/**
+ * Historique de démonstration de l'espace membre.
+ *
+ * L'onglet « Historique » de « Mes cours » ne peut rien montrer autrement : les
+ * réservations naissent dans le navigateur du visiteur, et il faudrait attendre
+ * qu'un cours réservé soit réellement passé pour en voir une seule. Cette liste
+ * donne à la cliente un historique à regarder dès la première visite.
+ *
+ * Ce sont des cours du catalogue (`offerId` existants) et les vrais prix
+ * pratiqués, pour que l'écran soit cohérent avec le reste du site.
+ *
+ * `daysAgo` plutôt qu'une date : comme le `startsInHours` des offres, l'écart
+ * est RELATIF, donc l'historique reste crédible quelle que soit la date de
+ * consultation, et ne se fige pas au jour du build.
+ *
+ * À supprimer en phase 2 : les vraies réservations passées viendront de la base.
+ */
+export interface PastCourse {
+  offerId: string;
+  /** Jours écoulés depuis le cours. */
+  daysAgo: number;
+  /** Prix réellement payé ce jour-là. */
+  price: number;
+  ref: string;
+}
+
+export const pastCourses: PastCourse[] = [
+  { offerId: "hot-yoga-marais", daysAgo: 4, price: 14, ref: "FLO-HOT-3182" },
+  { offerId: "the-new-me-pilates", daysAgo: 9, price: 11, ref: "FLO-THE-2740" },
+  { offerId: "boxe-republique", daysAgo: 16, price: 13, ref: "FLO-BOX-1955" },
+  { offerId: "cycling-bercy", daysAgo: 23, price: 9, ref: "FLO-CYC-1408" },
+];
