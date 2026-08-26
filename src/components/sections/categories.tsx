@@ -290,7 +290,9 @@ export function Categories() {
               return (
                 <Link
                   key={`${c.slug}-${i}`}
-                  href="/offres"
+                  /* Le sport voyage dans l'URL : la page de recherche ouvre
+                     avec son filtre « Type de cours » déjà posé. */
+                  href={`/offres?sport=${c.slug}`}
                   className="relative h-40 w-64 shrink-0 overflow-hidden rounded-2xl ring-1 ring-line"
                   aria-label={copy ? undefined : t(c.label, c.labelEn)}
                   aria-hidden={copy || undefined}

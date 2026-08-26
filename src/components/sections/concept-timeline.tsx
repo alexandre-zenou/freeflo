@@ -13,20 +13,6 @@ import { useT } from "@/lib/i18n";
  * numerals, hairline rail, and a beam that heats from brand red to gold as
  * you scroll (the dégressivité metaphor).
  */
-const details = [
-  "La carte affiche le prix à l'instant T, recalculé en continu, pas une estimation.",
-  "Une fois bloqué, votre prix ne bouge plus, même si la jauge continue de chauffer.",
-  "Votre nom suffit à l'accueil : rien à installer, rien à imprimer.",
-  "Votre note fait remonter les centres fiables. Et le prochain cours est déjà moins cher.",
-];
-
-const DETAILS_EN = [
-  "The map shows the price right now, recalculated continuously, not an estimate.",
-  "Once held, your price stops moving, even as the gauge keeps heating up.",
-  "Your name is enough at the front desk: nothing to install, nothing to print.",
-  "Your rating pushes reliable centres up. And the next class is already cheaper.",
-];
-
 export function ConceptTimeline() {
   const t = useT();
   const ref = useRef<HTMLDivElement>(null);
@@ -56,7 +42,7 @@ export function ConceptTimeline() {
       />
 
       <div ref={ref} className="relative mt-16">
-        {steps.map((s, i) => (
+        {steps.map((s) => (
           <div
             key={s.n}
             className="flex justify-start gap-6 pt-16 first:pt-0 md:gap-10 md:pt-28"
@@ -73,9 +59,6 @@ export function ConceptTimeline() {
             <div className="relative w-full">
               <h3 className="display mb-3 block text-2xl text-ink md:hidden">{t(s.title, s.titleEn)}</h3>
               <p className="max-w-prose leading-relaxed text-ink/80">{t(s.text, s.textEn)}</p>
-              <p className="mt-6 max-w-prose border-t border-ink/20 pt-4 text-sm text-ink-soft">
-                {t(details[i], DETAILS_EN[i])}
-              </p>
             </div>
           </div>
         ))}

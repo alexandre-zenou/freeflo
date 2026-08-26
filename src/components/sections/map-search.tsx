@@ -9,7 +9,6 @@ import { PillSelect } from "@/components/ui/pill-select";
 import { BudgetFilter } from "@/components/ui/budget-filter";
 import { StudioFilter } from "@/components/ui/studio-filter";
 import { RevealOnView } from "@/components/reveal-on-view";
-import { RevealLines } from "@/components/reveal";
 import { MapView, type MapPoint } from "@/components/offers/map-view";
 import { distanceKm } from "@/lib/geo";
 import { useGeolocation } from "@/components/use-geolocation";
@@ -41,6 +40,7 @@ function formatKm(km: number, t: (fr: string, en?: string) => string): string {
  */
 export function MapSearch({
   titre,
+  sportInitial,
   lienCatalogue = true,
   autoLocate = true,
   calendrier = false,
@@ -51,6 +51,12 @@ export function MapSearch({
    * rouge de marque, une page qui n'a que cette section a besoin des deux.
    */
   titre?: { fr: string; en: string; h1?: boolean; ton?: "brand" | "ink" };
+  /**
+   * Sport présélectionné à l'ouverture, par exemple depuis une tuile de
+   * l'accueil. Valeur de DÉPART seulement : le visiteur en change librement
+   * ensuite, la liste déroulante n'est pas verrouillée.
+   */
+  sportInitial?: string;
   /** Raccourci « Voir toutes les offres ». Inutile sur la page qu'il vise. */
   lienCatalogue?: boolean;
   /** Demander la position au chargement. L'accueil le fait, pas les autres. */
@@ -60,7 +66,7 @@ export function MapSearch({
 } = {}) {
   const router = useRouter();
   const t = useT();
-  const [cat, setCat] = useState("");
+  const [cat, setCat] = useState(sportInitial ?? "");
   const [jour, setJour] = useState<string | null>(null);
   const [hover, setHover] = useState<string | null>(null);
   const [selected, setSelected] = useState<string | null>(null);
@@ -283,17 +289,23 @@ export function MapSearch({
       <div className="flex flex-wrap items-center justify-between gap-x-6 gap-y-3">
         {/* Titre fixe : le décompte, lui, vit dans l'en-tête du panneau, où il
             est lu au moment où l'on regarde la liste qu'il annonce. */}
-        <RevealLines
-          as={titre?.h1 ? "h1" : "h2"}
-          className={cn(
-            "display text-[clamp(1.75rem,3.4vw,2.6rem)]",
-            titre?.ton === "ink" ? "text-ink" : "text-brand",
-          )}
-        >
-          {titre
-            ? t(titre.fr, titre.en)
-            : t("Nos offres de dernière minute", "Our last-minute offers")}
-        </RevealLines>
+        {(() => {
+          /* `h1` sur les pages qui n'en ont pas d'autre, `h2` sur l'accueil :
+             la balise suit la hiérarchie du document, pas l'apparence. */
+          const Titre = titre?.h1 ? "h1" : "h2";
+          return (
+            <Titre
+              className={cn(
+                "display text-[clamp(1.75rem,3.4vw,2.6rem)]",
+                titre?.ton === "ink" ? "text-ink" : "text-brand",
+              )}
+            >
+              {titre
+                ? t(titre.fr, titre.en)
+                : t("Nos offres de dernière minute", "Our last-minute offers")}
+            </Titre>
+          );
+        })()}
 
         {lienCatalogue && (
           <Link
@@ -450,6 +462,25 @@ export function MapSearch({
                       >
                         {available ? t("Disponible", "Available") : t("Non disponible", "Unavailable")}
                       </span>
+
+                      {/* Gris chaud de la palette, et non le vert du statut : deux
+                          lignes vertes empilées se liraient comme une seule
+                          information redondante. Le statut dit s'il reste des
+                          places, le décompte dit combien, ce sont deux choses.
+
+                          Le décompte ne s'affiche que si des places restent :
+                          « Non disponible » dit déjà qu'il n'y en a plus, et
+                          « Il reste 0 place » en dessous serait redondant.
+                          `placesLeft` est la donnée du catalogue, la même qui
+                          décide du statut juste au-dessus : les deux lignes ne
+                          peuvent donc pas se contredire. */}
+                      {available && (
+                        <span className="mt-0.5 block text-xs font-medium text-ink-soft">
+                          {o.placesLeft > 1
+                            ? t(`Il reste ${o.placesLeft} places`, `${o.placesLeft} spots left`)
+                            : t("Il reste 1 place", "1 spot left")}
+                        </span>
+                      )}
                     </span>
 
                     {/*

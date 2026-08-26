@@ -2,7 +2,8 @@ import type { Metadata } from "next";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 import { MemberGuard } from "@/components/member-guard";
-import { MapSearch } from "@/components/sections/map-search";
+import { Suspense } from "react";
+import { OffresSearch } from "./search";
 
 export const metadata: Metadata = {
   title: "Cours de sport près de vous",
@@ -27,19 +28,15 @@ export default function OffresPage() {
               elle suit d'autres blocs. Ici elle est la première : on lui donne
               de l'air sous la barre de navigation, sans toucher au composant. */}
           <div className="pt-6 md:pt-10">
-            <MapSearch
-              titre={{
-                fr: "Voir les meilleurs prix autour de vous",
-                en: "See the best prices around you",
-                /* Seul titre de la page depuis le retrait de l'ancien chapô : il
-                   en devient le `h1`, ce que réclament autant le référencement
-                   que les lecteurs d'écran. En encre, et non en rouge de marque. */
-                h1: true,
-                ton: "ink",
-              }}
-              lienCatalogue={false}
-              calendrier
-            />
+            {/*
+              `Suspense` obligatoire : la recherche lit `?sport=` avec
+              `useSearchParams`, que Next exige d'isoler pour garder la page
+              prégénérée. Le repli reprend la hauteur du bandeau de jours, pour
+              que rien ne saute au moment où la recherche prend le relais.
+            */}
+            <Suspense fallback={<div className="ff-container h-[7.5rem] animate-pulse rounded-2xl bg-secondary/60" />}>
+              <OffresSearch />
+            </Suspense>
           </div>
         </MemberGuard>
       </main>

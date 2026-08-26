@@ -1,6 +1,6 @@
 "use client";
 
-import { Reveal, RevealLines } from "@/components/reveal";
+import { Reveal } from "@/components/reveal";
 import { steps } from "@/lib/site";
 import { useT } from "@/lib/i18n";
 
@@ -13,12 +13,12 @@ export function HowItWorks() {
 
   return (
     <section className="ff-container pb-12 pt-16 md:pb-20 md:pt-20">
-      <RevealLines className="display-italic mx-auto max-w-4xl text-balance text-center text-[clamp(1.75rem,4.2vw,3.1rem)] text-brand">
+      <h2 className="display-italic mx-auto max-w-4xl text-balance text-center text-[clamp(1.75rem,4.2vw,3.1rem)] text-brand">
         {t(
           "Réservez vos séances de sport, sans abonnement, à coût moindre près de chez vous",
           "Book your sport sessions, no membership, for less, right next door",
         )}
-      </RevealLines>
+      </h2>
 
       <Reveal stagger={0.1} className="mt-16 grid gap-x-8 gap-y-12 sm:grid-cols-2 lg:grid-cols-4">
         {steps.map((s) => (

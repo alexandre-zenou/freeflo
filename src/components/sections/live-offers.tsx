@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
-import { Reveal, RevealLines } from "@/components/reveal";
+import { Reveal } from "@/components/reveal";
 import { OfferCard } from "@/components/offer-card";
 import { offers } from "@/lib/site";
 import { dayDateLabel, isThisWeek } from "@/lib/format";
@@ -52,9 +52,9 @@ export function LiveOffers() {
       <div className="mx-auto w-full px-5 md:px-[1cm]">
         <div className="flex flex-wrap items-start justify-between gap-6">
           <div>
-            <RevealLines className="display text-[clamp(1.9rem,3.6vw,2.8rem)] uppercase text-white">
+            <h2 className="display text-[clamp(1.9rem,3.6vw,2.8rem)] uppercase text-white">
               {t("Nos bons plans de la semaine", "Our deals of the week")}
-            </RevealLines>
+            </h2>
             <p className="mt-2 text-lg text-white/90">
               {t(
                 "Les places s'écoulent vite, et sont limitées.",
