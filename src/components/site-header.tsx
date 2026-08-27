@@ -166,11 +166,26 @@ export function SiteHeader() {
 
         {/* Le panier reste atteignable sur mobile sans ouvrir le menu : c'est
             l'étape suivante du parcours, pas une rubrique du site. */}
+        {/*
+          Panier et pastille vivent HORS du panneau déroulant, et sont donc les
+          deux seuls éléments qui pouvaient agir alors que le menu était encore
+          ouvert : on partait sur `/panier` avec le menu affiché par-dessus la
+          page. Tous les liens DU panneau se referment déjà eux-mêmes.
+        */}
         <div className="flex items-center gap-4 md:hidden">
-          {!isPro && <CartLink count={cartCount} onDark={onDark} label={t("Panier", "Cart")} />}
+          {!isPro && (
+            <CartLink
+              count={cartCount}
+              onDark={onDark}
+              label={t("Panier", "Cart")}
+              onNavigate={() => setOpen(false)}
+            />
+          )}
           {/* La pastille est hors du menu déroulant : c'est le raccourci vers
-              la langue et la déconnexion, il ne doit pas demander deux gestes. */}
-          {member && <AccountMenu onDark={onDark} />}
+              la langue et la déconnexion, il ne doit pas demander deux gestes.
+              Ouvrir son menu referme le panneau, deux surfaces empilées
+              n'ayant aucun sens. */}
+          {member && <AccountMenu onDark={onDark} onOpen={() => setOpen(false)} />}
           <button
             className={cn(onDark ? "text-white" : "text-ink")}
             onClick={() => setOpen((v) => !v)}
@@ -237,14 +252,19 @@ function CartLink({
   count,
   onDark,
   label,
+  onNavigate,
 }: {
   count: number;
   onDark: boolean;
   label: string;
+  /** Referme le menu mobile : le panier vit HORS du panneau déroulant, donc
+   *  cliquer dessus changeait de page en laissant le menu ouvert par-dessus. */
+  onNavigate?: () => void;
 }) {
   return (
     <Link
       href="/panier"
+      onClick={onNavigate}
       aria-label={count > 0 ? `${label} (${count})` : label}
       className={cn(
         "relative transition-colors",

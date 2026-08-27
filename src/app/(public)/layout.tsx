@@ -1,3 +1,4 @@
+import { ProHomeGate } from "@/components/pro-home-gate";
 import { SiteHeader } from "@/components/site-header";
 import { SiteFooter } from "@/components/site-footer";
 
@@ -19,6 +20,11 @@ import { SiteFooter } from "@/components/site-footer";
 export default function PublicLayout({ children }: { children: React.ReactNode }) {
   return (
     <>
+      {/* Avant TOUT le reste, en-tête comprise : un compte centre ou
+          administration qui ouvre l'accueil repart sur `/pro` sans que la page
+          se peigne. Le script ne fait rien ailleurs que sur `/`, et rien du
+          tout pour un visiteur, qui est le cas de tout le monde. */}
+      <ProHomeGate />
       <SiteHeader />
       {children}
       <SiteFooter />

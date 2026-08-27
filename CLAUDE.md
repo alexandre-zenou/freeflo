@@ -167,6 +167,20 @@ auparavant, la vidéo et son poster étant retéléchargés à chaque fois).
   `/pro` passe derrière `vendor/pro-guard.tsx` ; « Espace pro » a quitté la navigation
   publique et le pied de page, et n'apparaît dans l'en-tête que pour ce compte. Une
   inscription depuis le site ne peut jamais créer d'administrateur.
+  · **Un compte pro ne voit jamais l'accueil** (27/08/2026). La session survit à la
+  fermeture de l'onglet : on revenait donc sur le site déjà identifié comme centre, et on
+  retombait sur la page qui vend le service au sportif. `/` renvoie maintenant sur `/pro`,
+  ce qui étend à toutes les entrées la règle que `auth-form.tsx` appliquait déjà à la
+  connexion. **Deux pièces, et il faut les deux** : `pro-home-gate.tsx`, un script
+  BLOQUANT rendu par le layout `(public)` avant l'en-tête, qui tranche avant la peinture
+  (sans lui le héros s'affichait une demi-seconde, l'accueil étant statique et React
+  n'ayant pas encore hydraté) ; et `pro-home-redirect.tsx`, côté client, pour les
+  navigations internes où aucun document n'est rechargé. Seul `/` redirige : les trois
+  documents légaux restent lisibles par tout le monde, et `/compte` a sa version pro.
+  · Les comptes de démo et `SESSION_KEY` vivent dans **`lib/demo-accounts.ts`**, un module
+  SANS `"use client"` : un composant serveur ne peut pas lire une constante d'un module
+  client, et la porte ci-dessus en a besoin. `account.tsx` les ré-exporte, donc les imports
+  existants ne bougent pas. Ne pas recopier la liste des adresses pro ailleurs.
   Phase 2 : `src/lib/supabase/*` (déjà écrit, variables `.env.local` encore vides)
   remplace ce fichier, la forme des données ne bouge pas.
 - **Panier** dans `src/lib/cart.tsx`, même patron. « Réserver » sur une fiche offre

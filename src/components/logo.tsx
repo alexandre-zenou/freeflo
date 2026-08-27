@@ -1,4 +1,7 @@
+"use client";
+
 import Link from "next/link";
+import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 
 /**
@@ -61,10 +64,32 @@ export function Logo({
   markClassName?: string;
   onDark?: boolean;
 }) {
+  const pathname = usePathname();
+  const surAccueil = pathname === "/";
+
+  /*
+    Déjà sur l'accueil, le lien ne faisait RIEN : Next voit la même route et
+    ne navigue pas, or on est peut-être en bas d'une page très longue. Le
+    réflexe attendu est de remonter, on le sert donc explicitement.
+
+    Ailleurs, le lien navigue normalement, et le navigateur arrive en haut.
+
+    Le défilement doux est coupé pour qui a demandé moins d'animations : la
+    règle CSS `scroll-behavior` ne s'applique pas à `scrollTo`, il faut le
+    décider ici.
+  */
+  const remonter = (e: React.MouseEvent) => {
+    if (!surAccueil) return;
+    e.preventDefault();
+    const doux = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+    window.scrollTo({ top: 0, behavior: doux ? "smooth" : "auto" });
+  };
+
   return (
     <Link
       href="/"
-      aria-label="FREEFLO, accueil"
+      onClick={remonter}
+      aria-label={surAccueil ? "FREEFLO, revenir en haut" : "FREEFLO, accueil"}
       className={cn("inline-flex items-center", className)}
     >
       <LogoMark onDark={onDark} className={markClassName} />

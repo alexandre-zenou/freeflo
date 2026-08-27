@@ -22,7 +22,15 @@ import { cn } from "@/lib/utils";
  * Le sélecteur de langue reste visible dans l'en-tête pour un VISITEUR, faute de
  * quoi le site perdrait son anglais pour qui n'a pas de compte.
  */
-export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
+export function AccountMenu({
+  onDark = false,
+  onOpen,
+}: {
+  onDark?: boolean;
+  /** Appelé à l'ouverture. Sert à refermer le menu mobile de l'en-tête, qui
+   *  resterait sinon déplié sous la pastille. */
+  onOpen?: () => void;
+}) {
   const t = useT();
   const router = useRouter();
   const member = useMember();
@@ -78,7 +86,10 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
     <div ref={racine} className="relative">
       <button
         ref={bouton}
-        onClick={() => setOpen((v) => !v)}
+        onClick={() => {
+          setOpen((v) => !v);
+          onOpen?.();
+        }}
         aria-haspopup="menu"
         aria-expanded={open}
         aria-controls={open ? menuId : undefined}

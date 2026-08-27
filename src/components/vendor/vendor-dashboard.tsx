@@ -51,15 +51,20 @@ const tabs = [
 
 /**
  * Ce qu'un centre voit de l'espace pro : son planning, son catalogue, ses
- * rendez-vous, ses réservations, ses statistiques et ses avis. Le planning et les
- * rendez-vous sont son propre temps, il est donc le seul à pouvoir les poser,
- * et « Mes offres » ne montre que SES cours : c'est la même liste que le
- * planning, vue en tableau avec le prix live.
+ * réservations, ses statistiques et ses avis. Le planning est son propre
+ * temps, il est donc le seul à pouvoir le poser, et « Mes offres » ne montre
+ * que SES cours : c'est la même liste que le planning, vue en tableau avec le
+ * prix live.
  *
- * Restent au compte d'administration le tableau de bord d'ensemble et les
- * réglages de la plateforme, qui portent sur TOUS les centres.
+ * « Rendez-vous » a été RETIRÉ de cette liste (27/08/2026) : poser un créneau
+ * dans son agenda, c'est déjà ce que fait le planning, et deux entrées pour le
+ * même geste obligeaient à deviner laquelle ouvrir.
+ *
+ * Restent au compte d'administration le tableau de bord d'ensemble, les
+ * rendez-vous et les réglages de la plateforme, qui portent sur TOUS les
+ * centres.
  */
-const ONGLETS_CENTRE = ["planning", "offers", "appointments", "stats", "orders", "reviews"] as const;
+const ONGLETS_CENTRE = ["planning", "offers", "stats", "orders", "reviews"] as const;
 
 export function VendorDashboard() {
   const t = useT();

@@ -1,6 +1,12 @@
 "use client";
 
 import { useCallback, useSyncExternalStore } from "react";
+import { SESSION_KEY, demoMembers } from "./demo-accounts";
+
+/* Définis dans `demo-accounts.ts`, un module SANS `"use client"`, pour que la
+   porte de l'accueil puisse les lire depuis le serveur. Ré-exportés ici : tout
+   le reste du site les importe depuis `@/lib/account` et n'a pas à le savoir. */
+export { demoMembers };
 
 /**
  * Session « membre » de DÉMONSTRATION.
@@ -20,7 +26,6 @@ import { useCallback, useSyncExternalStore } from "react";
  * toujours déconnecté, et la session qui se propage aux autres onglets.
  */
 
-const SESSION_KEY = "ff-session";
 const MEMBERS_KEY = "ff-members";
 const BOOKINGS_KEY = "ff-bookings";
 const EVENT = "ff-account-change";
@@ -46,7 +51,7 @@ export interface Member {
   role: Role;
 }
 
-interface StoredMember extends Member {
+export interface StoredMember extends Member {
   password: string;
 }
 
@@ -70,20 +75,6 @@ export interface Booking {
    */
   startsAt?: number;
 }
-
-/**
- * Comptes de test internes. Ils servent à parcourir la partie membre sans rien
- * installer, et restent valables sur la démo en ligne (la cliente peut donc se
- * connecter elle-même). À supprimer le jour où Supabase prend le relais.
- */
-export const demoMembers: StoredMember[] = [
-  { firstName: "Thomas", lastName: "Durand", email: "demo@freeflo.fr", password: "freeflo", role: "member" },
-  { firstName: "Flore", lastName: "Lemaire", email: "flore@freeflo.fr", password: "freeflo", role: "member" },
-  /* Le compte d'un centre : son prénom porte le nom du studio, c'est lui qui
-     s'affiche dans la barre de navigation une fois connecté. */
-  { firstName: "Studio Bloom", lastName: "Paris 4e", email: "centre@freeflo.fr", password: "freeflo-centre", role: "centre" },
-  { firstName: "Admin", lastName: "FREEFLO", email: "admin@freeflo.fr", password: "freeflo-admin", role: "admin" },
-];
 
 /** Le compte d'administration, seul à ouvrir l'espace pro. */
 export const adminMember = demoMembers.find((m) => m.role === "admin")!;

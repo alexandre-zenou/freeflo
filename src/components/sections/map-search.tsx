@@ -229,26 +229,12 @@ export function MapSearch({
   );
 
   /*
-    Le créneau choisi sur la CARTE peut ne pas figurer dans le panneau : sur
-    l'accueil, la carte porte tout le catalogue alors que la liste se limite à
-    demain. Cliquer une pastille cochait alors une ligne qui n'existait pas, et
-    il ne se passait rien de visible. (Avec le calendrier, les deux portent le
-    même jour, ce cas ne s'y présente plus.)
-
-    Il est donc ajouté en tête, signalé comme venu de la carte. Le compteur de
-    l'en-tête, lui, continue de compter le seul jour annoncé : il dit « 5
-    créneaux demain », il ne doit pas en compter six parce qu'on a cliqué
-    ailleurs sur la carte.
+    La carte et le panneau portent le même jour : une pastille cliquée a
+    forcément sa ligne dans la liste. Le rattrapage qui ajoutait en tête le
+    créneau « venu de la carte » n'a plus d'objet, il fausserait seulement le
+    décompte de l'en-tête.
   */
-  const horsListe = useMemo(() => {
-    if (calendrier || !selected || demain.some((o) => o.id === selected)) return null;
-    return list.find((o) => o.id === selected) ?? null;
-  }, [calendrier, selected, demain, list]);
-
-  const affichees = useMemo(
-    () => (horsListe ? [horsListe, ...demain] : demain),
-    [horsListe, demain],
-  );
+  const affichees = demain;
 
   /*
     L'heure exige `Date.now()`, absent du rendu serveur. On ne l'affiche donc
@@ -287,26 +273,22 @@ export function MapSearch({
   }, [calendrier, hydrated, prixDe]);
 
   /*
-    Ce que la CARTE montre.
+    Ce que la CARTE montre : EXACTEMENT le jour du panneau, sur l'accueil comme
+    sur « Trouver un cours ». Le jour du panneau, c'est celui du calendrier
+    quand il est là, demain partout ailleurs.
 
-    Dès qu'il y a un calendrier, la carte montre EXACTEMENT le jour du panneau,
-    y compris à l'ouverture, où c'est demain qui est mis en avant sans que
-    personne ait cliqué. Sinon un jeudi sélectionné laissait la carte piquée des
-    prix du lundi et du mardi : les pastilles annonçaient des créneaux que la
-    liste, à côté, ne contenait pas, et le décompte du panneau ne correspondait
-    à rien de visible.
-
-    Sur l'accueil, qui n'a pas de calendrier, la carte garde tout le catalogue
-    filtré. C'est voulu : le panneau y montre « demain » comme un aperçu, alors
-    que la carte sert à découvrir ce qui existe autour de soi. Resserrer la
-    carte sur le seul lendemain la viderait des trois quarts de ses repères.
+    L'accueil a longtemps fait exception, sa carte portant tout le catalogue
+    pendant que le panneau annonçait le lendemain. On y perdait plus qu'on n'y
+    gagnait : les pastilles affichaient des prix de créneaux introuvables dans
+    la liste d'à côté, et le décompte de l'en-tête ne correspondait à rien de
+    visible sur la carte. Les deux disent maintenant la même chose (retour
+    client 27/08/2026).
   */
-  const surCarte = calendrier ? demain : list;
+  const surCarte = demain;
 
-  /* Sans filtre ET sans position, la carte reste sur la vue d'ensemble de
-     Paris. Dès que le visiteur resserre sa recherche, elle suit ses résultats,
-     un jour affiché comptant comme un resserrement. */
-  const hasFilters = Boolean(cat) || calendrier;
+  /* La carte ne montre plus qu'un jour : c'est déjà un resserrement, elle cadre
+     donc toujours ses repères au lieu de rester sur la vue d'ensemble de Paris. */
+  const hasFilters = true;
 
   /* Les trois cours les plus proches : ils règlent le cadrage de la carte quand
      la position arrive, pour que le zoom montre le voisinage et non la France.
@@ -492,17 +474,6 @@ export function MapSearch({
                       <Image src={o.image} alt="" fill sizes="48px" className="object-cover" />
                     </span>
                     <span className="min-w-0 flex-1">
-                      {/* Venu de la carte et non du jour annoncé : on le dit,
-                          sinon la ligne se lirait comme un créneau du jour et
-                          contredirait le compteur juste au-dessus. */}
-                      {horsListe?.id === o.id && hydrated && (
-                        <span className="mb-0.5 block text-xs font-medium text-brand">
-                          {t(
-                            `Choisi sur la carte, ${isoDayLabel(dayIso(o.startsInHours), locale)}`,
-                            `Picked on the map, ${isoDayLabel(dayIso(o.startsInHours), locale)}`,
-                          )}
-                        </span>
-                      )}
                       <span className="block truncate text-sm font-medium text-ink">{o.gym}</span>
                       {/*
                         Séparateur : la virgule, pas le point médian. Le retour
