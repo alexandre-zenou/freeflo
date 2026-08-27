@@ -202,6 +202,20 @@ export function MapView({
       */
       GL.setWorkerUrl("/maplibre/maplibre-gl-worker.mjs");
 
+      /*
+        Sur un appareil tactile, on veut un doigt pour DÉPLACER la carte et deux
+        pour zoomer. `cooperativeGestures` ne sait pas faire ce partage : il
+        réclame deux doigts pour les deux gestes, et le déplacement devenait
+        impossible au pouce. On ne le garde donc que là où il sert vraiment,
+        c'est à dire à la souris, où il empêche la molette seule de capturer le
+        défilement de la page (la carte est haute, la piéger serait pire).
+
+        Sur téléphone rien n'est piégé pour autant : la carte n'occupe qu'un
+        pavé 4/3 dans le flux, on fait défiler la page de part et d'autre.
+      */
+      const tactile =
+        typeof window !== "undefined" && window.matchMedia("(hover: none) and (pointer: coarse)").matches;
+
       const map = new GL.Map({
         container: elRef.current,
         style: STYLE,
@@ -214,15 +228,18 @@ export function MapView({
         /*
           La molette SEULE continue de faire défiler la page : la carte occupe
           une grande hauteur, la capturer piégerait le défilement. Ctrl (ou ⌘) +
-          molette zoome, et sur téléphone il faut deux doigts. MapLibre tient ce
-          contrat lui-même et affiche l'indication qui va avec, ce qui remplace
-          le gestionnaire de molette qu'on écrivait à la main.
+          molette zoome. MapLibre tient ce contrat lui-même et affiche
+          l'indication qui va avec, ce qui remplace le gestionnaire de molette
+          qu'on écrivait à la main. Voir `tactile` juste au-dessus pour le
+          téléphone, qui suit une autre règle.
         */
-        cooperativeGestures: interactive,
+        cooperativeGestures: interactive && !tactile,
         locale: {
           "CooperativeGesturesHandler.WindowsHelpText": "Utilisez Ctrl + molette pour zoomer",
           "CooperativeGesturesHandler.MacHelpText": "Utilisez ⌘ + molette pour zoomer",
-          "CooperativeGesturesHandler.MobileHelpText": "Utilisez deux doigts pour déplacer la carte",
+          /* Jamais affiché en pratique, le geste coopératif étant coupé sur
+             tactile, mais MapLibre attend la clé. */
+          "CooperativeGesturesHandler.MobileHelpText": "Utilisez deux doigts pour zoomer",
         },
         /* Carte à plat : ni rotation ni inclinaison. Le plan d'une ville n'a pas
            à basculer parce que deux doigts ont tourné d'un degré. */
@@ -232,6 +249,12 @@ export function MapView({
       });
       mapRef.current = map;
       map.touchZoomRotate?.disableRotation();
+      /* Un doigt déplace, deux doigts zooment : les deux gestionnaires sont
+         actifs en même temps, MapLibre départage sur le nombre de contacts. */
+      if (interactive && tactile) {
+        map.dragPan?.enable();
+        map.touchZoomRotate?.enable();
+      }
       if (interactive) {
         map.addControl(new GL.NavigationControl({ showCompass: false }), "top-left");
       }
