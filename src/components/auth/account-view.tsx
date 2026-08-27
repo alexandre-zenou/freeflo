@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import { ArrowRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
@@ -16,8 +17,25 @@ import { signOut, useAccount, useHydrated } from "@/lib/account";
  */
 export function AccountView() {
   const t = useT();
+  const router = useRouter();
   const hydrated = useHydrated();
   const { member, bookings } = useAccount();
+
+  /*
+    Se déconnecter depuis `/compte` ne menait nulle part : la session se vidait
+    et l'écran basculait sur « Cet espace est réservé aux membres », c'est à
+    dire qu'on restait sur une page qui ne nous concerne plus. On ramène à
+    l'accueil, comme le menu de l'en-tête et comme l'espace pro.
+
+    `push` avant `signOut`, et préchargement au survol : l'accueil est la route
+    la plus lourde du site, la charger au clic se voyait.
+  */
+  const precharger = () => router.prefetch("/");
+
+  const quitter = () => {
+    router.push("/");
+    signOut();
+  };
 
   /* Avant hydratation, le rendu est toujours celui d'un visiteur déconnecté :
      on tient la place plutôt que d'afficher « connectez-vous » à un membre. */
@@ -78,7 +96,9 @@ export function AccountView() {
             </p>
           </div>
           <button
-            onClick={signOut}
+            onClick={quitter}
+            onMouseEnter={precharger}
+            onFocus={precharger}
             className="flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-sm text-ink transition-colors hover:border-brand hover:text-brand"
           >
             <LogOut className="h-4 w-4" /> {t("Se déconnecter", "Log out")}
@@ -116,7 +136,9 @@ export function AccountView() {
           </p>
         </div>
         <button
-          onClick={signOut}
+          onClick={quitter}
+          onMouseEnter={precharger}
+          onFocus={precharger}
           className="flex items-center gap-2 rounded-full border border-line bg-paper px-4 py-2 text-sm text-ink transition-colors hover:border-brand hover:text-brand"
         >
           <LogOut className="h-4 w-4" /> {t("Se déconnecter", "Log out")}
