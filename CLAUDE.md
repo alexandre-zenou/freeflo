@@ -217,6 +217,18 @@ auparavant, la vidéo et son poster étant retéléchargés à chaque fois).
     `.ff-pin__pill--monument`.
   Double-clic (zoom avant), Maj + double-clic (arrière) et le clavier sont ceux de
   Leaflet, rien à maintenir.
+- **Le logo remonte la page** (`components/logo.tsx`). Sur l'accueil, le lien du
+  monogramme ne navigue pas (Next voit la même route) : il défile jusqu'en haut. Le
+  défilement doux échoue en SILENCE sur mobile, d'où un filet qui saute au bout de
+  200 ms si la page n'a pas bougé. Deux pièges vérifiés à la mesure, à ne pas
+  « simplifier » : `scrollTop = 0` et `scrollTo(0, 0)` suivent la règle CSS
+  `scroll-behavior: smooth` de `globals.css`, donc ils échouent par le même mécanisme,
+  et après avoir neutralisé cette règle en style en ligne il faut **lire** la valeur
+  calculée avant de défiler, sinon le style n'est pas encore appliqué et rien ne bouge.
+- **Pas de `loading.tsx` dans `(public)`** (27/08/2026). Une tentative d'écran d'attente
+  a cassé l'accueil : la limite Suspense ainsi créée laissait la page prérendue dans un
+  conteneur `hidden` et n'affichait que le squelette, deux `<main>` dans le document.
+  Reproduit, puis retiré. Ne pas réessayer sans vérifier `curl / | grep -c '<main'`.
 - **Pas de QR code** : le client a tranché pour une confirmation d'identité à l'accueil.
   `components/qr.tsx` a été supprimé — ne pas le réintroduire sans validation.
 - **i18n maison** dans `src/lib/i18n.tsx` : `t("français", "english")`, pas de fichiers de
