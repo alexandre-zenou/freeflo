@@ -21,11 +21,33 @@ export function SiteHeader() {
     déduit de la route, puisque l'accueil est le seul écran dont la première
     section est une image plein cadre. Un écran de plus dans ce cas s'ajoute ici.
   */
-  const overHero = usePathname() === "/";
+  const pathname = usePathname();
+  const overHero = pathname === "/";
   const member = useMember();
   const cartCount = useCartCount();
   const [scrolled, setScrolled] = useState(false);
-  const [open, setOpen] = useState(false);
+  /*
+    Le menu mobile retient la PAGE sur laquelle il a été ouvert, pas un simple
+    booléen. Il est donc considéré comme ouvert tant qu'on n'a pas changé de
+    page, et se referme de lui-même à la première navigation, quelle qu'elle
+    soit : un lien du panneau, l'icône du panier restée dans la barre, ou une
+    entrée ajoutée plus tard sans qu'on y pense.
+
+    C'est de l'état DÉDUIT, pas un effet : refermer depuis un `useEffect` sur
+    le changement de route violerait `react-hooks/set-state-in-effect`, et
+    surtout laisserait le panneau visible le temps d'un rendu, superposé à la
+    page d'arrivée.
+
+    Auparavant chaque lien portait son propre `onClick` de fermeture. Il
+    suffisait d'en oublier un, ou d'en ajouter un nouveau, pour que le menu
+    reste ouvert par-dessus la page suivante.
+  */
+  const [ouvertSur, setOuvertSur] = useState<string | null>(null);
+  const open = ouvertSur !== null && ouvertSur === pathname;
+  const setOpen = (v: boolean | ((p: boolean) => boolean)) => {
+    const veut = typeof v === "function" ? v(open) : v;
+    setOuvertSur(veut ? pathname : null);
+  };
 
   /*
     Connecté, « Connexion » devient le prénom du membre et mène à son compte.

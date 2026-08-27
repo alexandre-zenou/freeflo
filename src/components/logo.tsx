@@ -109,15 +109,33 @@ export function Logo({
     const depart = window.scrollY;
     if (depart === 0) return;
 
-    /* Saut immédiat, quoi qu'en dise la feuille de style. */
+    /*
+      Saut immédiat, quoi qu'en dise la feuille de style. Deux étapes, et les
+      deux ont été nécessaires à la mesure :
+
+      · `behavior: "instant"` d'abord. C'est le seul mot-clé qui passe outre la
+        règle CSS, et il suffit partout depuis Safari 15.4. Dans un `try` : plus
+        anciennement la valeur est refusée par l'énumération et lève ;
+      · si la page n'a toujours pas bougé, on neutralise la règle en style en
+        ligne, puis on redemande le saut. La LECTURE de la valeur calculée entre
+        les deux n'est pas décorative : sans elle le style n'est pas encore
+        appliqué quand `scrollTo` s'exécute, la valeur en vigueur est encore
+        `smooth`, et il ne se passe rien. Ne pas la supprimer.
+    */
     const sauter = () => {
       const html = document.documentElement;
-      const regle = html.style.scrollBehavior;
-      html.style.scrollBehavior = "auto";
-      window.scrollTo(0, 0);
-      html.style.scrollBehavior = regle;
+      try {
+        window.scrollTo({ top: 0, behavior: "instant" });
+      } catch {
+        /* Vieux Safari : `instant` n'existe pas encore. */
+      }
+      if (window.scrollY === 0) return;
+      html.style.setProperty("scroll-behavior", "auto", "important");
+      if (getComputedStyle(html).scrollBehavior === "auto") window.scrollTo(0, 0);
+      html.style.removeProperty("scroll-behavior");
     };
 
+    /* Moins d'animations demandées : on saute, sans détour. */
     if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
       sauter();
       return;
