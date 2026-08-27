@@ -26,8 +26,10 @@ import { OfferFormModal } from "@/components/vendor/offer-form-modal";
 import {
   initialVendorAppointments,
   initialVendorOffers,
+  initialVendorReviews,
   type VendorAppointment,
   type VendorOffer,
+  type VendorReview,
 } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
 import { useMember } from "@/lib/account";
@@ -48,15 +50,16 @@ const tabs = [
 ] as const;
 
 /**
- * Ce qu'un centre voit de l'espace pro : ses rendez-vous, ses réservations et
- * ses statistiques. Les rendez-vous sont son propre temps, il est donc le seul
- * à pouvoir les poser.
+ * Ce qu'un centre voit de l'espace pro : son planning, son catalogue, ses
+ * rendez-vous, ses réservations, ses statistiques et ses avis. Le planning et les
+ * rendez-vous sont son propre temps, il est donc le seul à pouvoir les poser,
+ * et « Mes offres » ne montre que SES cours : c'est la même liste que le
+ * planning, vue en tableau avec le prix live.
  *
- * Les autres onglets pilotent le catalogue et les réglages de la plateforme,
- * ou donnent à voir les données de TOUS les centres : ils restent réservés au
- * compte d'administration, qui sert la démonstration d'ensemble.
+ * Restent au compte d'administration le tableau de bord d'ensemble et les
+ * réglages de la plateforme, qui portent sur TOUS les centres.
  */
-const ONGLETS_CENTRE = ["appointments", "stats", "orders"] as const;
+const ONGLETS_CENTRE = ["planning", "offers", "appointments", "stats", "orders", "reviews"] as const;
 
 export function VendorDashboard() {
   const t = useT();
@@ -78,9 +81,10 @@ export function VendorDashboard() {
     remettre l'état à jour depuis un effet.
   */
   const ongletActif =
-    estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "appointments" : tab;
+    estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "planning" : tab;
   const [offers, setOffers] = useState<VendorOffer[]>(initialVendorOffers);
   const [appointments, setAppointments] = useState<VendorAppointment[]>(initialVendorAppointments);
+  const [reviews, setReviews] = useState<VendorReview[]>(initialVendorReviews);
   const [drawerOpen, setDrawerOpen] = useState(false);
   /** Offre en cours de modification (bouton « Modifier » de Mes offres). */
   const [editing, setEditing] = useState<VendorOffer | null>(null);
@@ -96,6 +100,11 @@ export function VendorDashboard() {
     });
 
   const addOffer = (offer: VendorOffer) => setOffers((prev) => [offer, ...prev]);
+
+  /* La réponse d'un centre est écrite dans une seule langue : on la range telle
+     quelle dans les deux champs plutôt que de la faire traduire par la machine. */
+  const replyToReview = (id: string, text: string) =>
+    setReviews((prev) => prev.map((r) => (r.id === id ? { ...r, reply: text, replyEn: text } : r)));
 
   const createOffer = (offer: VendorOffer) => {
     addOffer(offer);
@@ -113,16 +122,14 @@ export function VendorDashboard() {
               {t(`Bonjour, ${nomAffiche}`, `Hello, ${nomAffiche}`)}
             </h1>
           </div>
-          {/* Publier une offre relève de la gestion du catalogue, pas des deux
-              onglets ouverts au centre : le bouton suit la même règle qu'eux. */}
-          {!estCentre && (
-            <button
-              onClick={() => setDrawerOpen(true)}
-              className="inline-flex items-center gap-2 rounded-full bg-pro-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
-            >
-              <Plus className="h-4 w-4" /> {t("Créer une offre", "Create an offer")}
-            </button>
-          )}
+          {/* Publier une offre relève de l'onglet Mes offres, désormais ouvert au
+              centre comme à l'administration : le bouton l'est donc aussi. */}
+          <button
+            onClick={() => setDrawerOpen(true)}
+            className="inline-flex items-center gap-2 rounded-full bg-pro-accent px-5 py-3 text-sm font-medium text-white transition-colors hover:bg-brand-deep"
+          >
+            <Plus className="h-4 w-4" /> {t("Créer une offre", "Create an offer")}
+          </button>
         </div>
 
         <div className="grid gap-6 lg:grid-cols-[230px_1fr]">
@@ -171,7 +178,9 @@ export function VendorDashboard() {
             )}
             {ongletActif === "stats" && <StatsTab />}
             {ongletActif === "orders" && <OrdersTab />}
-            {ongletActif === "reviews" && <ReviewsTab />}
+            {ongletActif === "reviews" && (
+              <ReviewsTab reviews={reviews} offers={offers} onReply={replyToReview} />
+            )}
             {ongletActif === "settings" && <SettingsTab />}
           </div>
         </div>

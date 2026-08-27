@@ -102,20 +102,37 @@ export const vendorOrders: VendorOrder[] = [
   { name: "Julie P.", offer: "Pilates doux", slot: "Lun 12h00", slotEn: "Mon 12:00", ref: "FLO-STU-187", state: "arrivée" },
 ];
 
-/* ——— Avis (cohérents avec le KPI : 4,9 · 512 avis) ——— */
+/* ——— Avis ———
+   Un avis porte sur UN cours : `offerId` pointe une offre de
+   `initialVendorOffers`, comme le Planning et Mes offres. Le nom du cours n'est
+   donc plus recopié dans l'avis, il est relu depuis l'offre.
 
-export const ratingBreakdown = [
-  { stars: 5, count: 465 },
-  { stars: 4, count: 35 },
-  { stars: 3, count: 8 },
-  { stars: 2, count: 2 },
-  { stars: 1, count: 2 },
-] as const;
+   Deux niveaux, pour la même raison que partout ailleurs dans la démo : les
+   avis détaillés sont ceux que le centre peut lire et auxquels il peut
+   répondre ; `olderRatings` résume les 509 autres, qu'on n'affiche pas mais qui
+   comptent dans la note moyenne et dans la répartition. La note globale et les
+   barres sont CALCULÉES depuis ces deux sources, jamais écrites en dur. */
 
-export const recentReviews = [
+export interface VendorReview {
+  id: string;
+  /** Cours noté : identifiant d'une offre de `initialVendorOffers`. */
+  offerId: string;
+  name: string;
+  rating: 1 | 2 | 3 | 4 | 5;
+  date: string;
+  dateEn: string;
+  text: string;
+  textEn: string;
+  /** Réponse du centre, `null` tant qu'il n'a pas répondu. */
+  reply: string | null;
+  replyEn: string | null;
+}
+
+export const initialVendorReviews: VendorReview[] = [
   {
+    id: "avis-1",
+    offerId: "v-vinyasa",
     name: "Amélie R.",
-    course: "Vinyasa Flow",
     rating: 5,
     date: "il y a 2 jours",
     dateEn: "2 days ago",
@@ -125,8 +142,9 @@ export const recentReviews = [
     replyEn: null,
   },
   {
+    id: "avis-2",
+    offerId: "v-doux",
     name: "Thomas L.",
-    course: "Pilates doux",
     rating: 5,
     date: "il y a 4 jours",
     dateEn: "4 days ago",
@@ -136,8 +154,9 @@ export const recentReviews = [
     replyEn: "Thanks Thomas, see you very soon at the studio!",
   },
   {
+    id: "avis-3",
+    offerId: "v-debutant",
     name: "Inès K.",
-    course: "Yoga débutant",
     rating: 4,
     date: "il y a 6 jours",
     dateEn: "6 days ago",
@@ -146,7 +165,36 @@ export const recentReviews = [
     reply: null,
     replyEn: null,
   },
-] as const;
+];
+
+/**
+ * Les avis plus anciens, agrégés : le centre en a 512 en tout, on n'en détaille
+ * que les trois derniers. `replied` sert au taux de réponse.
+ */
+export const olderRatings = {
+  counts: { 5: 463, 4: 34, 3: 8, 2: 2, 1: 2 } as Record<number, number>,
+  replied: 470,
+} as const;
+
+/** Note moyenne et répartition, reconstruites depuis les deux sources. */
+export function ratingSummary(reviews: VendorReview[]) {
+  const counts: Record<number, number> = { 5: 0, 4: 0, 3: 0, 2: 0, 1: 0 };
+  for (const stars of [5, 4, 3, 2, 1]) counts[stars] = olderRatings.counts[stars] ?? 0;
+  for (const r of reviews) counts[r.rating] += 1;
+
+  const total = [5, 4, 3, 2, 1].reduce((s, stars) => s + counts[stars], 0);
+  const points = [5, 4, 3, 2, 1].reduce((s, stars) => s + stars * counts[stars], 0);
+  const replied = olderRatings.replied + reviews.filter((r) => r.reply).length;
+
+  return {
+    total,
+    average: total ? points / total : 0,
+    breakdown: [5, 4, 3, 2, 1].map((stars) => ({ stars, count: counts[stars] })),
+    replyPct: total ? Math.round((replied / total) * 100) : 0,
+    /** Ce qui bouge vraiment sous les yeux du centre quand il répond. */
+    awaiting: reviews.filter((r) => !r.reply).length,
+  };
+}
 
 /** Fil d'activité — minutes relatives « au chargement », le composant fait vivre le temps. */
 export const activitySeed = [

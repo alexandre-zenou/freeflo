@@ -94,8 +94,8 @@ export function OffersTab({
               <span className="w-fit rounded-full bg-ink/10 px-2.5 py-1 text-xs text-ink-soft">{t("Épuisé, bien joué", "Sold out, nicely done")}</span>
             ) : o.paused ? (
               <span className="text-sm text-ink-soft">
-                <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-ink">En pause</span>
-                <span className="ml-2 tabular-nums">{formatEuro(o.basePrice)} figé</span>
+                <span className="rounded-full bg-secondary px-2.5 py-1 text-xs font-medium text-ink">{t("En pause", "Paused")}</span>
+                <span className="ml-2 tabular-nums">{formatEuro(o.basePrice)} {t("figé", "frozen")}</span>
               </span>
             ) : (
               <LivePriceCell offer={o} />
