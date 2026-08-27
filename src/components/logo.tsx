@@ -74,15 +74,59 @@ export function Logo({
 
     Ailleurs, le lien navigue normalement, et le navigateur arrive en haut.
 
-    Le défilement doux est coupé pour qui a demandé moins d'animations : la
-    règle CSS `scroll-behavior` ne s'applique pas à `scrollTo`, il faut le
-    décider ici.
+    LE FILET (27/08/2026), après un retour « sur téléphone, le F ne remonte
+    pas ». Un défilement doux est le geste le plus fragile qui soit sur mobile,
+    et il échoue en SILENCE, sans erreur ni saut :
+
+    · Safari iOS n'a connu `behavior: "smooth"` qu'à partir de la version 15.4,
+      et l'ignorait purement et simplement avant ;
+    · l'inertie du doigt tue l'animation. On lance le défilement d'un geste, on
+      tape le logo dans la foulée, et le défilement encore en cours annule le
+      nôtre au moment même où il démarre ;
+    · la barre d'adresse qui se replie change la hauteur de la fenêtre pendant
+      l'animation, ce qui l'interrompt aussi.
+
+    On regarde donc si la page a bougé, et sinon on saute. 200 ms : un
+    défilement doux se voit dès les premières images, donc une page immobile à
+    ce moment-là ne partira plus.
+
+    LE PIÈGE DU SAUT, vérifié dans un navigateur qui ignore le défilement doux
+    (c'est exactement le téléphone en panne) : `scrollTop = 0` ne suffit PAS,
+    et un second `scrollTo` non plus. Les deux suivent la règle CSS
+    `scroll-behavior`, qui vaut `smooth` sur tout le site (`globals.css`) : le
+    secours repassait donc par le mécanisme même qui venait d'échouer. On
+    neutralise la règle en style en ligne le temps du saut, puis on la remet.
+    Deux lignes de plus, mais c'est la seule façon qui ne dépende ni du
+    navigateur ni du mot-clé `instant`, que le vieux Safari ne connaît pas.
+
+    Le défilement doux reste coupé pour qui a demandé moins d'animations : on
+    saute directement.
   */
   const remonter = (e: React.MouseEvent) => {
     if (!surAccueil) return;
     e.preventDefault();
-    const doux = !window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-    window.scrollTo({ top: 0, behavior: doux ? "smooth" : "auto" });
+
+    const depart = window.scrollY;
+    if (depart === 0) return;
+
+    /* Saut immédiat, quoi qu'en dise la feuille de style. */
+    const sauter = () => {
+      const html = document.documentElement;
+      const regle = html.style.scrollBehavior;
+      html.style.scrollBehavior = "auto";
+      window.scrollTo(0, 0);
+      html.style.scrollBehavior = regle;
+    };
+
+    if (window.matchMedia("(prefers-reduced-motion: reduce)").matches) {
+      sauter();
+      return;
+    }
+
+    window.scrollTo({ top: 0, behavior: "smooth" });
+    window.setTimeout(() => {
+      if (window.scrollY === depart) sauter();
+    }, 200);
   };
 
   return (

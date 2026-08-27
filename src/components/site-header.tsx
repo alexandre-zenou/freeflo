@@ -3,7 +3,7 @@
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { useEffect, useState } from "react";
-import { Menu, ShoppingBag, X } from "lucide-react";
+import { CalendarCheck, Menu, Search, ShoppingBag, X } from "lucide-react";
 import { Logo } from "@/components/logo";
 import { LocaleSwitch } from "@/components/locale-switch";
 import { AccountMenu } from "@/components/account-menu";
@@ -72,6 +72,25 @@ export function SiteHeader() {
     ...(isPro
       ? [{ href: "/pro", label: "Espace pro", labelEn: "Pro area" }]
       : []),
+  ];
+
+  /*
+    Ce que le panneau déroulant garde, sur téléphone : les rubriques
+    SECONDAIRES, et elles seules.
+
+    Les quatre destinations du parcours, « Trouver un cours », « Mes cours », le
+    panier et le compte, en sont sorties : ce sont des actions qu'on répète, pas
+    des rubriques qu'on consulte une fois, et les cacher derrière un panneau
+    coûtait deux gestes à chaque fois (retour client 27/08/2026). Elles vivent
+    donc dans la barre, en icônes, faute de largeur pour leurs libellés.
+
+    Il reste alors des écrans où ce panneau n'a plus rien à montrer, un membre
+    connecté par exemple : le bouton lui même disparaît, plutôt que d'ouvrir sur
+    du vide.
+  */
+  const secondaires = [
+    ...primary.filter((l) => l.href !== "/offres"),
+    ...(showVendorCta ? [nav.vendorCta] : []),
   ];
 
   useEffect(() => {
@@ -164,56 +183,81 @@ export function SiteHeader() {
           {member ? <AccountMenu onDark={onDark} /> : <LocaleSwitch onDark={onDark} />}
         </div>
 
-        {/* Le panier reste atteignable sur mobile sans ouvrir le menu : c'est
-            l'étape suivante du parcours, pas une rubrique du site. */}
         {/*
-          Panier et pastille vivent HORS du panneau déroulant, et sont donc les
-          deux seuls éléments qui pouvaient agir alors que le menu était encore
-          ouvert : on partait sur `/panier` avec le menu affiché par-dessus la
-          page. Tous les liens DU panneau se referment déjà eux-mêmes.
+          Barre du téléphone : les quatre destinations du parcours, dans l'ordre
+          où on les traverse, puis le panneau des rubriques.
+
+          Tout est en icônes : « Trouver un cours » et « Mes cours » ne tiennent
+          pas en toutes lettres à côté du logo sous 400 px de large. Chacune
+          porte son libellé en `aria-label` et en `title`, et les cinq cibles
+          gardent 40 px de côté, ce qui reste confortable au pouce.
+
+          Ces éléments vivent HORS du panneau déroulant : ils peuvent donc agir
+          alors qu'il est encore ouvert, et on partirait sur une autre page en
+          le laissant affiché par-dessus. D'où le `setOpen(false)` sur chacun.
+          Les liens DU panneau, eux, se referment déjà.
         */}
-        <div className="flex items-center gap-4 md:hidden">
+        <div className="flex items-center gap-1 md:hidden">
           {!isPro && (
-            <CartLink
-              count={cartCount}
+            <HeaderIconLink
+              href="/offres"
+              label={t("Trouver un cours", "Find a class")}
               onDark={onDark}
-              label={t("Panier", "Cart")}
               onNavigate={() => setOpen(false)}
-            />
+            >
+              <Search className="h-5 w-5" />
+            </HeaderIconLink>
           )}
+
+          {/* « Mes cours » garde son or : c'est l'action du membre, pas une
+              rubrique de plus, exactement comme sur grand écran. */}
+          {estMembre && (
+            <Link
+              href="/mes-cours"
+              onClick={() => setOpen(false)}
+              aria-label={t("Mes cours", "My classes")}
+              title={t("Mes cours", "My classes")}
+              className="mx-1 grid h-9 w-9 place-items-center rounded-full bg-gold-bright text-ink transition-colors hover:bg-gold"
+            >
+              <CalendarCheck className="h-5 w-5" />
+            </Link>
+          )}
+
+          {!isPro && (
+            <span className="grid h-10 w-10 place-items-center">
+              <CartLink
+                count={cartCount}
+                onDark={onDark}
+                label={t("Panier", "Cart")}
+                onNavigate={() => setOpen(false)}
+              />
+            </span>
+          )}
+
           {/* La pastille est hors du menu déroulant : c'est le raccourci vers
               la langue et la déconnexion, il ne doit pas demander deux gestes.
               Ouvrir son menu referme le panneau, deux surfaces empilées
               n'ayant aucun sens. */}
           {member && <AccountMenu onDark={onDark} onOpen={() => setOpen(false)} />}
-          <button
-            className={cn(onDark ? "text-white" : "text-ink")}
-            onClick={() => setOpen((v) => !v)}
-            aria-label={open ? t("Fermer le menu", "Close menu") : t("Ouvrir le menu", "Open menu")}
-          >
-            {open ? <X /> : <Menu />}
-          </button>
+
+          {secondaires.length > 0 && (
+            <button
+              className={cn("grid h-10 w-10 place-items-center", onDark ? "text-white" : "text-ink")}
+              onClick={() => setOpen((v) => !v)}
+              aria-label={open ? t("Fermer le menu", "Close menu") : t("Ouvrir le menu", "Open menu")}
+            >
+              {open ? <X className="h-6 w-6" /> : <Menu className="h-6 w-6" />}
+            </button>
+          )}
         </div>
       </div>
 
       {/* Le compteur n'apparaît qu'après hydratation : le panier vit dans le
           navigateur, le serveur ne peut que le rendre vide (voir `lib/cart.tsx`). */}
-      {open && (
+      {open && secondaires.length > 0 && (
         <div className="border-t border-line bg-cream md:hidden">
           <div className="ff-container flex flex-col gap-1 py-4">
-            {estMembre && (
-              <Link
-                href="/mes-cours"
-                onClick={() => setOpen(false)}
-                className="mb-2 rounded-full bg-gold-bright px-5 py-3.5 text-center text-base font-bold text-ink transition-colors hover:bg-gold"
-              >
-                {t("Mes cours", "My classes")}
-              </Link>
-            )}
-            {[
-              ...primary,
-              ...(showVendorCta ? [nav.vendorCta] : []),
-            ].map((l) => (
+            {secondaires.map((l) => (
               <Link
                 key={l.href}
                 href={l.href}
@@ -223,17 +267,6 @@ export function SiteHeader() {
                 {t(l.label, l.labelEn)}
               </Link>
             ))}
-            {!isPro && (
-              <Link
-                href="/panier"
-                onClick={() => setOpen(false)}
-                className="flex items-center gap-2 rounded-lg px-2 py-3 text-ink hover:bg-secondary"
-              >
-                <ShoppingBag className="h-4 w-4" />
-                {t("Panier", "Cart")}
-                {cartCount > 0 && ` (${cartCount})`}
-              </Link>
-            )}
             {/* Déconnecté seulement : connecté, la langue est dans le menu de
                 la pastille, juste au-dessus. */}
             {!member && (
@@ -245,6 +278,37 @@ export function SiteHeader() {
         </div>
       )}
     </header>
+  );
+}
+
+/** Destination de la barre du téléphone : une icône, son libellé porté par
+ *  `aria-label` et `title`, et une cible de 40 px de côté. */
+function HeaderIconLink({
+  href,
+  label,
+  onDark,
+  onNavigate,
+  children,
+}: {
+  href: string;
+  label: string;
+  onDark: boolean;
+  onNavigate?: () => void;
+  children: React.ReactNode;
+}) {
+  return (
+    <Link
+      href={href}
+      onClick={onNavigate}
+      aria-label={label}
+      title={label}
+      className={cn(
+        "grid h-10 w-10 place-items-center transition-colors",
+        onDark ? "text-white/85 hover:text-white" : "text-ink-soft hover:text-ink",
+      )}
+    >
+      {children}
+    </Link>
   );
 }
 
