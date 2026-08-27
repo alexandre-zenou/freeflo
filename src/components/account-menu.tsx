@@ -39,6 +39,10 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
   */
   useEffect(() => {
     if (!open) return;
+    /* Ouvrir le menu, c'est déjà viser la déconnexion : on prépare l'accueil
+       maintenant plutôt qu'au clic. L'accueil est la route la plus lourde du
+       site, et sur un écran connecté rien ne l'avait préchargée. */
+    router.prefetch("/");
     const dehors = (e: MouseEvent) => {
       if (!racine.current?.contains(e.target as Node)) setOpen(false);
     };
@@ -54,17 +58,20 @@ export function AccountMenu({ onDark = false }: { onDark?: boolean }) {
       document.removeEventListener("mousedown", dehors);
       document.removeEventListener("keydown", touche);
     };
-  }, [open]);
+  }, [open, router]);
 
   if (!member) return null;
 
   const nomComplet = [member.firstName, member.lastName].filter(Boolean).join(" ");
   const initiale = member.firstName.trim().slice(0, 1).toUpperCase();
 
+  /* `push` avant `signOut` : dans l'autre sens, la page courante se re-rendait
+     déconnectée pendant le trajet, et `/compte` montrait « réservé aux
+     membres » à quelqu'un qui venait tout juste de partir. */
   const quitter = () => {
     setOpen(false);
-    signOut();
     router.push("/");
+    signOut();
   };
 
   return (

@@ -40,11 +40,27 @@ export function AppShell({ children }: { children: React.ReactNode }) {
     return t("Mon compte", "My account");
   };
 
-  /* La déconnexion vide la session PUIS ramène à l'accueil : c'est la seule
-     porte de sortie de cet espace, elle doit donc mener quelque part. */
+  /*
+    La déconnexion ramène à l'accueil : c'est la seule porte de sortie de cet
+    espace, elle doit donc mener quelque part.
+
+    Deux précautions, mesurées sur la lenteur qu'on ressentait au clic :
+
+    · on PRÉCHARGE `/` au survol du bouton. Cette barre n'a aucun `<Link>` (le
+      monogramme n'est pas cliquable, c'est voulu), donc Next n'avait jamais eu
+      l'occasion de préparer l'accueil, qui est la route la plus lourde du site
+      (vidéo du héros, et Leaflet par `MapSearch`). Tout partait au clic, et on
+      changeait de groupe de routes par-dessus le marché, donc de layout. Le
+      survol suffit à couvrir la latence, et ne coûte rien à qui ne clique pas ;
+    · `push` AVANT `signOut`. Dans l'autre sens, la session se vidait pendant
+      qu'on attendait la nouvelle page, et `ProGuard` affichait « Accès réservé
+      aux centres » à un administrateur, le temps du trajet.
+  */
+  const precharger = () => router.prefetch("/");
+
   const quitter = () => {
-    signOut();
     router.push("/");
+    signOut();
   };
 
   return (
@@ -81,6 +97,8 @@ export function AppShell({ children }: { children: React.ReactNode }) {
             {hydrated && member && (
               <button
                 onClick={quitter}
+                onMouseEnter={precharger}
+                onFocus={precharger}
                 className="inline-flex items-center gap-2 rounded-full border border-line px-3 py-2 text-sm text-ink-soft transition-colors hover:border-brand hover:text-brand md:px-4"
               >
                 <LogOut className="h-4 w-4 shrink-0" />
