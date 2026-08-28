@@ -2,7 +2,7 @@
 
 import Link from "next/link";
 import Image from "next/image";
-import { useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useRef, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 
@@ -83,9 +83,23 @@ function useVideoVariant(): Variant {
  *    d'énergie) — on l'avale, le poster reste alors seul à l'écran.
  * 3. **iOS met la vidéo en pause en quittant l'onglet** et ne la reprend pas
  *    toujours au retour : on relance sur `visibilitychange`.
+ *
+ * `onBloque` est le filet de sécurité. Un navigateur qui s'engage sur une
+ * source puis échoue à la DÉCODER ne retombe pas sur la suivante, à la
+ * différence d'un échec de chargement : la vidéo reste noire, sans erreur, et
+ * seul le poster subsiste. On surveille donc que la lecture a réellement
+ * démarré, et on prévient l'appelant sinon.
  */
-function useAutoplay(enabled: boolean) {
+const DELAI_BLOCAGE = 2500;
+
+function useAutoplay(enabled: boolean, onBloque: () => void) {
   const ref = useRef<HTMLVideoElement>(null);
+  /* Passé par une ref : le rappel change d'identité à chaque rendu, et le
+     mettre en dépendance relancerait la surveillance en boucle. */
+  const bloque = useRef(onBloque);
+  useEffect(() => {
+    bloque.current = onBloque;
+  }, [onBloque]);
 
   useEffect(() => {
     const v = ref.current;
@@ -99,12 +113,43 @@ function useAutoplay(enabled: boolean) {
     const onVisible = () => {
       if (document.visibilityState === "visible") play();
     };
+    /* Erreur franche : inutile d'attendre le délai. */
+    const onError = () => bloque.current();
 
     play();
     v.addEventListener("loadeddata", play);
+    v.addEventListener("error", onError);
     document.addEventListener("visibilitychange", onVisible);
+
+    /*
+      Filet de dernier recours, volontairement TRÈS restrictif : il n'agit que
+      si RIEN n'est arrivé, ni métadonnées ni le moindre octet mis en mémoire
+      tampon. C'est la signature d'une source que le navigateur a acceptée puis
+      abandonnée sans lever d'erreur.
+
+      Il ne suffit PAS que la lecture n'ait pas commencé. Sur une connexion
+      lente, la vidéo se charge encore, et basculer vers le MP4 relancerait un
+      téléchargement plus LOURD de 170 Ko : on aggraverait la situation de
+      celui qui a déjà le moins de débit. Or `moov` est en tête de nos fichiers,
+      donc les métadonnées arrivent dès les premiers octets et `readyState`
+      quitte 0 très tôt, même sur un lien poussif.
+
+      Le cas courant, lui, est traité par l'écouteur `error` ci-dessus, qui est
+      immédiat. Ce minuteur ne couvre que l'échec muet.
+
+      Onglet caché : on ne conclut rien, le navigateur a le droit de ne pas
+      lire, et `visibilitychange` relancera à son retour.
+    */
+    const minuteur = window.setTimeout(() => {
+      if (document.visibilityState !== "visible") return;
+      const rienRecu = v.readyState === 0 && v.buffered.length === 0;
+      if (rienRecu) bloque.current();
+    }, DELAI_BLOCAGE);
+
     return () => {
+      window.clearTimeout(minuteur);
       v.removeEventListener("loadeddata", play);
+      v.removeEventListener("error", onError);
       document.removeEventListener("visibilitychange", onVisible);
     };
   }, [enabled]);
@@ -116,7 +161,28 @@ export function Hero() {
   const t = useT();
   const variant = useVideoVariant();
   const suffix = variant === "mobile" ? "-mobile" : "";
-  const videoRef = useAutoplay(variant !== "none");
+  /*
+    Profil H.264 réel des deux encodages, relevé dans leur atome `avcC` :
+    High 3.1 pour le 1280, High 3.0 pour le 640. Déclarer le bon évite qu'un
+    navigateur écarte à tort un fichier qu'il sait pourtant lire.
+  */
+  const avc = variant === "mobile" ? "avc1.64001E" : "avc1.64001F";
+
+  /*
+    Deuxième tentative, en MP4 seul.
+
+    Le WebM est proposé en premier parce qu'il est plus léger de 170 Ko, et les
+    codecs déclarés plus bas suffisent normalement à ce qu'un navigateur qui ne
+    sait pas lire du VP9 l'écarte de lui-même. « Normalement » : certains
+    répondent « maybe » et s'engagent quand même. La sanction est alors muette,
+    le poster reste seul, et c'est précisément ce qu'on nous a rapporté.
+
+    Ce repli ne coûte rien à ceux que ça ne concerne pas : il ne se déclenche
+    que si la lecture n'a pas démarré.
+  */
+  const [replier, setReplier] = useState(false);
+  const surBlocage = useCallback(() => setReplier(true), []);
+  const videoRef = useAutoplay(variant !== "none", surBlocage);
 
   return (
     <section className="relative min-h-dvh overflow-hidden bg-brand-deep">
@@ -135,7 +201,7 @@ export function Hero() {
           /* `key` : changer de variante remonte l'élément, sinon le navigateur
              garderait la source déjà chargée. */
           <video
-            key={variant}
+            key={`${variant}${replier ? "-mp4" : ""}`}
             ref={videoRef}
             className="absolute inset-0 h-full w-full object-cover object-center"
             autoPlay
@@ -146,8 +212,31 @@ export function Hero() {
             poster="/video/hero-poster.jpg"
             aria-hidden
           >
-            <source src={`/video/hero${suffix}.webm`} type="video/webm" />
-            <source src={`/video/hero${suffix}.mp4`} type="video/mp4" />
+            {/*
+              LES CODECS SONT DÉCLARÉS, et ce n'est pas cosmétique.
+
+              Sans eux, `type="video/webm"` seul fait répondre « maybe » à
+              Safari, qui s'engage alors sur le WebM parce qu'il arrive en
+              premier, puis échoue à le décoder : nos WebM sont en VP9, que
+              Safari ne lit pas dans ce conteneur. Un échec de DÉCODAGE ne
+              fait pas retomber sur la source suivante, à la différence d'un
+              échec de chargement. La vidéo ne démarrait donc jamais, sans la
+              moindre erreur, et seul le poster restait à l'écran. C'est le
+              symptôme rapporté le 28/08/2026 sur d'autres navigateurs et
+              d'autres téléphones.
+
+              Avec le codec déclaré, Safari répond « » pour le VP9, passe au
+              MP4 et lit. Chrome et Firefox répondent « probably » et gardent
+              le WebM, plus léger de 170 Ko : l'économie de transfert est
+              préservée pour ceux qui peuvent en profiter.
+
+              Corollaire : en réencodant ces fichiers, mettre CES chaînes à
+              jour. Une chaîne fausse écarte le fichier au lieu de le lire.
+            */}
+            {!replier && (
+              <source src={`/video/hero${suffix}.webm`} type='video/webm; codecs="vp9"' />
+            )}
+            <source src={`/video/hero${suffix}.mp4`} type={`video/mp4; codecs="${avc}"`} />
           </video>
         )}
 
