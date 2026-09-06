@@ -48,6 +48,14 @@ export function AuthForm() {
     if (mode === "login") {
       const result = await signIn(email, password);
 
+      if (result === "quota-emails") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Trop de messages envoyés depuis cette adresse ces dernières minutes. Réessayez dans une heure.",
+          en: "Too many messages sent from this address in the last few minutes. Try again in an hour.",
+        });
+      }
       if (result === "email-not-confirmed") {
         setLoading(false);
         return setNotice({
@@ -81,6 +89,14 @@ export function AuthForm() {
     } else {
       const result = await signUp(firstName, lastName, email, password);
 
+      if (result === "quota-emails") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Trop de messages envoyés depuis cette adresse ces dernières minutes. Réessayez dans une heure.",
+          en: "Too many messages sent from this address in the last few minutes. Try again in an hour.",
+        });
+      }
       if (result === "weak-password") {
         setLoading(false);
         return setNotice({

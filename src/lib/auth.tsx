@@ -199,7 +199,12 @@ export function currentMember(): Member | null {
 // Actions
 // ---------------------------------------------------------------------------
 
-export type SignInResult = "ok" | "invalid-credentials" | "email-not-confirmed" | "error";
+export type SignInResult =
+  | "ok"
+  | "invalid-credentials"
+  | "email-not-confirmed"
+  | "quota-emails"
+  | "error";
 
 /**
  * Un seul verdict pour « e-mail inconnu » et « mauvais mot de passe ».
@@ -220,12 +225,28 @@ export async function signIn(email: string, password: string): Promise<SignInRes
   });
   if (!error) return "ok";
   const m = error.message.toLowerCase();
+  if (m.includes("rate limit") || error.status === 429) return "quota-emails";
   if (m.includes("not confirmed") || m.includes("email not confirmed")) return "email-not-confirmed";
   if (m.includes("invalid login credentials")) return "invalid-credentials";
   return "error";
 }
 
-export type SignUpResult = "ok" | "confirmation-envoyee" | "email-taken" | "weak-password" | "error";
+export type SignUpResult =
+  | "ok"
+  | "confirmation-envoyee"
+  | "email-taken"
+  | "weak-password"
+  /**
+   * Quota d'envoi atteint.
+   *
+   * Le serveur d'e-mails intégré de Supabase plafonne à quelques messages par
+   * heure : il est prévu pour développer, pas pour recevoir du public. Sans
+   * serveur d'envoi configuré (Authentication → SMTP Settings), les inscrits
+   * au-delà du quota ne reçoivent RIEN, et sans ce cas ils lisaient « réessayez
+   * dans un instant », ce qui est faux : il faut attendre une heure.
+   */
+  | "quota-emails"
+  | "error";
 
 export async function signUp(
   firstName: string,
@@ -253,6 +274,7 @@ export async function signUp(
 
   if (error) {
     const m = error.message.toLowerCase();
+    if (m.includes("rate limit") || error.status === 429) return "quota-emails";
     if (m.includes("already registered") || m.includes("already been registered")) return "email-taken";
     if (m.includes("password")) return "weak-password";
     return "error";
