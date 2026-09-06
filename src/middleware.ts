@@ -21,9 +21,27 @@ import { createServerClient } from "@supabase/ssr";
 export async function middleware(request: NextRequest) {
   let response = NextResponse.next({ request });
 
+  /*
+    SANS CONFIGURATION, ON LAISSE PASSER.
+
+    Ce garde-fou a été écrit après coup, le 28/08/2026, parce que son absence a
+    mis le site entier hors ligne : le code est parti en production avant que
+    les variables ne soient saisies chez Vercel, `createServerClient` a reçu
+    `undefined` et a levé. Le middleware s'exécutant sur TOUTES les pages,
+    chacune répondait 500, `MIDDLEWARE_INVOCATION_FAILED`.
+
+    Une variable manquante doit dégrader l'authentification, pas abattre les
+    pages publiques : un visiteur qui vient lire les tarifs n'a que faire de
+    notre configuration. On sort donc sans rien faire, et le site s'affiche
+    déconnecté.
+  */
+  const url = process.env.NEXT_PUBLIC_SUPABASE_URL;
+  const key = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  if (!url || !key) return response;
+
   const supabase = createServerClient(
-    process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    url,
+    key,
     {
       cookies: {
         getAll: () => request.cookies.getAll(),
@@ -36,7 +54,16 @@ export async function middleware(request: NextRequest) {
     },
   );
 
-  await supabase.auth.getClaims();
+  /*
+    Même principe : Supabase injoignable, jeton illisible, panne de leur côté.
+    Rien de tout cela ne justifie de refuser la page. On perd le renouvellement
+    de session pour cette requête, le client le retentera.
+  */
+  try {
+    await supabase.auth.getClaims();
+  } catch {
+    /* session non renouvelée cette fois-ci, la page part quand même */
+  }
 
   return response;
 }

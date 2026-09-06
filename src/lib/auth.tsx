@@ -3,7 +3,7 @@
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
 import type { Session } from "@supabase/supabase-js";
 import { ROLE_COOKIE } from "@/lib/auth-cookie";
-import { createClient } from "@/lib/supabase/client";
+import { createClient, supabaseConfigure } from "@/lib/supabase/client";
 
 /**
  * Authentification RÉELLE, sur Supabase.
@@ -72,10 +72,31 @@ const AuthContext = createContext<AuthState>({ member: null, pret: false });
 */
 let dernier: Member | null = null;
 
+/*
+  Constante de BUILD : Next remplace les `process.env.NEXT_PUBLIC_*` par leur
+  valeur à la compilation. Le test ne coûte donc rien à l'exécution, et surtout
+  il est connu dès le premier rendu, ce qui permet de partir avec le bon état
+  plutôt que de le corriger dans un effet.
+*/
+const CONFIGURE = supabaseConfigure();
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
-  const [state, setState] = useState<AuthState>({ member: null, pret: false });
+  /*
+    Sans configuration, l'état est déjà DÉFINITIF : personne n'est connecté, et
+    on le sait. `pret: true` d'emblée, sinon les gardes attendraient une réponse
+    qui ne viendra jamais et afficheraient leur squelette pour toujours.
+  */
+  const [state, setState] = useState<AuthState>({ member: null, pret: !CONFIGURE });
 
   useEffect(() => {
+    /*
+      Pas de configuration : rien à faire, l'état initial dit déjà tout. Sans ce
+      test, `createClient` lèverait dans l'effet du fournisseur, qui enveloppe
+      TOUTES les pages, et le site entier deviendrait blanc pour une variable
+      oubliée. C'est exactement ce qui est arrivé en production le 28/08/2026.
+    */
+    if (!CONFIGURE) return;
+
     const supabase = createClient();
     let vivant = true;
 
@@ -190,6 +211,8 @@ export type SignInResult = "ok" | "invalid-credentials" | "email-not-confirmed" 
  * faisait, ce qui était sans conséquence sur des comptes fictifs.
  */
 export async function signIn(email: string, password: string): Promise<SignInResult> {
+  if (!supabaseConfigure()) return "error";
+  if (!supabaseConfigure()) return "error";
   const supabase = createClient();
   const { error } = await supabase.auth.signInWithPassword({
     email: email.trim(),
@@ -210,6 +233,7 @@ export async function signUp(
   email: string,
   password: string,
 ): Promise<SignUpResult> {
+  if (!supabaseConfigure()) return "error";
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
@@ -249,5 +273,6 @@ export async function signUp(
 export async function signOut() {
   dernier = null;
   ecrireRole(null);
+  if (!supabaseConfigure()) return;
   await createClient().auth.signOut();
 }

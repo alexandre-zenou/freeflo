@@ -24,8 +24,26 @@ import { createBrowserClient } from "@supabase/ssr";
    l'inférence à tout ce qui l'utilise ensuite. */
 let client: SupabaseClient | null = null;
 
+export class SupabaseNonConfigure extends Error {
+  constructor() {
+    super("Supabase n'est pas configuré : NEXT_PUBLIC_SUPABASE_URL ou _ANON_KEY manque.");
+    this.name = "SupabaseNonConfigure";
+  }
+}
+
+/** Les variables sont-elles là ? À vérifier avant d'appeler `createClient`. */
+export function supabaseConfigure(): boolean {
+  return Boolean(process.env.NEXT_PUBLIC_SUPABASE_URL && process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY);
+}
+
 export function createClient(): SupabaseClient {
   if (client) return client;
+  /*
+    Erreur NOMMÉE plutôt qu'un `undefined` passé à Supabase, qui lève un message
+    obscur. Les appelants attrapent ce cas et traitent le visiteur comme
+    déconnecté, plutôt que de laisser l'exception remonter et blanchir la page.
+  */
+  if (!supabaseConfigure()) throw new SupabaseNonConfigure();
   client = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
