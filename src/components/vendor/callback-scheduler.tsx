@@ -7,12 +7,19 @@ import { cn } from "@/lib/utils";
 import { save, slotKey, type CallbackSlot } from "@/lib/callback-slots";
 
 /**
- * Ce qui suit l'envoi du formulaire « Créer mon espace pro » : la confirmation,
- * puis le choix des moments où l'équipe peut rappeler, puis le remerciement.
+ * Étape 2 de l'inscription d'un centre : le RENDEZ-VOUS d'intégration, une fois
+ * le compte créé par `vendor-signup.tsx`.
  *
- * Le formulaire lui-même n'est pas touché. Cet écran prend la suite, dans la
- * même carte bordeaux, avec les mêmes jaunes : c'est la continuité du bloc, pas
- * une fenêtre qui s'ouvre par-dessus.
+ * Ce rendez-vous n'est pas une politesse commerciale : c'est pendant cet appel
+ * que le logiciel de réservation du centre est raccordé au nôtre. Il est donc
+ * présenté comme obligatoire, et l'écran n'offre aucun moyen de le sauter (le
+ * bouton de validation reste inerte tant qu'aucun créneau n'est choisi).
+ *
+ * Le centre propose plusieurs créneaux plutôt qu'un seul : nous n'exposons pas
+ * l'agenda de l'équipe, donc c'est elle qui retient l'un des moments annoncés.
+ *
+ * Cet écran prend la suite dans la même carte bordeaux, avec les mêmes jaunes :
+ * c'est la continuité du bloc, pas une fenêtre qui s'ouvre par-dessus.
  *
  * Les dates ne se calculent qu'ICI, jamais au rendu d'une page : ce composant
  * n'apparaît qu'après un clic, donc `Date` ne peut pas faire diverger le rendu
@@ -61,7 +68,12 @@ function grilleDuMois(annee: number, mois: number): (Date | null)[] {
   return cases;
 }
 
-export function CallbackScheduler() {
+export function CallbackScheduler({
+  confirmation = false,
+}: {
+  /** Supabase exige-t-il une confirmation de l'adresse avant la 1re connexion ? */
+  confirmation?: boolean;
+}) {
   const t = useT();
   const { locale } = useLocale();
   const tag = locale === "en" ? "en-GB" : "fr-FR";
@@ -110,11 +122,11 @@ export function CallbackScheduler() {
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gold-bright text-ink">
           <Phone className="h-7 w-7" />
         </span>
-        <h3 className="display mt-4 text-2xl">{t("Merci, c'est noté.", "Thank you, it's noted.")}</h3>
+        <h3 className="display mt-4 text-2xl">{t("Votre rendez-vous est demandé.", "Your appointment is requested.")}</h3>
         <p className="mt-2 text-sm text-white/85">
           {t(
-            "Votre demande est enregistrée. Nous vous appellerons sur l'un des créneaux que vous avez indiqués.",
-            "Your request is registered. We will call you during one of the times you picked.",
+            "Votre compte est créé et votre rendez-vous d'intégration est enregistré. Nous vous appellerons sur l'un des créneaux que vous avez indiqués pour raccorder votre logiciel au nôtre.",
+            "Your account is created and your onboarding appointment is registered. We will call you at one of the times you picked, to connect your software to ours.",
           )}
         </p>
 
@@ -140,24 +152,30 @@ export function CallbackScheduler() {
         <span className="mx-auto grid h-14 w-14 place-items-center rounded-full bg-gold-bright text-ink">
           <Check className="h-7 w-7" />
         </span>
-        <h3 className="display mt-4 text-2xl">{t("Parfait !", "Perfect!")}</h3>
+        <p className="eyebrow mt-4 text-gold">{t("Étape 2 sur 2", "Step 2 of 2")}</p>
+        <h3 className="display mt-1 text-2xl">{t("Votre compte est créé.", "Your account is created.")}</h3>
         <p className="mx-auto mt-2 max-w-md text-sm text-white/85">
-          {t(
-            "Nous vous contacterons dans les prochains jours pour intégrer votre logiciel au nôtre.",
-            "We will get in touch in the coming days to connect your software to ours.",
-          )}
+          {confirmation
+            ? t(
+                "Ouvrez le message que nous venons de vous envoyer pour confirmer votre adresse. Il reste une chose à faire ici : prendre votre rendez-vous.",
+                "Open the message we just sent you to confirm your address. One thing is left to do here: book your appointment.",
+              )
+            : t(
+                "Il reste une chose à faire : prendre votre rendez-vous d'intégration.",
+                "One thing is left to do: book your onboarding appointment.",
+              )}
         </p>
       </div>
 
       <div className="mt-8 border-t border-white/20 pt-6">
         <h4 className="flex items-center gap-2 text-lg font-bold">
           <CalendarClock className="h-5 w-5 text-gold" />
-          {t("Quand pouvons-nous vous appeler ?", "When can we call you?")}
+          {t("Prenez votre rendez-vous d'intégration", "Book your onboarding appointment")}
         </h4>
         <p className="mt-1 text-sm text-white/80">
           {t(
-            "Choisissez autant de créneaux que vous voulez, nous en retiendrons un.",
-            "Pick as many times as you like, we will use one of them.",
+            "Ce rendez-vous est obligatoire : c'est pendant cet appel de 30 minutes que nous raccordons votre logiciel de réservation au nôtre, et que nous vérifions ensemble votre inscription. Proposez autant de créneaux que vous voulez, nous en retiendrons un.",
+            "This appointment is required: during this 30 minute call we connect your booking software to ours and go through your registration together. Offer as many times as you like, we will keep one of them.",
           )}
         </p>
 
@@ -257,8 +275,8 @@ export function CallbackScheduler() {
             >
               <Plus className="h-4 w-4 shrink-0" />
               {picked.length === 0
-                ? t("Ajouter cette disponibilité", "Add this time")
-                : t("Ajouter une autre disponibilité", "Add another time")}
+                ? t("Ajouter ce créneau", "Add this time")
+                : t("Ajouter un autre créneau", "Add another time")}
             </button>
 
             {dejaPris && (
@@ -303,8 +321,8 @@ export function CallbackScheduler() {
           className="mt-6 inline-flex w-full items-center justify-center gap-2 rounded-full bg-gold-bright px-6 py-4 text-base font-bold text-ink transition-colors hover:bg-gold disabled:cursor-not-allowed disabled:opacity-50"
         >
           {picked.length > 1
-            ? t(`Valider mes ${picked.length} disponibilités`, `Confirm my ${picked.length} times`)
-            : t("Valider mes disponibilités", "Confirm my availability")}
+            ? t(`Demander mon rendez-vous (${picked.length} créneaux)`, `Request my appointment (${picked.length} times)`)
+            : t("Demander mon rendez-vous", "Request my appointment")}
         </button>
       </div>
     </div>
