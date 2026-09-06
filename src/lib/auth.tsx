@@ -246,7 +246,35 @@ export type SignUpResult =
    * dans un instant », ce qui est faux : il faut attendre une heure.
    */
   | "quota-emails"
+  /** Adresse refusée par Supabase (format, ou domaine jugé inexistant). */
+  | "email-invalide"
+  /** Les inscriptions sont fermées dans Authentication → Providers. */
+  | "inscriptions-fermees"
+  /**
+   * « Database error saving new user » : le compte n'a pas pu être écrit.
+   *
+   * En pratique c'est le déclencheur `handle_new_user` qui échoue, donc un
+   * problème de BASE, pas de saisie. Le distinguer évite de renvoyer le
+   * visiteur « réessayez dans un instant » sur une panne qui ne passera pas
+   * toute seule.
+   */
+  | "base-indisponible"
   | "error";
+
+/**
+ * Dernier message brut renvoyé par Supabase lors d'un échec d'inscription.
+ *
+ * Les formulaires n'affichent jamais ce texte tel quel au visiteur (il est en
+ * anglais et parle de la base), mais ils le joignent en petit sous le message,
+ * et il part dans la console. Sans lui, un échec inconnu se présentait partout
+ * comme « réessayez dans un instant », et il était impossible de savoir ce qui
+ * s'était réellement passé sur le site en ligne.
+ */
+let detailInscription: string | null = null;
+
+export function dernierDetailInscription(): string | null {
+  return detailInscription;
+}
 
 export async function signUp(
   firstName: string,
@@ -254,7 +282,11 @@ export async function signUp(
   email: string,
   password: string,
 ): Promise<SignUpResult> {
-  if (!supabaseConfigure()) return "error";
+  detailInscription = null;
+  if (!supabaseConfigure()) {
+    detailInscription = "Supabase n'est pas configuré (NEXT_PUBLIC_SUPABASE_URL / _ANON_KEY).";
+    return "error";
+  }
   const supabase = createClient();
   const { data, error } = await supabase.auth.signUp({
     email: email.trim(),
@@ -274,7 +306,20 @@ export async function signUp(
 
   if (error) {
     const m = error.message.toLowerCase();
-    if (m.includes("rate limit") || error.status === 429) return "quota-emails";
+    /* `code` porte l'`error_code` de Supabase, plus stable que le message, mais
+       il n'est pas renseigné sur toutes les erreurs : on garde les deux. */
+    const code = (error as { code?: string }).code ?? "";
+    detailInscription = `${error.status ?? "?"} ${code || "sans code"} : ${error.message}`;
+    /* Toujours dans la console : c'est la seule trace exploitable quand l'échec
+       arrive chez quelqu'un d'autre, sur le site en ligne. */
+    console.error("[freeflo] inscription refusée par Supabase,", detailInscription);
+
+    if (code === "over_email_send_rate_limit" || m.includes("rate limit") || error.status === 429)
+      return "quota-emails";
+    if (code === "email_address_invalid" || (m.includes("email address") && m.includes("invalid")))
+      return "email-invalide";
+    if (code === "signup_disabled" || m.includes("signups not allowed")) return "inscriptions-fermees";
+    if (code === "unexpected_failure" || m.includes("database error")) return "base-indisponible";
     if (m.includes("already registered") || m.includes("already been registered")) return "email-taken";
     if (m.includes("password")) return "weak-password";
     return "error";

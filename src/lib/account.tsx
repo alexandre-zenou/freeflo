@@ -22,6 +22,7 @@ import { currentMember, signOut as deconnecter, useMember, type Member } from "@
 export {
   AuthProvider,
   currentMember,
+  dernierDetailInscription,
   signIn,
   signOut,
   signUp,

@@ -113,7 +113,34 @@ export function AuthForm() {
           en: "An account already exists with this email. Log in instead.",
         });
       }
-      if (result === "error") {
+      if (result === "email-invalide") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Cette adresse est refusée : vérifiez l'orthographe du domaine, il doit exister et recevoir du courrier.",
+          en: "This address is rejected: check the domain spelling, it must exist and accept mail.",
+        });
+      }
+      if (result === "inscriptions-fermees") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Les inscriptions sont fermées pour le moment. Écrivez-nous, nous ouvrons votre compte à la main.",
+          en: "Sign-ups are closed for now. Write to us and we will open your account by hand.",
+        });
+      }
+      if (result === "base-indisponible") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Le compte n'a pas pu être enregistré : la panne est de notre côté, pas dans votre saisie. Prévenez-nous.",
+          en: "The account could not be saved: the fault is on our side, not in what you typed. Let us know.",
+        });
+      }
+      /* Filet : tout ce qui n'est pas un succès s'arrête ici. Écrit ainsi et
+         non `=== "error"` pour qu'un code ajouté plus tard ne passe pas pour
+         une inscription réussie. */
+      if (result !== "ok" && result !== "confirmation-envoyee") {
         setLoading(false);
         return setNotice({
           tone: "error",

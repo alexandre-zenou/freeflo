@@ -4,7 +4,7 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { signUp } from "@/lib/account";
+import { dernierDetailInscription, signUp } from "@/lib/account";
 import { cn } from "@/lib/utils";
 import { CallbackScheduler } from "@/components/vendor/callback-scheduler";
 
@@ -54,7 +54,13 @@ const MOT_DE_PASSE_MIN = 6;
 const fieldCls =
   "w-full rounded-xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/50 focus:border-gold";
 
-type Notice = { tone: "error" | "info"; fr: string; en: string };
+type Notice = {
+  tone: "error" | "info";
+  fr: string;
+  en: string;
+  /** Message brut de Supabase, affiché en petit sous le message lisible. */
+  detail?: string | null;
+};
 
 export function VendorSignup() {
   const t = useT();
@@ -114,11 +120,36 @@ export function VendorSignup() {
         en: "An account already exists with this business email. Log in, then come back to book your appointment.",
       });
     }
+    if (result === "email-invalide") {
+      return setNotice({
+        tone: "error",
+        fr: "Cette adresse est refusée : vérifiez l'orthographe du domaine, il doit exister et recevoir du courrier.",
+        en: "This address is rejected: check the domain spelling, it must exist and accept mail.",
+        detail: dernierDetailInscription(),
+      });
+    }
+    if (result === "inscriptions-fermees") {
+      return setNotice({
+        tone: "error",
+        fr: "Les inscriptions sont fermées pour le moment. Écrivez-nous, nous ouvrons votre compte à la main.",
+        en: "Sign-ups are closed for now. Write to us and we will open your account by hand.",
+        detail: dernierDetailInscription(),
+      });
+    }
+    if (result === "base-indisponible") {
+      return setNotice({
+        tone: "error",
+        fr: "Le compte n'a pas pu être enregistré : la panne est de notre côté, pas dans votre saisie. Prévenez-nous.",
+        en: "The account could not be saved: the fault is on our side, not in what you typed. Let us know.",
+        detail: dernierDetailInscription(),
+      });
+    }
     if (result === "error") {
       return setNotice({
         tone: "error",
         fr: "La création du compte a échoué. Réessayez dans un instant.",
         en: "Account creation failed. Try again in a moment.",
+        detail: dernierDetailInscription(),
       });
     }
 
@@ -224,6 +255,12 @@ export function VendorSignup() {
           )}
         >
           {t(notice.fr, notice.en)}
+          {notice.detail && (
+            /* Le motif exact, en anglais et technique : il n'apprend rien au
+               centre, mais il nous dit en une seconde ce que Supabase a refusé
+               quand l'échec arrive chez la cliente et pas chez nous. */
+            <span className="mt-1.5 block font-mono text-xs text-white/60">{notice.detail}</span>
+          )}
         </p>
       )}
 
