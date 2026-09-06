@@ -1,9 +1,16 @@
-import { beforeEach, describe, expect, it } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 /**
- * Le magasin de session lit `window.localStorage` à chaque appel, jamais au
- * chargement du module : un faux `window` posé avant l'import suffit donc à le
- * tester en environnement Node, sans jsdom.
+ * Ce fichier ne teste PLUS la session : elle est passée à Supabase le
+ * 28/08/2026 (`lib/auth.tsx`), donc à un service distant, signé et hors de
+ * portée d'un test unitaire. Les anciens cas (« refuse un mauvais mot de
+ * passe », « une inscription ne crée jamais un administrateur ») testaient une
+ * mécanique de démonstration qui n'existe plus ; la garantie correspondante est
+ * désormais dans la migration SQL, portée par le déclencheur
+ * `handle_new_user` et par `revoke update (role)`.
+ *
+ * Restent ici les RÉSERVATIONS, qui vivent encore dans le navigateur, et les
+ * deux fonctions pures qui les accompagnent.
  */
 const store = new Map<string, string>();
 
@@ -20,65 +27,41 @@ Object.defineProperty(globalThis, "window", {
   writable: true,
 });
 
-const { addBooking, adminMember, bookingRef, cancelBooking, demoMembers, signIn, signOut, signUp } =
-  await import("./account");
+/* Qui est connecté est décidé par `lib/auth`, qu'on remplace : le brancher pour
+   de vrai demanderait un réseau et une base, ce qui n'est pas l'objet ici. */
+let membreCourant: { email: string; firstName: string; lastName: string; role: string } | null = null;
 
-/* L'état ne se lit que par un hook, inappelable hors React : on vérifie donc ce
-   que le magasin a effectivement écrit dans `localStorage`. */
-function state() {
-  const session = store.get("ff-session") ?? "";
-  const bookings: Record<string, unknown[]> = JSON.parse(store.get("ff-bookings") ?? "{}");
-  return { session, bookings: bookings[session] ?? [] };
+vi.mock("@/lib/auth", () => ({
+  currentMember: () => membreCourant,
+  signOut: async () => {},
+  useMember: () => membreCourant,
+  useHydrated: () => true,
+  useIsAdmin: () => membreCourant?.role === "admin",
+  useIsPro: () => membreCourant?.role !== "member",
+  AuthProvider: ({ children }: { children: unknown }) => children,
+  signIn: async () => "ok",
+  signUp: async () => "ok",
+  ROLE_COOKIE: "ff-role",
+}));
+
+const { addBooking, bookingRef, cancelBooking, isPastBooking } = await import("./account");
+
+const connecte = (email: string) => {
+  membreCourant = { email, firstName: "Test", lastName: "", role: "member" };
+};
+
+function reservationsDe(email: string): unknown[] {
+  const all: Record<string, unknown[]> = JSON.parse(store.get("ff-bookings") ?? "{}");
+  return all[email.toLowerCase()] ?? [];
 }
 
-beforeEach(() => store.clear());
-
-describe("session de démonstration", () => {
-  it("refuse un email inconnu", () => {
-    expect(signIn("personne@nulle-part.fr", "freeflo")).toBe("unknown-email");
-  });
-
-  it("refuse un mauvais mot de passe", () => {
-    expect(signIn(demoMembers[0].email, "pas-le-bon")).toBe("wrong-password");
-  });
-
-  it("connecte le compte de démonstration, casse et espaces compris", () => {
-    expect(signIn(`  ${demoMembers[0].email.toUpperCase()} `, demoMembers[0].password)).toBe("ok");
-    expect(state().session).toBe(demoMembers[0].email);
-  });
-
-  it("déconnecte", () => {
-    signIn(demoMembers[0].email, demoMembers[0].password);
-    signOut();
-    expect(state().session).toBe("");
-  });
-
-  it("crée un compte, puis refuse le doublon", () => {
-    expect(signUp("Alex", "Zenou", "Alex@Studio.fr", "motdepasse")).toBe("ok");
-    expect(signUp("Alex", "Zenou", "alex@studio.fr", "motdepasse")).toBe("email-taken");
-  });
-
-  it("l'espace pro tient à un seul compte, marqué admin", () => {
-    expect(adminMember.role).toBe("admin");
-    expect(demoMembers.filter((m) => m.role === "admin")).toHaveLength(1);
-    expect(signIn(adminMember.email, adminMember.password)).toBe("ok");
-  });
-
-  it("une inscription ne crée jamais un administrateur", () => {
-    signUp("Alex", "Zenou", "alex@studio.fr", "motdepasse");
-    const created = JSON.parse(store.get("ff-members") ?? "[]");
-    expect(created[0].role).toBe("member");
-  });
-
-  it("connecte un compte créé", () => {
-    signUp("Alex", "Zenou", "alex@studio.fr", "motdepasse");
-    signOut();
-    expect(signIn("alex@studio.fr", "motdepasse")).toBe("ok");
-  });
-});
+const booking = { offerId: "the-new-me-pilates", price: 12, ref: "FLO-THE-99", bookedAt: 1 };
 
 describe("réservations", () => {
-  const booking = { offerId: "the-new-me-pilates", price: 12, ref: "FLO-THE-99", bookedAt: 1 };
+  beforeEach(() => {
+    store.clear();
+    membreCourant = null;
+  });
 
   it("n'enregistre rien sans session", () => {
     addBooking(booking);
@@ -86,28 +69,60 @@ describe("réservations", () => {
   });
 
   it("attache la réservation au compte connecté, sans doublon", () => {
-    signIn(demoMembers[0].email, demoMembers[0].password);
+    connecte("demo@freeflo.fr");
     addBooking(booking);
     addBooking(booking);
-    expect(state().bookings).toHaveLength(1);
+    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
   });
 
   it("annule par référence", () => {
-    signIn(demoMembers[0].email, demoMembers[0].password);
+    connecte("demo@freeflo.fr");
     addBooking(booking);
     cancelBooking(booking.ref);
-    expect(state().bookings).toHaveLength(0);
+    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(0);
   });
 
   it("cloisonne les réservations par compte", () => {
-    signIn(demoMembers[0].email, demoMembers[0].password);
+    connecte("demo@freeflo.fr");
     addBooking(booking);
-    signOut();
-    signIn(demoMembers[1].email, demoMembers[1].password);
-    expect(state().bookings).toHaveLength(0);
+    connecte("autre@freeflo.fr");
+    expect(reservationsDe("autre@freeflo.fr")).toHaveLength(0);
+    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
   });
 
-  it("reprend la référence affichée par le tunnel de paiement", () => {
-    expect(bookingRef("the-new-me-pilates", 20, 3)).toBe("FLO-THE-143");
+  it("ignore la casse de l'adresse", () => {
+    connecte("Demo@FreeFlo.FR");
+    addBooking(booking);
+    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
+  });
+});
+
+describe("référence de réservation", () => {
+  it("reste stable pour une même offre au même prix", () => {
+    expect(bookingRef("the-new-me-pilates", 24, 3)).toBe(bookingRef("the-new-me-pilates", 24, 3));
+  });
+
+  it("change quand le prix change", () => {
+    expect(bookingRef("x", 24, 3)).not.toBe(bookingRef("x", 25, 3));
+  });
+
+  it("porte les trois premières lettres de l'offre", () => {
+    expect(bookingRef("boxe-republique", 20, 2)).toMatch(/^FLO-BOX-\d{4}$/);
+  });
+});
+
+describe("cours passé", () => {
+  const maintenant = 1_700_000_000_000;
+
+  it("passé si le début est derrière nous", () => {
+    expect(isPastBooking({ ...booking, startsAt: maintenant - 1 }, maintenant)).toBe(true);
+  });
+
+  it("à venir si le début est devant", () => {
+    expect(isPastBooking({ ...booking, startsAt: maintenant + 1 }, maintenant)).toBe(false);
+  });
+
+  it("à venir par défaut quand `startsAt` manque, réservation écrite avant le champ", () => {
+    expect(isPastBooking(booking, maintenant)).toBe(false);
   });
 });

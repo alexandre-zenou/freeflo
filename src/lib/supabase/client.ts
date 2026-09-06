@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import { createBrowserClient } from "@supabase/ssr";
 
 /**
@@ -8,9 +9,26 @@ import { createBrowserClient } from "@supabase/ssr";
  * Postgres. Tout ce qui n'est pas explicitement autorisé par une policy est
  * refusé, y compris à quelqu'un qui lirait la clé dans le code de la page.
  */
-export function createClient() {
-  return createBrowserClient(
+/*
+  Instance UNIQUE, et ce n'en est pas une optimisation.
+
+  Chaque appel à `createBrowserClient` construit un client qui pose ses propres
+  écouteurs sur le stockage et sa propre minuterie de renouvellement de jeton.
+  En créer un par composant ferait cohabiter plusieurs machines à état sur la
+  même session : les événements d'authentification partiraient en double, et
+  deux clients pourraient renouveler le même jeton en même temps, l'un
+  invalidant celui que l'autre vient d'obtenir.
+*/
+/* Typé par `SupabaseClient` et non par `ReturnType<typeof createBrowserClient>` :
+   cette fonction est générique, et son type de retour brut fait perdre
+   l'inférence à tout ce qui l'utilise ensuite. */
+let client: SupabaseClient | null = null;
+
+export function createClient(): SupabaseClient {
+  if (client) return client;
+  client = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
     process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
   );
+  return client;
 }

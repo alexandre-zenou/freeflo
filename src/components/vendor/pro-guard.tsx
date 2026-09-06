@@ -4,7 +4,7 @@ import Link from "next/link";
 import { Lock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
-import { adminMember, centreMember, useHydrated, useMember } from "@/lib/account";
+import { useHydrated, useMember } from "@/lib/account";
 
 /**
  * Porte de l'espace pro. Seul le compte d'administration passe : l'espace pro
@@ -61,17 +61,14 @@ export function ProGuard({ children }: { children: React.ReactNode }) {
         </Button>
       </Link>
 
-      {/* Démo : l'identifiant est donné, sinon la cliente ne peut pas entrer. */}
+      {/* Les identifiants de démonstration ont disparu avec les comptes en
+          dur (28/08/2026) : l'authentification est réelle. Un compte devient
+          « centre » depuis Supabase, jamais depuis le site. */}
       <p className="mt-6 rounded-2xl border border-dashed border-line bg-paper px-4 py-3 text-sm text-ink-soft">
-        {t("Démonstration, compte d'un centre :", "Demo, a centre's account:")}{" "}
-        <span className="font-medium text-ink">{centreMember.email}</span>,{" "}
-        {t("mot de passe", "password")}{" "}
-        <span className="font-mono text-ink">{centreMember.password}</span>
-        <br />
-        {t("Administration, tous les onglets :", "Administration, every tab:")}{" "}
-        <span className="font-medium text-ink">{adminMember.email}</span>,{" "}
-        {t("mot de passe", "password")}{" "}
-        <span className="font-mono text-ink">{adminMember.password}</span>
+        {t(
+          "L'accès professionnel est ouvert par FREEFLO une fois votre centre validé. Écrivez-nous si vous gérez un établissement.",
+          "Professional access is opened by FREEFLO once your centre is approved. Get in touch if you run a venue.",
+        )}
       </p>
     </div>
   );

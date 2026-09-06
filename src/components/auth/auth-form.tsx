@@ -7,7 +7,7 @@ import { ArrowRight, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
-import { adminMember, centreMember, currentMember, demoMembers, signIn, signOut, signUp, useMember } from "@/lib/account";
+import { currentMember, signIn, signOut, signUp, useMember } from "@/lib/account";
 
 type Mode = "login" | "signup";
 type Notice = { tone: "error" | "info"; fr: string; en: string };
@@ -40,58 +40,95 @@ export function AuthForm() {
     donc pas une latence réseau simulée pour faire joli, c'est le temps qu'il
     faut pour que le bouton montre son état avant que la page ne change.
   */
-  const submit = (e: React.FormEvent) => {
+  const submit = async (e: React.FormEvent) => {
     e.preventDefault();
     setNotice(null);
     setLoading(true);
 
-    window.setTimeout(() => {
-      if (mode === "login") {
-        const result = signIn(email, password);
-        if (result === "unknown-email") {
-          setLoading(false);
-          return setNotice({
-            tone: "error",
-            fr: "Aucun compte ne correspond à cet email. Créez un compte, ou utilisez le compte de démonstration ci-dessous.",
-            en: "No account matches this email. Create an account, or use the demo account below.",
-          });
-        }
-        if (result === "wrong-password") {
-          setLoading(false);
-          return setNotice({
-            tone: "error",
-            fr: "Mot de passe incorrect.",
-            en: "Wrong password.",
-          });
-        }
-      } else {
-        if (signUp(firstName, lastName, email, password) === "email-taken") {
-          setLoading(false);
-          return setNotice({
-            tone: "error",
-            fr: "Un compte existe déjà avec cet email. Connectez-vous.",
-            en: "An account already exists with this email. Log in instead.",
-          });
-        }
-      }
-      /*
-        L'administration ne va jamais sur une page membre, même si un `next`
-        l'y envoyait : son interface se réduit à l'espace pro. Lu par
-        `currentMember` et non par le hook, dont la valeur date encore du rendu
-        d'avant la connexion.
-      */
-      const connecte = currentMember();
-      router.push(connecte && connecte.role !== "member" ? "/pro" : next);
-    }, 400);
-  };
+    if (mode === "login") {
+      const result = await signIn(email, password);
 
-  /* Les comptes de test remplissent le formulaire plutôt que de connecter d'un
-     clic : on veut voir passer le vrai parcours, y compris en démonstration. */
-  const fill = (account: { email: string; password: string }) => {
-    setMode("login");
-    setEmail(account.email);
-    setPassword(account.password);
-    setNotice(null);
+      if (result === "email-not-confirmed") {
+        setLoading(false);
+        return setNotice({
+          tone: "info",
+          fr: "Votre compte existe, mais son adresse n'est pas encore confirmée. Ouvrez le message que nous vous avons envoyé, puis revenez ici.",
+          en: "Your account exists, but its address is not confirmed yet. Open the message we sent you, then come back here.",
+        });
+      }
+      if (result === "invalid-credentials") {
+        setLoading(false);
+        /*
+          UN SEUL message pour « adresse inconnue » et « mot de passe faux ».
+          Les distinguer ferait de ce formulaire un moyen de savoir qui est
+          inscrit sur FREEFLO, en essayant des adresses au hasard. Supabase
+          renvoie d'ailleurs volontairement la même erreur pour les deux.
+        */
+        return setNotice({
+          tone: "error",
+          fr: "Adresse ou mot de passe incorrect.",
+          en: "Wrong email or password.",
+        });
+      }
+      if (result === "error") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "La connexion a échoué. Réessayez dans un instant.",
+          en: "Sign-in failed. Try again in a moment.",
+        });
+      }
+    } else {
+      const result = await signUp(firstName, lastName, email, password);
+
+      if (result === "weak-password") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Mot de passe trop court : il en faut au moins six caractères.",
+          en: "Password too short: at least six characters.",
+        });
+      }
+      if (result === "email-taken") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "Un compte existe déjà avec cette adresse. Connectez-vous.",
+          en: "An account already exists with this email. Log in instead.",
+        });
+      }
+      if (result === "error") {
+        setLoading(false);
+        return setNotice({
+          tone: "error",
+          fr: "La création du compte a échoué. Réessayez dans un instant.",
+          en: "Account creation failed. Try again in a moment.",
+        });
+      }
+      if (result === "confirmation-envoyee") {
+        /*
+          On ne redirige PAS : sans confirmation d'adresse, il n'y a pas encore
+          de session, et l'envoyer vers une page de membre le renverrait
+          aussitôt vers la connexion, ce qui donnerait l'impression d'un échec.
+        */
+        setLoading(false);
+        setMode("login");
+        return setNotice({
+          tone: "info",
+          fr: `Compte créé. Nous avons envoyé un lien de confirmation à ${email.trim()} : ouvrez-le, puis connectez-vous ici.`,
+          en: `Account created. We sent a confirmation link to ${email.trim()}: open it, then log in here.`,
+        });
+      }
+    }
+
+    /*
+      L'administration et les centres ne vont jamais sur une page membre, même
+      si un `next` les y envoyait : leur interface se réduit à l'espace pro.
+      Lu par `currentMember` et non par le crochet, dont la valeur date encore
+      du rendu d'avant la connexion.
+    */
+    const connecte = currentMember();
+    router.push(connecte && connecte.role !== "member" ? "/pro" : next);
   };
 
   /* Déjà connecté : réafficher le formulaire serait un cul-de-sac, on propose
@@ -226,37 +263,9 @@ export function AuthForm() {
         </p>
       )}
 
-      {/*
-        Compte de test, affiché plutôt que caché dans un README : la cliente doit
-        pouvoir entrer dans la partie membre depuis la démo en ligne, sans nous.
-        Ce bloc disparaît avec `demoMembers` quand les vrais comptes arrivent.
-      */}
-      <div className="mt-6 rounded-2xl border border-dashed border-line bg-secondary/50 px-4 py-3.5 text-sm">
-        <p className="font-medium text-ink">{t("Comptes de démonstration", "Demo accounts")}</p>
-        <p className="mt-1 text-ink-soft">
-          {t("Membre :", "Member:")} {demoMembers[0].email}, {t("mot de passe", "password")}{" "}
-          <span className="font-mono text-ink">{demoMembers[0].password}</span>
-        </p>
-        {/* L'administration ouvre l'espace pro, et rien d'autre. */}
-        <p className="mt-1 text-ink-soft">
-          {t("Centre de sport :", "Sport centre:")} {centreMember.email}, {t("mot de passe", "password")}{" "}
-          <span className="font-mono text-ink">{centreMember.password}</span>
-          <br />
-          {t("Administration :", "Administration:")} {adminMember.email}, {t("mot de passe", "password")}{" "}
-          <span className="font-mono text-ink">{adminMember.password}</span>
-        </p>
-        <div className="mt-2 flex flex-wrap gap-x-4 gap-y-1">
-          <button type="button" onClick={() => fill(demoMembers[0])} className="font-medium text-brand hover:underline">
-            {t("Remplir, membre", "Fill in, member")}
-          </button>
-          <button type="button" onClick={() => fill(centreMember)} className="font-medium text-brand hover:underline">
-            {t("Remplir, centre", "Fill in, centre")}
-          </button>
-          <button type="button" onClick={() => fill(adminMember)} className="font-medium text-brand hover:underline">
-            {t("Remplir, administration", "Fill in, administration")}
-          </button>
-        </div>
-      </div>
+      {/* Le bloc des comptes de démonstration a été retiré le 28/08/2026, en
+          même temps que ces comptes : l'authentification est réelle, et
+          afficher des identifiants sur une page publique n'a plus de sens. */}
 
       <p className="mt-6 text-center text-sm text-ink-soft">
         {t("Vous gérez un centre de sport ?", "You run a sport centre?")}{" "}

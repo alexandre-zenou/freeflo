@@ -2,6 +2,7 @@ import type { Metadata, Viewport } from "next";
 import { Inter } from "next/font/google";
 import { site } from "@/lib/site";
 import { LocaleProvider } from "@/lib/i18n";
+import { AuthProvider } from "@/lib/auth";
 import "./globals.css";
 
 /**
@@ -51,7 +52,15 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="fr" className={inter.variable}>
       <body className="min-h-dvh antialiased">
-        <LocaleProvider>{children}</LocaleProvider>
+        {/*
+          `AuthProvider` enveloppe TOUT le site, y compris les pages publiques :
+          l'en-tête change selon qui regarde, et elle est présente partout. Il
+          n'ouvre aucune connexion tant que personne n'est identifié, un seul
+          appel à `getSession` au chargement.
+        */}
+        <AuthProvider>
+          <LocaleProvider>{children}</LocaleProvider>
+        </AuthProvider>
       </body>
     </html>
   );
