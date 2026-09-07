@@ -1,7 +1,7 @@
 "use client";
 
 import { createContext, useContext, useEffect, useMemo, useState } from "react";
-import type { Session } from "@supabase/supabase-js";
+import type { Session, SupabaseClient } from "@supabase/supabase-js";
 import { ROLE_COOKIE } from "@/lib/auth-cookie";
 import { createClient, supabaseConfigure } from "@/lib/supabase/client";
 
@@ -80,6 +80,44 @@ let dernier: Member | null = null;
 */
 const CONFIGURE = supabaseConfigure();
 
+/**
+ * Lit le profil et en déduit le membre.
+ *
+ * Partagée entre le fournisseur et `signIn`, et c'est tout l'intérêt : sans
+ * cela, `signIn` rendait la main avant que le rôle ne soit connu. Le formulaire
+ * lisait alors `currentMember()` vide, concluait « ce n'est pas un compte pro »
+ * et envoyait un centre vers le catalogue, d'où il était aussitôt renvoyé vers
+ * l'espace pro. Le visiteur voyait passer une page qui ne le concernait pas.
+ *
+ * Le rôle n'est PAS dans le jeton, volontairement : l'y mettre obligerait à
+ * réémettre un jeton à chaque changement de rôle, et un jeton déjà distribué
+ * continuerait d'affirmer l'ancien. Il faut donc bien ce second aller-retour,
+ * et c'est à `signIn` de l'attendre.
+ */
+async function lireMembre(
+  supabase: SupabaseClient,
+  userId: string,
+  email: string,
+): Promise<Member> {
+  const { data } = await supabase
+    .from("profiles")
+    .select("first_name, last_name, role")
+    .eq("id", userId)
+    .maybeSingle();
+
+  /*
+    Profil absent : le déclencheur vient peut-être d'être posé, ou la ligne a
+    été supprimée à la main. On tient quand même la session, avec le rôle le
+    MOINS privilégié. Ne jamais deviner un rôle élevé en cas de doute.
+  */
+  return {
+    firstName: data?.first_name || email.split("@")[0],
+    lastName: data?.last_name || "",
+    email,
+    role: (data?.role as Role) ?? "member",
+  };
+}
+
 export function AuthProvider({ children }: { children: React.ReactNode }) {
   /*
     Sans configuration, l'état est déjà DÉFINITIF : personne n'est connecté, et
@@ -107,25 +145,8 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       On lit donc la table, protégée par RLS (chacun ne voit que son profil).
     */
     const charger = async (userId: string, email: string) => {
-      const { data } = await supabase
-        .from("profiles")
-        .select("first_name, last_name, role")
-        .eq("id", userId)
-        .maybeSingle();
-
+      const membre = await lireMembre(supabase, userId, email);
       if (!vivant) return;
-      /*
-        Profil absent : le déclencheur `on_auth_user_created` vient peut-être
-        d'être posé, ou la ligne a été supprimée à la main. On tient quand même
-        la session, avec le rôle le MOINS privilégié. Ne jamais deviner un rôle
-        élevé en cas de doute.
-      */
-      const membre: Member = {
-        firstName: data?.first_name || email.split("@")[0],
-        lastName: data?.last_name || "",
-        email,
-        role: (data?.role as Role) ?? "member",
-      };
       dernier = membre;
       ecrireRole(membre.role);
       setState({ member: membre, pret: true });
@@ -219,11 +240,24 @@ export async function signIn(email: string, password: string): Promise<SignInRes
   if (!supabaseConfigure()) return "error";
   if (!supabaseConfigure()) return "error";
   const supabase = createClient();
-  const { error } = await supabase.auth.signInWithPassword({
+  const { data, error } = await supabase.auth.signInWithPassword({
     email: email.trim(),
     password,
   });
-  if (!error) return "ok";
+
+  if (!error) {
+    /*
+      On ATTEND le profil avant de rendre la main. L'écouteur du fournisseur
+      finira par le charger de son côté, mais plus tard : l'appelant, lui,
+      décide tout de suite vers où rediriger, et doit connaître le rôle.
+    */
+    if (data.user) {
+      const membre = await lireMembre(supabase, data.user.id, data.user.email ?? email.trim());
+      dernier = membre;
+      ecrireRole(membre.role);
+    }
+    return "ok";
+  }
   const m = error.message.toLowerCase();
   if (m.includes("rate limit") || error.status === 429) return "quota-emails";
   if (m.includes("not confirmed") || m.includes("email not confirmed")) return "email-not-confirmed";

@@ -70,8 +70,14 @@ export function VendorDashboard() {
   const t = useT();
   const member = useMember();
   const estCentre = member?.role === "centre";
-  /* Le compte d'un centre porte le nom du studio dans son prénom. */
-  const nomAffiche = estCentre && member ? member.firstName : "Studio Bloom";
+  /*
+    Le compte d'un centre porte le nom du studio dans son prénom.
+    L'administration, elle, porte le sien : depuis que les comptes sont réels
+    (28/08/2026), elle était saluée « Bonjour, Studio Bloom », nom d'un centre
+    qui n'est pas le sien. On affiche donc le prénom de QUI est connecté, quel
+    que soit son rôle, et le repli ne sert plus qu'au rendu sans session.
+  */
+  const nomAffiche = member?.firstName || "Studio Bloom";
   const onglets = estCentre
     ? tabs.filter((o) => (ONGLETS_CENTRE as readonly string[]).includes(o.key))
     : tabs;
