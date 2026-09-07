@@ -3,6 +3,7 @@ import { Inter } from "next/font/google";
 import { site } from "@/lib/site";
 import { LocaleProvider } from "@/lib/i18n";
 import { AuthProvider } from "@/lib/auth";
+import { DemoSwitch } from "@/components/auth/demo-switch";
 import "./globals.css";
 
 /**
@@ -59,7 +60,12 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           appel à `getSession` au chargement.
         */}
         <AuthProvider>
-          <LocaleProvider>{children}</LocaleProvider>
+          <LocaleProvider>
+            {children}
+            {/* Disparaît du build de production, condition figée à la
+                compilation : il n'en reste pas même un bouton caché. */}
+            <DemoSwitch />
+          </LocaleProvider>
         </AuthProvider>
       </body>
     </html>
