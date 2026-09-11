@@ -116,8 +116,51 @@ function useAutoplay(enabled: boolean, onBloque: () => void) {
     /* Erreur franche : inutile d'attendre le délai. */
     const onError = () => bloque.current();
 
+    /*
+      RELANCER AU PREMIER GESTE, et c'est la pièce qui manquait.
+
+      Le mode économie d'énergie d'iOS refuse la lecture automatique de TOUTE
+      vidéo, même muette, et rien ne permet de passer outre. Un seul `play()`
+      au montage se faisait donc refuser une fois pour toutes, et le poster
+      restait à l'écran pour le reste de la visite.
+
+      Or la restriction tombe dès que le visiteur a interagi avec la page. On
+      réessaie donc au premier toucher, clic, touche ou défilement. C'est
+      l'échappatoire prévue par les navigateurs, pas un contournement.
+
+      `passive: true` : on ne bloque jamais un défilement, et le `scroll` reste
+      fluide.
+
+      Les écouteurs restent posés pour toute la vie du composant, et c'est
+      délibéré. Une première version les retirait dès que la lecture démarrait ;
+      la vidéo repartait bien du premier blocage, mais plus jamais ensuite. Or
+      iOS remet en pause en quittant l'onglet, en verrouillant l'écran ou en
+      passant en économie d'énergie : le filet doit tenir toute la visite, pas
+      seulement la première seconde. Vérifié à la mesure, la première version
+      échouait.
+
+      Ne rien coûter quand tout va bien tient au test `v.paused` : sur une page
+      qui joue déjà, chaque geste ne fait qu'une comparaison.
+    */
+    const GESTES = ["pointerdown", "touchstart", "keydown", "scroll"] as const;
+    const surGeste = () => {
+      if (v.paused) play();
+    };
+    const retirerGestes = () => {
+      GESTES.forEach((e) => window.removeEventListener(e, surGeste));
+    };
+    GESTES.forEach((e) => window.addEventListener(e, surGeste, { passive: true }));
+
     play();
+    /*
+      Trois occasions de relancer au lieu d'une. `loadeddata` seul suppose que
+      la première tentative n'a échoué que par manque de données ; `canplay` et
+      `loadedmetadata` couvrent les navigateurs qui n'émettent pas les mêmes
+      événements dans le même ordre.
+    */
     v.addEventListener("loadeddata", play);
+    v.addEventListener("loadedmetadata", play);
+    v.addEventListener("canplay", play);
     v.addEventListener("error", onError);
     document.addEventListener("visibilitychange", onVisible);
 
@@ -148,7 +191,10 @@ function useAutoplay(enabled: boolean, onBloque: () => void) {
 
     return () => {
       window.clearTimeout(minuteur);
+      retirerGestes();
       v.removeEventListener("loadeddata", play);
+      v.removeEventListener("loadedmetadata", play);
+      v.removeEventListener("canplay", play);
       v.removeEventListener("error", onError);
       document.removeEventListener("visibilitychange", onVisible);
     };
@@ -208,7 +254,16 @@ export function Hero() {
             muted
             loop
             playsInline
-            preload="metadata"
+            /*
+              `auto` et non `metadata`. Avec `metadata`, le navigateur ne
+              récupérait que l'en-tête, puis attendait pour chercher les images :
+              la lecture ne pouvait pas commencer avant un second aller-retour,
+              ce qui se voit sur un réseau mobile. La vidéo allait de toute
+              façon être téléchargée, `metadata` ne faisait que retarder le
+              départ. Ceux qui ne doivent pas la charger du tout sont déjà
+              écartés en amont par `useVideoVariant`, sur `Save-Data` et la 2G.
+            */
+            preload="auto"
             poster="/video/hero-poster.jpg"
             aria-hidden
           >
