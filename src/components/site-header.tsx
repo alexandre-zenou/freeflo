@@ -126,10 +126,31 @@ export function SiteHeader() {
   const onDark = overHero && !solid;
 
   return (
+    <>
+    {/*
+      Voile sous le menu du téléphone. Sans lui, le panneau, crème sur une page
+      crème, se posait sur le contenu sans s'en détacher : sur un panier vide,
+      il coupait le titre en deux et on lisait les deux textes mêlés. Le voile
+      assombrit la page et referme le menu au toucher.
+
+      Il vit HORS de l'en-tête : son `backdrop-blur` fait de lui le repère des
+      enfants `fixed`, un `inset-0` posé dedans n'aurait couvert que la barre.
+    */}
+    {open && secondaires.length > 0 && (
+      <div
+        aria-hidden
+        onClick={() => setOpen(false)}
+        className="fixed inset-0 z-40 bg-ink/40 md:hidden"
+      />
+    )}
     <header
       className={cn(
         "fixed inset-x-0 top-0 z-50 transition-all duration-300",
-        solid ? "border-b border-line bg-cream/85 backdrop-blur-md" : "border-b border-transparent",
+        open
+          ? "border-b border-line bg-cream"
+          : solid
+            ? "border-b border-line bg-cream/85 backdrop-blur-md"
+            : "border-b border-transparent",
       )}
     >
       {/*
@@ -277,7 +298,7 @@ export function SiteHeader() {
       {/* Le compteur n'apparaît qu'après hydratation : le panier vit dans le
           navigateur, le serveur ne peut que le rendre vide (voir `lib/cart.tsx`). */}
       {open && secondaires.length > 0 && (
-        <div className="border-t border-line bg-cream md:hidden">
+        <div className="border-t border-line bg-cream shadow-lg md:hidden">
           <div className="ff-container flex flex-col gap-1 py-4">
             {secondaires.map((l) => (
               <Link
@@ -300,6 +321,7 @@ export function SiteHeader() {
         </div>
       )}
     </header>
+    </>
   );
 }
 

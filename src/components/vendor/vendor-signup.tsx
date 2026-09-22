@@ -4,15 +4,17 @@ import { useState } from "react";
 import Link from "next/link";
 import { ArrowRight } from "lucide-react";
 import { useT } from "@/lib/i18n";
-import { dernierDetailInscription, signUp } from "@/lib/account";
+import { MOT_DE_PASSE_MIN_CENTRE } from "@/lib/regles-inscription";
 import { cn } from "@/lib/utils";
 import { CallbackScheduler } from "@/components/vendor/callback-scheduler";
 
 /**
  * Inscription d'un centre, en DEUX temps (06/09/2026).
  *
- * 1. le centre crée son compte, pour de vrai : `signUp` ouvre un compte
- *    Supabase, comme le formulaire de `/connexion` ;
+ * 1. le centre crée son compte ET son dossier, côté serveur
+ *    (`/api/centres/inscription`) : nom du centre, SIRET, téléphone et ville
+ *    sont enregistrés avec le compte, pour que l'administration puisse le
+ *    vérifier avant de lui ouvrir l'espace pro ;
  * 2. il prend ensuite son rendez-vous d'intégration, qui n'est pas une
  *    politesse : c'est pendant cet appel que son logiciel de réservation est
  *    raccordé au nôtre, donc rien ne peut se passer sans lui.
@@ -49,7 +51,6 @@ const EXEMPLE = {
 } as const;
 
 /** Longueur minimale acceptée par Supabase. Rappelée sous le champ. */
-const MOT_DE_PASSE_MIN = 6;
 
 const fieldCls =
   "w-full rounded-xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/50 focus:border-gold";
@@ -90,73 +91,78 @@ export function VendorSignup() {
     const data = new FormData(e.currentTarget);
     const lire = (nom: string) => String(data.get(nom) ?? "").trim();
 
-    const result = await signUp(
-      lire("prenom"),
-      lire("nom"),
-      lire("email"),
-      String(data.get("motDePasse") ?? ""),
-    );
+    /*
+      TOUT le formulaire part au serveur, qui crée le compte et le dossier d'un
+      seul geste (`/api/centres/inscription`). Avant, seuls prénom, nom,
+      e-mail et mot de passe étaient enregistrés : le nom du centre, son SIRET,
+      son téléphone et sa ville étaient jetés, et l'administration recevait un
+      compte anonyme impossible à vérifier.
+    */
+    let reponse: Response;
+    try {
+      reponse = await fetch("/api/centres/inscription", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          prenom: lire("prenom"),
+          nom: lire("nom"),
+          email: lire("email"),
+          motDePasse: String(data.get("motDePasse") ?? ""),
+          centre: lire("centre"),
+          siret: lire("siret"),
+          telephone: lire("telephone"),
+          ville: lire("ville"),
+        }),
+      });
+    } catch {
+      setLoading(false);
+      return setNotice({
+        tone: "error",
+        fr: "Impossible de joindre le serveur. Vérifiez votre connexion.",
+        en: "Could not reach the server. Check your connection.",
+      });
+    }
 
     setLoading(false);
+    const corps = (await reponse.json().catch(() => ({}))) as { code?: string; confirmation?: boolean };
 
-    if (result === "quota-emails") {
-      return setNotice({
-        tone: "error",
-        fr: "Trop de messages envoyés depuis cette adresse ces dernières minutes. Réessayez dans une heure.",
-        en: "Too many messages sent from this address in the last few minutes. Try again in an hour.",
-      });
-    }
-    if (result === "weak-password") {
-      return setNotice({
-        tone: "error",
-        fr: `Mot de passe trop court : il en faut au moins ${MOT_DE_PASSE_MIN} caractères.`,
-        en: `Password too short: at least ${MOT_DE_PASSE_MIN} characters.`,
-      });
-    }
-    if (result === "email-taken") {
-      return setNotice({
-        tone: "error",
-        fr: "Un compte existe déjà avec cette adresse professionnelle. Connectez-vous, puis revenez prendre votre rendez-vous.",
-        en: "An account already exists with this business email. Log in, then come back to book your appointment.",
-      });
-    }
-    if (result === "email-invalide") {
-      return setNotice({
-        tone: "error",
-        fr: "Cette adresse est refusée : vérifiez l'orthographe du domaine, il doit exister et recevoir du courrier.",
-        en: "This address is rejected: check the domain spelling, it must exist and accept mail.",
-        detail: dernierDetailInscription(),
-      });
-    }
-    if (result === "inscriptions-fermees") {
-      return setNotice({
-        tone: "error",
-        fr: "Les inscriptions sont fermées pour le moment. Écrivez-nous, nous ouvrons votre compte à la main.",
-        en: "Sign-ups are closed for now. Write to us and we will open your account by hand.",
-        detail: dernierDetailInscription(),
-      });
-    }
-    if (result === "base-indisponible") {
-      return setNotice({
-        tone: "error",
-        fr: "Le compte n'a pas pu être enregistré : la panne est de notre côté, pas dans votre saisie. Prévenez-nous.",
-        en: "The account could not be saved: the fault is on our side, not in what you typed. Let us know.",
-        detail: dernierDetailInscription(),
-      });
-    }
-    if (result === "error") {
-      return setNotice({
-        tone: "error",
-        fr: "La création du compte a échoué. Réessayez dans un instant.",
-        en: "Account creation failed. Try again in a moment.",
-        detail: dernierDetailInscription(),
-      });
+    if (reponse.ok) {
+      /* Le compte existe. Si l'adresse doit être confirmée par e-mail, le
+         rendez-vous se prend quand même : il ne dépend pas de la session. */
+      return setCompte({ confirmation: Boolean(corps.confirmation) });
     }
 
-    /* `confirmation-envoyee` : le compte existe, mais son adresse doit être
-       confirmée par e-mail avant la première connexion. Le rendez-vous se
-       prend quand même, il ne dépend pas de la session. */
-    setCompte({ confirmation: result === "confirmation-envoyee" });
+    /* Le serveur renvoie un CODE, traduit ici dans la langue du visiteur. */
+    const messages: Record<string, { fr: string; en: string }> = {
+      champs: { fr: "Prénom et nom sont requis.", en: "First and last name are required." },
+      centre: { fr: "Indiquez le nom de votre centre.", en: "Enter your centre's name." },
+      email: { fr: "Cette adresse e-mail n'est pas valide.", en: "This email address is not valid." },
+      siret: {
+        fr: "Le SIRET doit compter 14 chiffres. Il figure sur votre extrait Kbis.",
+        en: "The SIRET must have 14 digits. It appears on your company registration.",
+      },
+      "mot-de-passe": {
+        fr: `Mot de passe trop court : il en faut au moins ${MOT_DE_PASSE_MIN_CENTRE} caractères.`,
+        en: `Password too short: at least ${MOT_DE_PASSE_MIN_CENTRE} characters.`,
+      },
+      quota: {
+        fr: "Trop d'inscriptions en peu de temps. Réessayez dans une heure.",
+        en: "Too many sign-ups in a short time. Try again in an hour.",
+      },
+      doublon: {
+        fr: "Si un compte existe déjà avec cette adresse, connectez-vous pour compléter votre dossier.",
+        en: "If an account already exists with this email, log in to complete your application.",
+      },
+      indisponible: {
+        fr: "L'inscription est momentanément indisponible. Réessayez dans quelques minutes.",
+        en: "Sign-up is temporarily unavailable. Try again in a few minutes.",
+      },
+    };
+    const m = messages[corps.code ?? ""] ?? {
+      fr: "La création du compte a échoué. Réessayez dans un instant.",
+      en: "Account creation failed. Try again in a moment.",
+    };
+    setNotice({ tone: "error", ...m });
   };
 
   return (
@@ -222,10 +228,10 @@ export function VendorSignup() {
           placeholder="••••••••"
           type="password"
           autoComplete="new-password"
-          minLength={MOT_DE_PASSE_MIN}
+          minLength={MOT_DE_PASSE_MIN_CENTRE}
           hint={t(
-            `${MOT_DE_PASSE_MIN} caractères au minimum. Il ouvrira votre espace pro.`,
-            `${MOT_DE_PASSE_MIN} characters minimum. It will open your pro area.`,
+            `${MOT_DE_PASSE_MIN_CENTRE} caractères au minimum. Il ouvrira votre espace pro.`,
+            `${MOT_DE_PASSE_MIN_CENTRE} characters minimum. It will open your pro area.`,
           )}
           value={exemple ? EXEMPLE.motDePasse : undefined}
         />
