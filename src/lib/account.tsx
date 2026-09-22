@@ -1,7 +1,8 @@
 "use client";
 
-import { useCallback, useSyncExternalStore } from "react";
+import { useCallback, useEffect, useSyncExternalStore } from "react";
 import { currentMember, signOut as deconnecter, useMember, type Member } from "@/lib/auth";
+import { createClient, supabaseConfigure } from "@/lib/supabase/client";
 
 /**
  * Réservations du membre, et pont vers l'authentification.
@@ -36,81 +37,99 @@ export {
   type SignUpResult,
 } from "@/lib/auth";
 
-const BOOKINGS_KEY = "ff-bookings";
-const EVENT = "ff-account-change";
+const EVENT = "ff-bookings-change";
 
 export interface Booking {
+  /** Identifiant en base. Absent des réservations d'avant la migration. */
+  id?: string;
   offerId: string;
-  /** Prix payé au moment du clic : la dégressivité continue, la réservation non. */
+  /** Prix payé, en euros. La base le garde en centimes, voir `enEuros`. */
   price: number;
   ref: string;
   bookedAt: number;
-  /**
-   * Début du cours, en horodatage ABSOLU, figé à la réservation.
-   *
-   * Les offres de démo ne portent qu'un `startsInHours` relatif à « maintenant »
-   * (voir `site.ts`) : lu deux jours plus tard, il annonce toujours le même
-   * délai, et une réservation ne deviendrait donc jamais passée. C'est ce champ
-   * qui fait basculer un cours de « À venir » vers « Historique ».
-   *
-   * Facultatif : les réservations déjà dans le navigateur d'un visiteur ont été
-   * écrites avant lui. Sans valeur, un cours est traité comme à venir, ce qui
-   * est le défaut le moins surprenant.
-   */
+  /** Début du cours, horodatage absolu, fixé par le SERVEUR au paiement. */
   startsAt?: number;
 }
 
-const normalize = (email: string) => email.trim().toLowerCase();
+/*
+  Les réservations viennent désormais de la BASE, table `bookings`, depuis le
+  22/09/2026. Elles vivaient auparavant dans le navigateur, ce qui avait deux
+  défauts : un client ne les retrouvait pas d'un appareil à l'autre, et
+  surtout le navigateur les inscrivait lui-même après le paiement, si bien
+  qu'on pouvait s'en fabriquer depuis la console.
 
-function read(): string {
-  try {
-    return window.localStorage.getItem(BOOKINGS_KEY) ?? "";
-  } catch {
-    return "";
-  }
-}
+  Ici, on ne fait que LIRE. Créer une réservation est l'affaire du serveur,
+  après confirmation de Stripe (`lib/reservations-serveur.ts`), et la base
+  refuse toute insertion venue d'un navigateur, même connecté.
 
-function write(value: string) {
-  try {
-    window.localStorage.setItem(BOOKINGS_KEY, value);
-  } catch {
-    /* stockage indisponible : la réservation ne survivra pas au rechargement */
-  }
-}
-
-function parse(raw: string): Record<string, Booking[]> {
-  try {
-    const v = JSON.parse(raw);
-    return v && typeof v === "object" ? (v as Record<string, Booking[]>) : {};
-  } catch {
-    return {};
-  }
-}
-
-/** Tableau figé : `useSyncExternalStore` compare les instantanés par référence. */
+  La RLS ne renvoie que les réservations du compte connecté : pas de filtre
+  `client_id` à ajouter ici, et surtout pas à confier au navigateur.
+*/
 const VIDE: Booking[] = [];
 
-let cleCache: string | null = null;
-let cache: Record<string, Booking[]> = {};
-
-function toutes(): Record<string, Booking[]> {
-  const brut = read();
-  if (brut === cleCache) return cache;
-  cleCache = brut;
-  cache = parse(brut);
-  return cache;
-}
+let cache: { email: string; liste: Booking[] } = { email: "", liste: VIDE };
+const abonnes = new Set<() => void>();
+const prevenir = () => abonnes.forEach((f) => f());
 
 function subscribe(onChange: () => void) {
+  abonnes.add(onChange);
   window.addEventListener(EVENT, onChange);
-  window.addEventListener("storage", onChange);
   return () => {
+    abonnes.delete(onChange);
     window.removeEventListener(EVENT, onChange);
-    window.removeEventListener("storage", onChange);
   };
 }
 
-const annoncer = () => window.dispatchEvent(new Event(EVENT));
+interface LigneBase {
+  id: string;
+  offer_id: string;
+  ref: string;
+  price_paid_cents: number;
+  created_at: string;
+  starts_at: string;
+}
+
+const enEuros = (cents: number) => Math.round(cents) / 100;
+
+function versReservation(r: LigneBase): Booking {
+  return {
+    id: r.id,
+    offerId: r.offer_id,
+    ref: r.ref,
+    price: enEuros(r.price_paid_cents),
+    bookedAt: Date.parse(r.created_at),
+    startsAt: Date.parse(r.starts_at),
+  };
+}
+
+/**
+ * Relit les réservations du compte connecté.
+ *
+ * À appeler après un paiement confirmé ou une annulation : c'est le seul moyen
+ * d'être à jour, puisque plus rien n'est écrit localement.
+ */
+export async function rechargerReservations(): Promise<void> {
+  const m = currentMember();
+  if (!m || !supabaseConfigure()) {
+    cache = { email: "", liste: VIDE };
+    prevenir();
+    return;
+  }
+  const { data, error } = await createClient()
+    .from("bookings")
+    .select("id, offer_id, ref, price_paid_cents, created_at, starts_at")
+    .eq("status", "confirmed")
+    .order("starts_at", { ascending: false });
+
+  if (error) {
+    console.error("rechargerReservations:", error.message);
+    return;
+  }
+  cache = { email: normalize(m.email), liste: (data as LigneBase[]).map(versReservation) };
+  prevenir();
+}
+
+const normalize = (email: string) => email.trim().toLowerCase();
 
 export interface AccountState {
   member: Member | null;
@@ -120,51 +139,57 @@ export interface AccountState {
 /**
  * `{ member, bookings }`.
  *
- * Le membre vient du contexte d'authentification, les réservations du
- * navigateur : deux sources, réunies ici pour que les composants existants
- * n'aient pas à connaître ce détail.
+ * Le membre vient du contexte d'authentification, les réservations de la base.
+ * L'effet ne fait QUE déclencher la lecture : il ne pose aucun état React, il
+ * alimente un magasin extérieur, et `useSyncExternalStore` fait le reste. C'est
+ * ce qui le tient hors de la règle `react-hooks/set-state-in-effect`.
  */
 export function useAccount(): AccountState {
   const member = useMember();
   const email = member ? normalize(member.email) : "";
+
+  useEffect(() => {
+    void rechargerReservations();
+  }, [email]);
+
   const bookings = useSyncExternalStore(
     subscribe,
-    () => (email ? (toutes()[email] ?? VIDE) : VIDE),
+    /* Garde-fou : on ne montre pas les réservations d'un compte à un autre le
+       temps que la relecture arrive, après un changement de session. */
+    () => (email && cache.email === email ? cache.liste : VIDE),
     () => VIDE,
   );
   return { member, bookings };
 }
 
-/*
-  L'e-mail du compte sert de clé : les réservations restent cloisonnées quand
-  deux personnes se connectent tour à tour sur le même navigateur.
-
-  `currentMember()` et non un crochet : ces fonctions sont appelées depuis des
-  gestionnaires d'événements, hors rendu.
-*/
-function emailCourant(): string {
-  const m = currentMember();
-  return m ? normalize(m.email) : "";
+/**
+ * Ne crée PLUS rien : une réservation naît côté serveur, après Stripe.
+ *
+ * Conservée pour ne pas casser ses appelants, elle se contente désormais de
+ * relire la base. L'ancienne version inscrivait la réservation dans le
+ * navigateur, et c'était précisément la faille.
+ */
+export function addBooking(_booking?: Booking) {
+  void rechargerReservations();
 }
 
-/** Enregistre la réservation sur le compte connecté. Sans session, ne fait rien. */
-export function addBooking(booking: Booking) {
-  const email = emailCourant();
-  if (!email) return;
-  const all = toutes();
-  const liste = all[email] ?? [];
-  if (liste.some((b) => b.ref === booking.ref)) return;
-  write(JSON.stringify({ ...all, [email]: [booking, ...liste] }));
-  annoncer();
-}
-
-export function cancelBooking(ref: string) {
-  const email = emailCourant();
-  if (!email) return;
-  const all = toutes();
-  const liste = all[email] ?? [];
-  write(JSON.stringify({ ...all, [email]: liste.filter((b) => b.ref !== ref) }));
-  annoncer();
+/**
+ * Annule une réservation du compte connecté.
+ *
+ * Passe par la base, qui n'autorise qu'un seul geste au titulaire : faire
+ * passer `status` à `cancelled`. Ni le prix ni la date ne sont modifiables
+ * depuis le navigateur, la migration n'ouvre que cette colonne.
+ */
+export async function cancelBooking(refOuId: string): Promise<void> {
+  if (!supabaseConfigure()) return;
+  const cible = cache.liste.find((b) => b.id === refOuId || b.ref === refOuId);
+  if (!cible?.id) return;
+  const { error } = await createClient()
+    .from("bookings")
+    .update({ status: "cancelled" })
+    .eq("id", cible.id);
+  if (error) console.error("cancelBooking:", error.message);
+  await rechargerReservations();
 }
 
 /**
@@ -181,13 +206,8 @@ export function isPastBooking(b: Booking, now: number = Date.now()): boolean {
   return (b.startsAt ?? Infinity) <= now;
 }
 
-/** Référence lisible, stable pour une même offre au même prix. */
-export function bookingRef(offerId: string, basePrice: number, placesLeft: number): string {
-  const graine = `${offerId}${basePrice}${placesLeft}`;
-  let n = 0;
-  for (let i = 0; i < graine.length; i++) n = (n * 31 + graine.charCodeAt(i)) % 10000;
-  return `FLO-${offerId.slice(0, 3).toUpperCase()}-${String(n).padStart(4, "0")}`;
-}
+/* Déplacée dans `lib/booking-ref.ts`, lisible par le serveur. */
+export { bookingRef } from "@/lib/booking-ref";
 
 /** Déconnexion stable en référence, pour un `onClick` ou un effet. */
 export function useSignOut() {

@@ -10,7 +10,7 @@ import { CheckoutFlow } from "@/components/offers/checkout-flow";
 import { categoryOf, offerById } from "@/lib/site";
 import { formatEuro, slotLabel } from "@/lib/format";
 import { useLocale, useT } from "@/lib/i18n";
-import { addBooking, bookingRef, useHydrated, useMember } from "@/lib/account";
+import { addBooking, bookingRef, rechargerReservations, useHydrated, useMember } from "@/lib/account";
 import { cartTotal, clearCart, removeFromCart, useCart, type CartItem } from "@/lib/cart";
 
 /**
@@ -100,17 +100,15 @@ export function CartView() {
           );
           return;
         }
-        copie.forEach((item) => {
-          const offer = offerById(item.offerId);
-          if (!offer) return;
-          addBooking({
-            offerId: offer.id,
-            price: item.price,
-            ref: bookingRef(offer.id, offer.basePrice, offer.placesLeft),
-            bookedAt: Date.now(),
-            startsAt: Date.now() + offer.startsInHours * 3_600_000,
-          });
-        });
+        /*
+          Plus aucune réservation n'est inscrite ICI. Le serveur les a créées
+          en base au moment de répondre `paid: true`, à partir de ce que Stripe
+          dit de la session. On se contente de relire.
+
+          Avant, c'est cette boucle qui écrivait la réservation dans le
+          navigateur, sur la foi d'une réponse qu'on pouvait falsifier.
+        */
+        await rechargerReservations();
         clearCart();
         setConfirme(copie);
       } catch {

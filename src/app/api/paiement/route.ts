@@ -2,6 +2,8 @@ import { NextResponse } from "next/server";
 import { offerById } from "@/lib/site";
 import { lowestPossiblePrice } from "@/lib/pricing";
 import { getStripe, isTestKey } from "@/lib/stripe";
+import { createClient as createServerSupabase } from "@/lib/supabase/server";
+import { encoderLignes, type LigneReservee } from "@/lib/reservations-serveur";
 
 /**
  * Ouvre une session Stripe Checkout pour le panier.
@@ -46,6 +48,18 @@ export async function POST(request: Request) {
     );
   }
 
+  /*
+    QUI paie, lu dans la session Supabase du cookie, jamais dans le corps de la
+    requête. Sans compte, pas de paiement : une réservation doit appartenir à
+    quelqu'un, et c'est cet identifiant que le serveur relira au retour de
+    Stripe pour savoir à qui la rattacher.
+  */
+  const supabase = await createServerSupabase();
+  const { data: auth } = await supabase.auth.getUser();
+  if (!auth.user) {
+    return NextResponse.json({ error: "Connexion requise pour payer." }, { status: 401 });
+  }
+
   let lignes: Ligne[];
   try {
     const body = await request.json();
@@ -64,6 +78,13 @@ export async function POST(request: Request) {
     plancher de la grille, ou au-dessus du plein tarif.
   */
   const items = [];
+  /*
+    Ce que le serveur retiendra comme réservé. Le début du cours est calculé
+    ICI, à partir de l'offre, et non repris du navigateur : une date fournie
+    par le client pourrait être n'importe quoi.
+  */
+  const reservees: LigneReservee[] = [];
+  const maintenant = Date.now();
   for (const l of lignes) {
     const offer = offerById(l.offerId);
     if (!offer) {
@@ -82,6 +103,12 @@ export async function POST(request: Request) {
         { status: 400 },
       );
     }
+
+    reservees.push({
+      offerId: offer.id,
+      cents: Math.round(prix * 100),
+      startsAt: maintenant + offer.startsInHours * 3_600_000,
+    });
 
     items.push({
       quantity: 1,
@@ -106,9 +133,29 @@ export async function POST(request: Request) {
   const origin = request.headers.get("origin") ?? new URL(request.url).origin;
 
   try {
+    /* Refus AVANT de créer la session, et non après : on ne fait jamais
+       payer un panier dont on ne pourrait pas enregistrer les places. */
+    let lignesCodees: string;
+    try {
+      lignesCodees = encoderLignes(reservees);
+    } catch {
+      return NextResponse.json(
+        { error: "Panier trop grand : réglez-le en plusieurs fois." },
+        { status: 400 },
+      );
+    }
+
     const session = await stripe.checkout.sessions.create({
       mode: "payment",
       line_items: items,
+      /*
+        `client_reference_id` est le champ prévu par Stripe pour relier une
+        session à un compte de NOTRE côté. Relu au retour, c'est lui qui
+        décide à qui appartiennent les places, pas le navigateur.
+      */
+      client_reference_id: auth.user.id,
+      metadata: { lignes: lignesCodees },
+      customer_email: auth.user.email ?? undefined,
       success_url: `${origin}/panier?paiement=ok&session={CHECKOUT_SESSION_ID}`,
       cancel_url: `${origin}/panier?paiement=annule`,
     });

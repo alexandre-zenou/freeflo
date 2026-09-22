@@ -1,4 +1,4 @@
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 /**
  * Ce fichier ne teste PLUS la session : elle est passée à Supabase le
@@ -29,73 +29,37 @@ Object.defineProperty(globalThis, "window", {
 
 /* Qui est connecté est décidé par `lib/auth`, qu'on remplace : le brancher pour
    de vrai demanderait un réseau et une base, ce qui n'est pas l'objet ici. */
-let membreCourant: { email: string; firstName: string; lastName: string; role: string } | null = null;
 
 vi.mock("@/lib/auth", () => ({
-  currentMember: () => membreCourant,
+  currentMember: () => null,
   signOut: async () => {},
-  useMember: () => membreCourant,
+  useMember: () => null,
   useHydrated: () => true,
-  useIsAdmin: () => membreCourant?.role === "admin",
-  useIsPro: () => membreCourant?.role !== "member",
+  useIsAdmin: () => false,
+  useIsPro: () => false,
   AuthProvider: ({ children }: { children: unknown }) => children,
   signIn: async () => "ok",
   signUp: async () => "ok",
   ROLE_COOKIE: "ff-role",
 }));
 
-const { addBooking, bookingRef, cancelBooking, isPastBooking } = await import("./account");
+const { bookingRef, isPastBooking } = await import("./account");
 
-const connecte = (email: string) => {
-  membreCourant = { email, firstName: "Test", lastName: "", role: "member" };
-};
 
-function reservationsDe(email: string): unknown[] {
-  const all: Record<string, unknown[]> = JSON.parse(store.get("ff-bookings") ?? "{}");
-  return all[email.toLowerCase()] ?? [];
-}
 
 const booking = { offerId: "the-new-me-pilates", price: 12, ref: "FLO-THE-99", bookedAt: 1 };
 
-describe("réservations", () => {
-  beforeEach(() => {
-    store.clear();
-    membreCourant = null;
-  });
+/*
+  Les tests « attache la réservation au compte », « cloisonne par compte » et
+  « ignore la casse » ont été RETIRÉS le 22/09/2026. Ils vérifiaient que le
+  navigateur inscrivait lui-même une réservation dans son stockage : c'était
+  précisément la faille, puisqu'on pouvait s'en fabriquer une sans payer.
 
-  it("n'enregistre rien sans session", () => {
-    addBooking(booking);
-    expect(store.get("ff-bookings")).toBeUndefined();
-  });
-
-  it("attache la réservation au compte connecté, sans doublon", () => {
-    connecte("demo@freeflo.fr");
-    addBooking(booking);
-    addBooking(booking);
-    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
-  });
-
-  it("annule par référence", () => {
-    connecte("demo@freeflo.fr");
-    addBooking(booking);
-    cancelBooking(booking.ref);
-    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(0);
-  });
-
-  it("cloisonne les réservations par compte", () => {
-    connecte("demo@freeflo.fr");
-    addBooking(booking);
-    connecte("autre@freeflo.fr");
-    expect(reservationsDe("autre@freeflo.fr")).toHaveLength(0);
-    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
-  });
-
-  it("ignore la casse de l'adresse", () => {
-    connecte("Demo@FreeFlo.FR");
-    addBooking(booking);
-    expect(reservationsDe("demo@freeflo.fr")).toHaveLength(1);
-  });
-});
+  Une réservation naît désormais côté serveur, après Stripe. Les garanties
+  correspondantes sont testées dans `reservations-serveur.test.ts`, et le
+  cloisonnement par compte est tenu par la RLS de Postgres, vérifiée contre la
+  vraie base au moment de la migration.
+*/
 
 describe("référence de réservation", () => {
   it("reste stable pour une même offre au même prix", () => {

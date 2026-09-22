@@ -1,19 +1,29 @@
 import { NextResponse } from "next/server";
 import { getStripe } from "@/lib/stripe";
+import { confirmerSession } from "@/lib/reservations-serveur";
 
 /**
- * Confirme auprès de Stripe qu'une session a bien été payée.
+ * Retour de Stripe : vérifier le paiement ET créer les réservations.
  *
- * Indispensable : le retour de Stripe passe par l'URL du navigateur, et
- * `/panier?paiement=ok` se tape à la main. Sans cette vérification, n'importe
- * qui s'inscrirait des réservations sans jamais payer.
+ * Avant, cette route répondait seulement « payé » ou « pas payé », et c'était
+ * le navigateur qui inscrivait ensuite la réservation dans son propre stockage.
+ * Il suffisait donc de la faire répondre « payé » pour s'offrir une place.
  *
- * Ce n'est PAS la bonne source de vérité pour autant : en production, c'est le
- * webhook `checkout.session.completed` qui fait foi, parce qu'il arrive même si
- * le client ferme son onglet avant d'être redirigé. Ici il n'y a rien à
- * enregistrer côté serveur, donc la question ne se pose pas encore.
+ * Désormais la réservation naît ICI, côté serveur, à partir de ce que Stripe
+ * dit de la session et de ce que NOUS y avions inscrit en la créant. Le
+ * navigateur ne fournit qu'un identifiant de session, qui ne prouve rien par
+ * lui-même : on va le vérifier chez Stripe.
+ *
+ * Idempotente, grâce à l'unicité en base du couple session + offre : recharger
+ * la page de retour ou rappeler cette route ne crée aucun doublon.
+ *
+ * Ce n'est pas encore la source de vérité définitive. Si le client ferme son
+ * onglet entre le paiement et la redirection, cette route n'est jamais appelée
+ * et Stripe a encaissé sans réservation. C'est le rôle d'un webhook
+ * `checkout.session.completed`, qui appellera exactement `confirmerSession`.
  */
 export const runtime = "nodejs";
+export const dynamic = "force-dynamic";
 
 export async function GET(request: Request) {
   const stripe = getStripe();
@@ -26,11 +36,16 @@ export async function GET(request: Request) {
     return NextResponse.json({ paid: false, error: "Session manquante." }, { status: 400 });
   }
 
+  let session;
   try {
-    const session = await stripe.checkout.sessions.retrieve(id);
-    return NextResponse.json({ paid: session.payment_status === "paid" });
-  } catch (e) {
-    console.error("Stripe retrieve:", e);
+    session = await stripe.checkout.sessions.retrieve(id);
+  } catch {
     return NextResponse.json({ paid: false, error: "Session introuvable." }, { status: 404 });
   }
+
+  const r = await confirmerSession(session);
+  if (!r.paye) {
+    return NextResponse.json({ paid: false, error: r.raison }, { status: 402 });
+  }
+  return NextResponse.json({ paid: true, creees: r.creees, dejaPresentes: r.dejaPresentes });
 }
