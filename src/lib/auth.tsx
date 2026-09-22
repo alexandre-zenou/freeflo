@@ -361,12 +361,23 @@ export async function signUp(
 
   /*
     Adresse déjà prise : Supabase répond « ok » avec une liste d'identités VIDE
-    plutôt qu'une erreur, toujours pour ne pas révéler qui est inscrit. On le
-    traite comme un succès côté message affiché, sans quoi on rétablirait la
-    fuite qu'on vient d'éviter.
+    plutôt qu'une erreur, et n'envoie aucun e-mail.
 
-    Sans session en retour, c'est que la confirmation par e-mail est exigée.
+    DÉCISION DU 22/09/2026 : on le DIT. Supabase masque ce cas pour qu'on ne
+    puisse pas deviner qui est inscrit en essayant des adresses. Mais le site
+    affichait alors « Compte créé, lien envoyé » à un membre qui se réinscrivait
+    par erreur, et qui attendait un e-mail qui ne viendrait jamais. Arbitrage
+    d'Alexandre : pour un site de réservation sportive, savoir qu'une adresse
+    est inscrite expose peu, et la clarté pour les vrais utilisateurs l'emporte.
+    C'est aussi ce que faisait déjà l'inscription des centres.
+
+    À REVOIR si FREEFLO accueillait un jour des données plus sensibles.
   */
+  if (data.user && data.user.identities && data.user.identities.length === 0) {
+    return "email-taken";
+  }
+
+  /* Sans session en retour, c'est que la confirmation par e-mail est exigée. */
   if (!data.session) return "confirmation-envoyee";
   return "ok";
 }
