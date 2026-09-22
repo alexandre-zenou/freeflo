@@ -150,10 +150,20 @@ create policy "profil modifiable par son propriétaire"
   using (auth.uid() = id)
   with check (auth.uid() = id);
 
--- IMPÉRATIF, et facile à oublier : sans cette révocation, la policy de mise à
--- jour ci-dessus permettrait à n'importe qui de passer SON propre rôle à
--- `admin`. La policy autorise la ligne, pas le contenu de chaque colonne.
--- Le privilège se retire donc au niveau de la colonne.
+-- ⚠️  CES DEUX LIGNES NE PROTÈGENT RIEN. Ne pas reproduire ce modèle.
+--
+-- L'intention était d'empêcher un membre de passer son propre rôle à `admin`.
+-- Mais Supabase accorde d'office UPDATE sur TOUTE la table au rôle
+-- `authenticated`, et retirer un privilège de COLONNE ne retire pas le
+-- privilège de TABLE qui le couvre : Postgres combine les deux, et le second
+-- l'emporte. La faille est restée ouverte jusqu'au 22/09/2026, constatée
+-- contre la vraie base : un inscrit s'est passé admin avec la seule clé anon.
+--
+-- Corrigé par 0004 : on retire le privilège de TABLE, puis on rend colonne par
+-- colonne ce qui est permis. C'est ce que faisait déjà, correctement, 0002
+-- pour `bookings`. Ces lignes sont laissées pour l'historique.
+--
+-- Vérifier : `node --env-file=.env.local scripts/sonde-securite.mjs`
 revoke update (role) on public.profiles from authenticated;
 revoke update (id, created_at) on public.profiles from authenticated;
 
