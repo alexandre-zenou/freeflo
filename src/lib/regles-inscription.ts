@@ -8,9 +8,13 @@
  * Module sans `"use client"`, lisible des deux côtés.
  */
 
-/** Plus exigeant que les 6 caractères par défaut de Supabase : un compte de
- *  centre gérera des créneaux, des réservations, et plus tard des versements. */
-export const MOT_DE_PASSE_MIN_CENTRE = 10;
+/** Longueur minimale d'un NOUVEAU mot de passe, au-delà des 6 caractères par
+ *  défaut de Supabase. S'applique aux centres et à toute réinitialisation. */
+export const MOT_DE_PASSE_MIN = 10;
+
+/** Un compte de centre gérera des créneaux, des réservations, et plus tard des
+ *  versements : même exigence, nommée pour être lisible là où elle sert. */
+export const MOT_DE_PASSE_MIN_CENTRE = MOT_DE_PASSE_MIN;
 
 /** Un SIRET compte 14 chiffres. Les espaces de saisie sont retirés avant. */
 export const normaliserSiret = (s: string) => s.replace(/\s+/g, "");

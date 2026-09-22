@@ -8,6 +8,7 @@ import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 import { currentMember, signIn, signOut, signUp, useMember } from "@/lib/account";
+import { demanderReinitialisation } from "@/lib/auth";
 
 type Mode = "login" | "signup";
 type Notice = { tone: "error" | "info"; fr: string; en: string };
@@ -31,15 +32,27 @@ export function AuthForm() {
 
     État INITIAL, lu une fois dans l'URL, et non posé dans un effet.
   */
-  const [notice, setNotice] = useState<Notice | null>(() =>
-    params.get("confirme")
-      ? {
-          tone: "info",
-          fr: "Votre adresse est confirmée. Vous pouvez maintenant vous connecter.",
-          en: "Your email address is confirmed. You can now log in.",
-        }
-      : null,
-  );
+  const [notice, setNotice] = useState<Notice | null>(() => {
+    if (params.get("confirme")) {
+      return {
+        tone: "info",
+        fr: "Votre adresse est confirmée. Vous pouvez maintenant vous connecter.",
+        en: "Your email address is confirmed. You can now log in.",
+      };
+    }
+    /* Renvoyé ici par `/auth/confirm` quand un lien a expiré ou a déjà servi. */
+    if (params.get("lien") === "invalide") {
+      return {
+        tone: "error",
+        fr: "Ce lien a expiré ou a déjà servi. Un lien reçu par e-mail ne fonctionne qu'une fois, et pendant une heure.",
+        en: "This link has expired or was already used. An emailed link works only once, and for one hour.",
+      };
+    }
+    return null;
+  });
+  /* « Mot de passe oublié » : une vue à part, pas un troisième onglet. Ouverte
+     directement par `?oubli=1`, depuis la page d'un lien expiré. */
+  const [oubli, setOubli] = useState(params.get("oubli") === "1");
 
   /*
     `next` ramène le visiteur là d'où il vient, typiquement l'offre sur laquelle
@@ -221,6 +234,88 @@ export function AuthForm() {
     );
   }
 
+  const demanderLien = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setNotice(null);
+    setLoading(true);
+    const r = await demanderReinitialisation(email);
+    setLoading(false);
+    if (r === "quota-emails") {
+      return setNotice({
+        tone: "error",
+        fr: "Trop de demandes en peu de temps. Réessayez dans quelques minutes.",
+        en: "Too many requests in a short time. Try again in a few minutes.",
+      });
+    }
+    if (r === "error") {
+      return setNotice({
+        tone: "error",
+        fr: "L'envoi a échoué. Réessayez dans un instant.",
+        en: "Sending failed. Try again in a moment.",
+      });
+    }
+    /*
+      MÊME message que l'adresse soit inscrite ou non. Dire « aucun compte
+      avec cette adresse » ferait de ce formulaire un moyen de savoir qui est
+      inscrit sur FREEFLO.
+    */
+    setNotice({
+      tone: "info",
+      fr: `Si un compte existe avec ${email.trim()}, un lien vient de partir. Il est valable une heure. Pensez à regarder vos indésirables.`,
+      en: `If an account exists for ${email.trim()}, a link is on its way. It is valid for one hour. Check your spam folder too.`,
+    });
+  };
+
+  if (oubli) {
+    return (
+      <div className="w-full max-w-md">
+        <h1 className="display text-3xl text-ink">{t("Mot de passe oublié", "Forgot your password")}</h1>
+        <p className="mt-2 text-sm text-ink-soft">
+          {t(
+            "Indiquez l'adresse de votre compte : nous vous envoyons un lien pour en choisir un nouveau.",
+            "Enter your account's email: we will send you a link to choose a new one.",
+          )}
+        </p>
+
+        <form onSubmit={demanderLien} className="mt-7 space-y-3">
+          <Field
+            label={t("Adresse e-mail", "Email address")}
+            type="email"
+            placeholder="thomas@email.com"
+            value={email}
+            onChange={setEmail}
+            autoComplete="email"
+          />
+          <Button type="submit" variant="gold" size="lg" className="w-full" disabled={loading || !email.trim()}>
+            {loading ? t("Un instant…", "One moment…") : t("Recevoir un lien", "Send me a link")}
+          </Button>
+        </form>
+
+        {notice && (
+          <p
+            className={cn(
+              "mt-4 rounded-2xl px-4 py-3 text-sm",
+              notice.tone === "error" ? "bg-brand-tint text-brand" : "bg-secondary text-ink",
+            )}
+          >
+            {t(notice.fr, notice.en)}
+          </p>
+        )}
+
+        <button
+          type="button"
+          onClick={() => {
+            setOubli(false);
+            setNotice(null);
+          }}
+          className="mt-6 text-sm text-brand hover:underline"
+        >
+          {t("Retour à la connexion", "Back to sign in")}
+        </button>
+      </div>
+    );
+  }
+
   return (
     <div className="w-full max-w-md">
       {/* tabs */}
@@ -290,13 +385,10 @@ export function AuthForm() {
           <div className="text-right">
             <button
               type="button"
-              onClick={() =>
-                setNotice({
-                  tone: "info",
-                  fr: "La réinitialisation du mot de passe arrivera avec les comptes réels. Sur la démo, utilisez le compte de test ci-dessous.",
-                  en: "Password reset will arrive with real accounts. On this demo, use the test account below.",
-                })
-              }
+              onClick={() => {
+                setOubli(true);
+                setNotice(null);
+              }}
               className="text-xs text-brand hover:underline"
             >
               {t("Mot de passe oublié ?", "Forgot your password?")}

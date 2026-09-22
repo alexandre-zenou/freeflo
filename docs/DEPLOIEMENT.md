@@ -160,3 +160,42 @@ construit le mauvais dépôt, ou en export statique.
 Contrôler ensuite à l'œil : la vidéo du héros démarre, la carte affiche ses pastilles
 de prix, choisir un jour au calendrier de `/offres` ne laisse que les créneaux de ce
 jour sur la carte, et l'espace pro s'ouvre avec le compte d'un centre.
+
+## 7. E-mails d'authentification (Supabase + Resend)
+
+Les e-mails partent par **Resend**, depuis `noreply@freeflo.fr`, et non par le
+serveur de développement de Supabase, qui plafonne à trois envois par heure.
+
+| Où | Réglage |
+|---|---|
+| Resend | domaine `freeflo.fr` vérifié, région Irlande ; clé d'API « Sending access » |
+| IONOS | `TXT resend._domainkey` (DKIM), `MX send` et `TXT send` (SPF) |
+| Supabase → Authentication → Emails → SMTP | hôte `smtp.resend.com`, port `465`, utilisateur `resend`, mot de passe = la clé d'API |
+| Supabase → Authentication → URL Configuration | Site URL `https://www.freeflo.fr` ; Redirect URLs `https://www.freeflo.fr/**`, `https://freeflo.fr/**`, `http://localhost:3000/**` |
+
+Resend envoie depuis le sous-domaine `send` : il ne touche NI au SPF de la
+racine NI à ses MX. Un domaine n'a droit qu'à un seul SPF ; le modifier de
+travers casserait tout le courrier du domaine.
+
+**Piège rencontré** : la Site URL était restée sur `http://localhost:3000`, et
+aucune adresse de retour n'était autorisée. Les liens de confirmation
+envoyaient donc les inscrits réels vers la machine de développement.
+
+### Modèle « Reset Password » — à modifier obligatoirement
+
+Supabase → Authentication → Emails → Templates → **Reset Password**. Le lien
+doit pointer vers notre route `/auth/confirm`, et non vers le
+`{{ .ConfirmationURL }}` par défaut :
+
+```html
+<a href="{{ .SiteURL }}/auth/confirm?token_hash={{ .TokenHash }}&type=recovery&next=/nouveau-mot-de-passe">
+  Choisir un nouveau mot de passe
+</a>
+```
+
+**Pourquoi.** Le lien par défaut est protégé par un secret gardé dans le
+navigateur qui a DEMANDÉ la réinitialisation. Demander depuis son ordinateur et
+ouvrir l'e-mail sur son téléphone, le cas le plus courant, le faisait échouer
+sans explication. `/auth/confirm` vérifie le `token_hash` côté serveur, ce qui
+marche sur n'importe quel appareil. Éprouvé : lien ouvert dans un navigateur
+neuf, mot de passe changé, l'ancien refusé, le lien refusé au second usage.

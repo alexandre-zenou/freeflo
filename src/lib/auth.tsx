@@ -377,3 +377,44 @@ export async function signOut() {
   if (!supabaseConfigure()) return;
   await createClient().auth.signOut();
 }
+
+/**
+ * Demande un lien de réinitialisation du mot de passe.
+ *
+ * Ne dit JAMAIS si l'adresse est inscrite : la réponse est la même dans les
+ * deux cas. Sinon ce formulaire deviendrait un moyen de savoir qui a un compte
+ * sur FREEFLO, en essayant des adresses au hasard.
+ *
+ * Le lien mène à `/auth/confirm`, une route SERVEUR, et non directement à la
+ * page du nouveau mot de passe. Voir cette route pour la raison : sans elle, le
+ * lien ne marchait que dans le navigateur qui l'avait demandé.
+ */
+export type ResetResult = "envoye" | "quota-emails" | "error";
+
+export async function demanderReinitialisation(email: string): Promise<ResetResult> {
+  if (!supabaseConfigure()) return "error";
+  const origin = typeof window !== "undefined" ? window.location.origin : "";
+  const { error } = await createClient().auth.resetPasswordForEmail(email.trim(), {
+    redirectTo: `${origin}/nouveau-mot-de-passe`,
+  });
+  if (!error) return "envoye";
+  if (error.status === 429 || error.message.toLowerCase().includes("rate limit")) return "quota-emails";
+  /*
+    Une adresse inconnue ne produit pas d'erreur chez Supabase, justement pour
+    ne rien révéler. Une erreur ici est donc une vraie panne.
+  */
+  console.error("demanderReinitialisation:", error.message);
+  return "error";
+}
+
+/** Enregistre le nouveau mot de passe du compte actuellement connecté. */
+export async function changerMotDePasse(motDePasse: string): Promise<"ok" | "faible" | "session" | "error"> {
+  if (!supabaseConfigure()) return "error";
+  const { error } = await createClient().auth.updateUser({ password: motDePasse });
+  if (!error) return "ok";
+  const m = error.message.toLowerCase();
+  if (m.includes("session") || error.status === 401) return "session";
+  if (m.includes("password")) return "faible";
+  console.error("changerMotDePasse:", error.message);
+  return "error";
+}
