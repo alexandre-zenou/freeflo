@@ -23,7 +23,23 @@ export function AuthForm() {
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
-  const [notice, setNotice] = useState<Notice | null>(null);
+  /*
+    Retour du lien de confirmation reçu par e-mail. Supabase a déjà validé
+    l'adresse AVANT de rediriger ici : il ne reste qu'à le dire. Sans ce
+    message, la personne arrivait sur un formulaire vide, sans savoir si le
+    clic avait servi à quelque chose.
+
+    État INITIAL, lu une fois dans l'URL, et non posé dans un effet.
+  */
+  const [notice, setNotice] = useState<Notice | null>(() =>
+    params.get("confirme")
+      ? {
+          tone: "info",
+          fr: "Votre adresse est confirmée. Vous pouvez maintenant vous connecter.",
+          en: "Your email address is confirmed. You can now log in.",
+        }
+      : null,
+  );
 
   /*
     `next` ramène le visiteur là d'où il vient, typiquement l'offre sur laquelle
