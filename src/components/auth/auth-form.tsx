@@ -185,10 +185,23 @@ export function AuthForm() {
         */
         setLoading(false);
         setMode("login");
+        /*
+          Message VRAI dans les deux cas, et c'est tout l'enjeu.
+
+          Si l'adresse a déjà un compte, Supabase répond comme pour une
+          inscription réussie mais n'envoie RIEN, pour qu'on ne puisse pas
+          deviner qui est inscrit. L'ancien texte affirmait alors « Compte
+          créé, lien envoyé » : c'était faux, et un vrai membre qui se
+          réinscrivait par erreur attendait un e-mail qui ne viendrait jamais.
+
+          On ne peut pas distinguer les deux cas à l'écran sans rouvrir cette
+          fuite. On dit donc ce qui est vrai pour les deux, et on donne la
+          sortie à celui qui a déjà un compte.
+        */
         return setNotice({
           tone: "info",
-          fr: `Compte créé. Nous avons envoyé un lien de confirmation à ${email.trim()} : ouvrez-le, puis connectez-vous ici.`,
-          en: `Account created. We sent a confirmation link to ${email.trim()}: open it, then log in here.`,
+          fr: `Si ${email.trim()} n'a pas encore de compte, un lien de confirmation vient de partir : ouvrez-le, puis connectez-vous ici. Vous avez déjà un compte ? Connectez-vous directement, ou utilisez « Mot de passe oublié ».`,
+          en: `If ${email.trim()} has no account yet, a confirmation link is on its way: open it, then log in here. Already have an account? Log in directly, or use “Forgot your password”.`,
         });
       }
     }
