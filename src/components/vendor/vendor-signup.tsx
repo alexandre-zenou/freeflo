@@ -2,11 +2,11 @@
 
 import { useState } from "react";
 import Link from "next/link";
-import { ArrowRight } from "lucide-react";
+import { ArrowRight, Check } from "lucide-react";
+import { Button } from "@/components/ui/button";
 import { useT } from "@/lib/i18n";
 import { MOT_DE_PASSE_MIN_CENTRE } from "@/lib/regles-inscription";
 import { cn } from "@/lib/utils";
-import { CallbackScheduler } from "@/components/vendor/callback-scheduler";
 
 /**
  * Inscription d'un centre, en DEUX temps (06/09/2026).
@@ -79,9 +79,18 @@ export function VendorSignup() {
     lues à l'envoi dans le `FormData`, jamais dans un état React.
   */
   const [exemple, setExemple] = useState(false);
+  /* Gardée pour l'écran de confirmation, qui rappelle où le lien est parti. */
+  const [emailSaisi, setEmailSaisi] = useState("");
 
-  /* Étape 2 : le rendez-vous d'intégration, dans la même carte bordeaux. */
-  if (compte) return <CallbackScheduler confirmation={compte.confirmation} />;
+  /*
+    Étape 2 : ce qu'il reste à faire, et par qui.
+    
+    Le calendrier de rendez-vous d'intégration a été RETIRÉ le 23/09/2026 : il
+    ne menait nulle part, aucun créneau proposé n'était traité. Le composant
+    `callback-scheduler.tsx` reste dans le dépôt, prêt à revenir le jour où
+    ces rendez-vous seront réellement pris en charge.
+  */
+  if (compte) return <DossierDepose email={emailSaisi} confirmation={compte.confirmation} />;
 
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
@@ -90,6 +99,7 @@ export function VendorSignup() {
 
     const data = new FormData(e.currentTarget);
     const lire = (nom: string) => String(data.get(nom) ?? "").trim();
+    setEmailSaisi(lire("email"));
 
     /*
       TOUT le formulaire part au serveur, qui crée le compte et le dossier d'un
@@ -340,5 +350,68 @@ function Field({
       />
       {hint && <span className="mt-1 block text-xs text-white/60">{hint}</span>}
     </label>
+  );
+}
+
+/**
+ * Écran de fin d'inscription d'un centre.
+ *
+ * Il remplace le calendrier de rendez-vous, qui donnait l'illusion d'une étape
+ * alors qu'aucun créneau proposé n'était traité. Il dit deux choses, et deux
+ * seulement : ce que le centre doit faire (confirmer son adresse), et ce que
+ * nous faisons (vérifier son SIRET avant d'ouvrir son espace).
+ */
+function DossierDepose({ email, confirmation }: { email: string; confirmation: boolean }) {
+  const t = useT();
+  return (
+    <div className="rounded-3xl bg-brand-deep p-6 text-white shadow-lift ring-1 ring-white/15 sm:p-8">
+      <span className="grid h-12 w-12 place-items-center rounded-full bg-white/15">
+        <Check className="h-6 w-6 text-gold-bright" />
+      </span>
+
+      <h2 className="display mt-5 text-[clamp(1.6rem,3.4vw,2.2rem)]">
+        {t("Votre dossier est déposé.", "Your application is in.")}
+      </h2>
+
+      <ol className="mt-6 space-y-4">
+        {confirmation && (
+          <li className="flex gap-3">
+            <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-gold-bright text-sm font-bold text-ink">
+              1
+            </span>
+            <p className="text-sm leading-relaxed text-white/90">
+              <strong className="font-bold text-white">
+                {t("Confirmez votre adresse.", "Confirm your email.")}
+              </strong>{" "}
+              {t(
+                `Nous venons d'envoyer un lien à ${email}. Ouvrez-le pour activer votre compte. Pensez à regarder vos indésirables.`,
+                `We just sent a link to ${email}. Open it to activate your account. Check your spam folder too.`,
+              )}
+            </p>
+          </li>
+        )}
+
+        <li className="flex gap-3">
+          <span className="grid h-7 w-7 shrink-0 place-items-center rounded-full bg-white/20 text-sm font-bold">
+            {confirmation ? 2 : 1}
+          </span>
+          <p className="text-sm leading-relaxed text-white/90">
+            <strong className="font-bold text-white">
+              {t("Nous vérifions votre SIRET.", "We check your business registration.")}
+            </strong>{" "}
+            {t(
+              "C'est notre garde-fou contre les fausses inscriptions. Dès que c'est fait, votre espace pro s'ouvre et vous pouvez publier vos créneaux.",
+              "It is our safeguard against fake sign-ups. As soon as it is done, your pro area opens and you can publish your slots.",
+            )}
+          </p>
+        </li>
+      </ol>
+
+      <Link href="/connexion">
+        <Button variant="gold" size="lg" className="mt-7 w-full">
+          {t("Aller à la connexion", "Go to sign-in")}
+        </Button>
+      </Link>
+    </div>
   );
 }
