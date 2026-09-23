@@ -189,14 +189,21 @@ export function AuthForm() {
         setLoading(false);
         setMode("login");
         /*
-          Uniquement pour une inscription NOUVELLE : une adresse déjà inscrite
-          revient désormais en « email-taken » (voir `signUp`). Ce message est
-          donc vrai quand il s'affiche.
+          Deux situations arrivent ici, et le texte doit être vrai pour les deux.
+
+          Une inscription NOUVELLE, évidemment. Mais aussi une adresse déjà
+          inscrite et NON ENCORE CONFIRMÉE : Supabase renvoie alors le lien,
+          ce qui est le bon geste, puisque la personne ne l'a visiblement pas
+          reçu. « Compte créé » était donc faux dans ce second cas. On parle
+          du lien, qui est vrai dans les deux.
+
+          Une adresse déjà confirmée, elle, ne passe plus par ici : elle revient
+          en « email-taken » (voir `signUp`).
         */
         return setNotice({
           tone: "info",
-          fr: `Compte créé. Nous avons envoyé un lien de confirmation à ${email.trim()} : ouvrez-le, puis connectez-vous ici.`,
-          en: `Account created. We sent a confirmation link to ${email.trim()}: open it, then log in here.`,
+          fr: `Un lien de confirmation vient de partir à ${email.trim()} : ouvrez-le, puis connectez-vous ici. Pensez à regarder vos indésirables.`,
+          en: `A confirmation link is on its way to ${email.trim()}: open it, then log in here. Check your spam folder too.`,
         });
       }
     }
