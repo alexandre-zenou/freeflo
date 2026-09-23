@@ -198,7 +198,16 @@ export function VendorSignup() {
           value={exemple ? EXEMPLE.centre : undefined}
         />
         <div className="grid gap-3 sm:grid-cols-2">
-          <Field name="siret" label="SIRET" placeholder="812 345 678 00012" value={exemple ? EXEMPLE.siret : undefined} />
+          {/* Facultatif depuis le 23/09/2026 : la confirmation par e-mail suffit
+              à ouvrir l'espace pro. On le demande quand même, il resservira
+              pour la facturation et pour Stripe Connect. */}
+          <Field
+            name="siret"
+            label={t("SIRET (facultatif)", "Business ID (optional)")}
+            placeholder="812 345 678 00012"
+            value={exemple ? EXEMPLE.siret : undefined}
+            requis={false}
+          />
           <Field name="ville" label={t("Ville", "City")} placeholder="Paris" value={exemple ? EXEMPLE.ville : undefined} />
         </div>
         <div className="grid gap-3 sm:grid-cols-2">
@@ -323,6 +332,7 @@ function Field({
   hint,
   autoComplete,
   minLength,
+  requis = true,
 }: {
   /** Clé lue dans le `FormData` à l'envoi. */
   name: string;
@@ -334,6 +344,9 @@ function Field({
   hint?: string;
   autoComplete?: string;
   minLength?: number;
+  /** Faux pour un champ facultatif. Tous sont obligatoires par défaut : il vaut
+   *  mieux oublier de rendre un champ optionnel que l'inverse. */
+  requis?: boolean;
 }) {
   return (
     <label className="block">
@@ -345,7 +358,7 @@ function Field({
         defaultValue={value}
         autoComplete={autoComplete}
         minLength={minLength}
-        required
+        required={requis}
         className={fieldCls}
       />
       {hint && <span className="mt-1 block text-xs text-white/60">{hint}</span>}
@@ -358,8 +371,8 @@ function Field({
  *
  * Il remplace le calendrier de rendez-vous, qui donnait l'illusion d'une étape
  * alors qu'aucun créneau proposé n'était traité. Il dit deux choses, et deux
- * seulement : ce que le centre doit faire (confirmer son adresse), et ce que
- * nous faisons (vérifier son SIRET avant d'ouvrir son espace).
+ * seulement : ce que le centre doit faire, confirmer son adresse, et ce qui
+ * arrive alors, son espace pro qui s'ouvre.
  */
 function DossierDepose({ email, confirmation }: { email: string; confirmation: boolean }) {
   const t = useT();
@@ -397,11 +410,11 @@ function DossierDepose({ email, confirmation }: { email: string; confirmation: b
           </span>
           <p className="text-sm leading-relaxed text-white/90">
             <strong className="font-bold text-white">
-              {t("Nous vérifions votre SIRET.", "We check your business registration.")}
+              {t("Votre espace pro s'ouvre.", "Your pro area opens.")}
             </strong>{" "}
             {t(
-              "C'est notre garde-fou contre les fausses inscriptions. Dès que c'est fait, votre espace pro s'ouvre et vous pouvez publier vos créneaux.",
-              "It is our safeguard against fake sign-ups. As soon as it is done, your pro area opens and you can publish your slots.",
+              "Dès votre adresse confirmée, connectez-vous : vous arrivez dans votre espace et vous pouvez publier vos créneaux.",
+              "As soon as your email is confirmed, log in: you land in your area and can publish your slots.",
             )}
           </p>
         </li>

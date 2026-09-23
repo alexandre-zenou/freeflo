@@ -64,7 +64,7 @@ export async function POST(request: Request) {
   if (!prenom || !nom) return erreur("champs", "Prénom et nom sont requis.");
   if (!nomCentre) return erreur("centre", "Le nom du centre est requis.");
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email)) return erreur("email", "Adresse e-mail invalide.");
-  if (!siretValide(siret)) return erreur("siret", "Le SIRET doit compter 14 chiffres.");
+  if (!siretValide(siret)) return erreur("siret", "SIRET invalide : 14 chiffres, ou laissez vide.");
   if (motDePasse.length < MOT_DE_PASSE_MIN_CENTRE) {
     return erreur("mot-de-passe", `Mot de passe trop court : au moins ${MOT_DE_PASSE_MIN_CENTRE} caractères.`);
   }
