@@ -108,7 +108,7 @@ export function NouveauMotDePasse() {
   };
 
   const champ =
-    "mt-1.5 w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-brand";
+    "mt-1.5 w-full rounded-xl border border-line bg-paper px-3.5 py-2.5 text-base text-ink outline-none sm:text-sm transition-colors focus:border-brand";
 
   return (
     <form onSubmit={envoyer} className="w-full max-w-md">

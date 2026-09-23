@@ -80,8 +80,8 @@ export function ProGuard({ children }: { children: React.ReactNode }) {
         </h1>
         <p className="mt-3 text-ink-soft">
           {t(
-            "Nous vérifions votre SIRET avant d'ouvrir votre espace pro. Vous recevrez un message dès que c'est fait, et vous le trouverez ici à votre prochaine connexion.",
-            "We are checking your business registration before opening your pro area. You will hear from us as soon as it is done, and you will find it here at your next sign-in.",
+            "Votre espace pro n'est pas encore ouvert. Il s'ouvre dès que votre adresse est confirmée : si c'est déjà fait, écrivez-nous et nous l'ouvrons à la main.",
+            "Your pro area is not open yet. It opens as soon as your email is confirmed: if you already did, write to us and we will open it by hand.",
           )}
         </p>
         <Link href="/offres">

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
 import { ArrowRight, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -9,23 +9,20 @@ import { MOT_DE_PASSE_MIN_CENTRE } from "@/lib/regles-inscription";
 import { cn } from "@/lib/utils";
 
 /**
- * Inscription d'un centre, en DEUX temps (06/09/2026).
+ * Inscription d'un centre (06/09/2026, revue le 23/09/2026).
  *
- * 1. le centre crée son compte ET son dossier, côté serveur
- *    (`/api/centres/inscription`) : nom du centre, SIRET, téléphone et ville
- *    sont enregistrés avec le compte, pour que l'administration puisse le
- *    vérifier avant de lui ouvrir l'espace pro ;
- * 2. il prend ensuite son rendez-vous d'intégration, qui n'est pas une
- *    politesse : c'est pendant cet appel que son logiciel de réservation est
- *    raccordé au nôtre, donc rien ne peut se passer sans lui.
+ * Le centre crée son compte ET son dossier, côté serveur
+ * (`/api/centres/inscription`) : nom du centre, SIRET (facultatif), téléphone
+ * et ville sont enregistrés avec le compte. La confirmation de l'adresse ouvre
+ * ensuite l'espace pro (migration 0005), sans rendez-vous ni validation.
  *
  * Avant, l'écran envoyait une simple demande de rappel : aucun compte n'était
  * créé, et le rendez-vous arrivait avant l'inscription. La cliente a demandé
  * l'ordre inverse.
  *
- * Le compte créé est un compte MEMBRE. Le rôle « centre », qui ouvre l'espace
- * pro, reste posé depuis Supabase après vérification du SIRET : une inscription
- * venue du site ne peut pas se l'attribuer elle-même (cf. `lib/auth.tsx`).
+ * Le compte créé est un compte MEMBRE. Le rôle « centre » est posé par la base
+ * au moment de la confirmation : une inscription venue du site ne peut pas se
+ * l'attribuer elle-même (cf. `lib/auth.tsx`).
  *
  * Retour client (planche 21) : « Fond rouge, écriture blanche, case "continuer"
  * en jaune & connectez-vous en jaune », et « garder sous-titre mais ajouter :
@@ -53,7 +50,7 @@ const EXEMPLE = {
 /** Longueur minimale acceptée par Supabase. Rappelée sous le champ. */
 
 const fieldCls =
-  "w-full rounded-xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-sm text-white outline-none transition-colors placeholder:text-white/50 focus:border-gold";
+  "w-full rounded-xl border border-white/30 bg-white/10 px-3.5 py-2.5 text-base text-white sm:text-sm outline-none transition-colors placeholder:text-white/50 focus:border-gold";
 
 type Notice = {
   tone: "error" | "info";
@@ -137,8 +134,7 @@ export function VendorSignup() {
     const corps = (await reponse.json().catch(() => ({}))) as { code?: string; confirmation?: boolean };
 
     if (reponse.ok) {
-      /* Le compte existe. Si l'adresse doit être confirmée par e-mail, le
-         rendez-vous se prend quand même : il ne dépend pas de la session. */
+      /* Le compte existe. Reste, le plus souvent, à confirmer l'adresse. */
       return setCompte({ confirmation: Boolean(corps.confirmation) });
     }
 
@@ -180,8 +176,7 @@ export function VendorSignup() {
       onSubmit={submit}
       className="rounded-3xl bg-brand-deep p-6 text-white shadow-lift ring-1 ring-white/15 sm:p-8"
     >
-      <p className="eyebrow text-gold">{t("Étape 1 sur 2", "Step 1 of 2")}</p>
-      <h3 className="display mt-1 text-2xl text-white">{t("Créer mon espace pro", "Create my pro area")}</h3>
+      <h3 className="display text-2xl text-white">{t("Créer mon espace pro", "Create my pro area")}</h3>
       <p className="mt-1 text-sm text-white/80">{t("2 minutes. Sans engagement, sans carte bancaire.", "2 minutes. No commitment, no card.")}</p>
       <p className="mt-3 text-sm text-white/90">
         {t(
@@ -207,6 +202,7 @@ export function VendorSignup() {
             placeholder="812 345 678 00012"
             value={exemple ? EXEMPLE.siret : undefined}
             requis={false}
+            inputMode="numeric"
           />
           <Field name="ville" label={t("Ville", "City")} placeholder="Paris" value={exemple ? EXEMPLE.ville : undefined} />
         </div>
@@ -216,6 +212,7 @@ export function VendorSignup() {
             label={t("Prénom", "First name")}
             placeholder="Camille"
             autoComplete="given-name"
+            autoCapitalize="words"
             value={exemple ? EXEMPLE.prenom : undefined}
           />
           <Field
@@ -223,6 +220,7 @@ export function VendorSignup() {
             label={t("Nom", "Last name")}
             placeholder="Vasseur"
             autoComplete="family-name"
+            autoCapitalize="words"
             value={exemple ? EXEMPLE.nom : undefined}
           />
         </div>
@@ -238,6 +236,7 @@ export function VendorSignup() {
           name="telephone"
           label={t("Téléphone", "Phone")}
           placeholder="01 23 45 67 89"
+          type="tel"
           autoComplete="tel"
           value={exemple ? EXEMPLE.telephone : undefined}
         />
@@ -298,13 +297,6 @@ export function VendorSignup() {
         {!loading && <ArrowRight className="h-4 w-4" />}
       </button>
 
-      <p className="mt-3 text-center text-xs text-white/70">
-        {t(
-          "Vous choisirez ensuite votre rendez-vous d'intégration.",
-          "You will then pick your onboarding appointment.",
-        )}
-      </p>
-
       <p className="mt-4 text-center text-sm text-white/85">
         {t("Vous avez déjà un compte ?", "Already have an account?")}{" "}
         <Link href="/connexion" className="font-bold text-gold underline underline-offset-4 hover:text-gold-bright">
@@ -317,7 +309,7 @@ export function VendorSignup() {
         <Link href="/cgu-cgv" className="underline underline-offset-2 hover:text-white">
           {t("conditions générales", "terms and conditions")}
         </Link>
-        {t(". Vérification SIRET avant activation (anti-fraude).", ". Business verification before activation (anti-fraud).")}
+        {t(". Votre espace pro s'ouvre dès votre adresse confirmée.", ". Your pro area opens as soon as your email is confirmed.")}
       </p>
     </form>
   );
@@ -331,6 +323,8 @@ function Field({
   value,
   hint,
   autoComplete,
+  autoCapitalize,
+  inputMode,
   minLength,
   requis = true,
 }: {
@@ -343,6 +337,9 @@ function Field({
   value?: string;
   hint?: string;
   autoComplete?: string;
+  autoCapitalize?: string;
+  /** Clavier du téléphone : chiffres seuls pour le SIRET. */
+  inputMode?: React.HTMLAttributes<HTMLInputElement>["inputMode"];
   minLength?: number;
   /** Faux pour un champ facultatif. Tous sont obligatoires par défaut : il vaut
    *  mieux oublier de rendre un champ optionnel que l'inverse. */
@@ -357,6 +354,8 @@ function Field({
         placeholder={placeholder}
         defaultValue={value}
         autoComplete={autoComplete}
+        autoCapitalize={autoCapitalize}
+        inputMode={inputMode}
         minLength={minLength}
         required={requis}
         className={fieldCls}
@@ -376,8 +375,18 @@ function Field({
  */
 function DossierDepose({ email, confirmation }: { email: string; confirmation: boolean }) {
   const t = useT();
+  /*
+    Sur téléphone, le formulaire fait deux écrans et l'envoi se fait tout en
+    bas. Cette carte, bien plus courte, le remplace sans que la page défile :
+    le centre restait devant le pied de page, sans voir que son compte était
+    créé. On ramène donc la carte à l'écran.
+  */
+  const ref = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    ref.current?.scrollIntoView({ block: "start" });
+  }, []);
   return (
-    <div className="rounded-3xl bg-brand-deep p-6 text-white shadow-lift ring-1 ring-white/15 sm:p-8">
+    <div ref={ref} className="scroll-mt-24 rounded-3xl bg-brand-deep p-6 text-white shadow-lift ring-1 ring-white/15 sm:p-8">
       <span className="grid h-12 w-12 place-items-center rounded-full bg-white/15">
         <Check className="h-6 w-6 text-gold-bright" />
       </span>
