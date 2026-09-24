@@ -16,14 +16,3 @@ export function getStripe(): Stripe | null {
   if (!key) return null;
   return new Stripe(key);
 }
-
-/**
- * Garde-fou de démonstration : on refuse de tourner avec une clé de PRODUCTION.
- *
- * Ce build est une maquette cliquable. Une clé `sk_live_` y encaisserait de
- * vrais paiements sur des cours qui n'existent pas, sans stock réel ni
- * versement aux centres. Les clés de test commencent par `sk_test_`.
- */
-export function isTestKey(): boolean {
-  return (process.env.STRIPE_SECRET_KEY ?? "").startsWith("sk_test_");
-}

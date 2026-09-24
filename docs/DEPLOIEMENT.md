@@ -42,14 +42,15 @@ Development :
 
 | Nom | Valeur | Où la trouver |
 |---|---|---|
-| `STRIPE_SECRET_KEY` | `sk_test_…` | Stripe → mode Test → Développeurs → Clés d'API |
+| `STRIPE_SECRET_KEY` | `sk_live_…` en Production, `sk_test_…` ailleurs | Stripe → Développeurs → Clés d'API |
 
 Elle ne porte PAS le préfixe `NEXT_PUBLIC_` : c'est une clé secrète, elle ne doit
 jamais atteindre le navigateur. Elle n'est lue que par `src/app/api/paiement/`.
 
-**Le code refuse une clé de production (`sk_live_`)** et répond 503 : cette maquette
-n'a ni stock réel ni reversement aux centres, elle n'a rien à encaisser pour de vrai
-(voir `src/lib/stripe.ts`). Sans variable du tout, la route répond aussi 503 et le
+**Clés live acceptées depuis le 24/09/2026** (le refus des `sk_live_` a été levé).
+Limites connues : l'argent arrive au compte plateforme et se reverse aux centres à
+la main (pas de Stripe Connect), le stock n'est pas vérifié au paiement, et il n'y a
+pas de webhook. Sans variable du tout, la route répond aussi 503 et le
 site retombe sur le tunnel de paiement simulé, sans rien signaler au visiteur.
 
 À partir de là, chaque `git push` sur `main` redéploie automatiquement.

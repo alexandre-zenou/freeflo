@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server";
 import { offerById } from "@/lib/site";
 import { lowestPossiblePrice } from "@/lib/pricing";
-import { getStripe, isTestKey } from "@/lib/stripe";
+import { getStripe } from "@/lib/stripe";
 import { createClient as createServerSupabase } from "@/lib/supabase/server";
 import { encoderLignes, type LigneReservee } from "@/lib/reservations-serveur";
 
@@ -12,8 +12,9 @@ import { encoderLignes, type LigneReservee } from "@/lib/reservations-serveur";
  * Elle existe parce qu'un paiement ne peut pas se faire autrement — la clé
  * secrète Stripe ne doit jamais atteindre le client.
  *
- * PORTÉE : démonstration en clés de TEST. L'argent irait au compte plateforme,
- * pas aux centres. Le vrai modèle est Stripe Connect, un compte connecté par
+ * PORTÉE : clés test et live acceptées (clé live en production depuis le
+ * 24/09/2026). L'argent arrive au compte plateforme, pas aux centres : il se
+ * reverse à la main. Le vrai modèle est Stripe Connect, un compte connecté par
  * centre et la commission en `application_fee_amount` (`docs/ARCHITECTURE.md`
  * §6). Il demande d'abord une base de données, qui n'existe pas encore.
  *
@@ -36,14 +37,6 @@ export async function POST(request: Request) {
   if (!stripe) {
     return NextResponse.json(
       { error: "Paiement non configuré : STRIPE_SECRET_KEY est absente." },
-      { status: 503 },
-    );
-  }
-  if (!isTestKey()) {
-    /* Refus délibéré : voir `lib/stripe.ts`. Cette maquette n'a ni stock réel
-       ni versement aux centres, elle n'a rien à faire en clés de production. */
-    return NextResponse.json(
-      { error: "Cette démonstration n'accepte que des clés Stripe de test (sk_test_)." },
       { status: 503 },
     );
   }
