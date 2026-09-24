@@ -4,6 +4,7 @@ import {
   stockBand,
   activeTier,
   hoursUntil,
+  lowestPossiblePrice,
 } from "./pricing";
 
 describe("stockBand", () => {
@@ -42,6 +43,25 @@ describe("computePrice", () => {
     expect(p.currentPrice).toBe(16);
     expect(p.savings).toBe(24);
     expect(p.isFinalSprint).toBe(true);
+  });
+
+  it("ne descend jamais sous le plancher de 15 €", () => {
+    const p = computePrice(26, 3, 1); // -50 % donnerait 13 €
+    expect(p.currentPrice).toBe(15);
+    expect(p.discountPct).toBe(42);
+    expect(p.savings).toBe(11);
+  });
+
+  it("un plein tarif sous le plancher ne baisse pas", () => {
+    const p = computePrice(12, 9, 1);
+    expect(p.currentPrice).toBe(12);
+    expect(p.discountPct).toBe(0);
+  });
+
+  it("le prix minimum contrôlé au paiement respecte le plancher", () => {
+    expect(lowestPossiblePrice(24)).toBe(15);
+    expect(lowestPossiblePrice(40)).toBe(16);
+    expect(lowestPossiblePrice(12)).toBe(12);
   });
 
   it("dernière place à 24-48 h reste plein tarif (grille §3)", () => {

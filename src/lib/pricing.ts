@@ -26,6 +26,13 @@ export const TIERS: Tier[] = [
   { maxHoursBefore: 2, label: "Sprint final (- de 2 h)", discount: [60, 50, 35] },
 ];
 
+/**
+ * Prix plancher en euros : quelle que soit la remise de la grille, une place
+ * ne se vend jamais moins de 15 € (demande cliente 09/2026). Un cours dont le
+ * plein tarif est déjà sous ce seuil ne baisse pas du tout.
+ */
+export const PRICE_FLOOR = 15;
+
 /** Commission plateforme de base (§6.2). Plancher plus bas quand la remise est forte. */
 const COMMISSION_BASE = 25;
 const COMMISSION_FLOOR = 8;
@@ -70,8 +77,11 @@ export function computePrice(
 ): PriceState {
   const band = stockBand(placesLeft);
   const tier = activeTier(Math.max(0, hoursBefore));
-  const discountPct = tier.discount[bandIndex(band)];
-  const currentPrice = round2(basePrice * (1 - discountPct / 100));
+  const gridDiscount = tier.discount[bandIndex(band)];
+  const currentPrice = floored(basePrice, basePrice * (1 - gridDiscount / 100));
+  /* La remise affichée est celle réellement consentie, plancher compris : un
+     « -50 % » bloqué à 15 € n'en est plus un. */
+  const discountPct = basePrice > 0 ? Math.round((1 - currentPrice / basePrice) * 100) : 0;
   const savings = round2(basePrice - currentPrice);
 
   // heat : 0 à +48 h, monte jusqu'à 1 à l'échéance (courbe douce).
@@ -100,6 +110,11 @@ export function hoursUntil(iso: string, now: number = Date.now()): number {
   return (new Date(iso).getTime() - now) / 3_600_000;
 }
 
+/** Applique `PRICE_FLOOR`, sans jamais dépasser le plein tarif. */
+function floored(basePrice: number, price: number): number {
+  return round2(Math.max(price, Math.min(basePrice, PRICE_FLOOR)));
+}
+
 function round2(n: number): number {
   return Math.round(n * 100) / 100;
 }
@@ -123,5 +138,5 @@ function clamp01(n: number): number {
  */
 export function lowestPossiblePrice(basePrice: number): number {
   const maxDiscount = Math.max(...TIERS.flatMap((t) => t.discount));
-  return round2(basePrice * (1 - maxDiscount / 100));
+  return floored(basePrice, basePrice * (1 - maxDiscount / 100));
 }
