@@ -24,8 +24,8 @@ import { SettingsTab } from "@/components/vendor/settings-tab";
 import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import { OfferFormModal } from "@/components/vendor/offer-form-modal";
 import {
-  initialVendorAppointments,
-  initialVendorOffers,
+  seedVendorAppointments,
+  seedVendorOffers,
   initialVendorReviews,
   CENTRES,
   type CentreScope,
@@ -100,8 +100,8 @@ export function VendorDashboard() {
   */
   const ongletActif =
     estCentre && !(ONGLETS_CENTRE as readonly string[]).includes(tab) ? "planning" : tab;
-  const [offers, setOffers] = useState<VendorOffer[]>(initialVendorOffers);
-  const [appointments, setAppointments] = useState<VendorAppointment[]>(initialVendorAppointments);
+  const [offers, setOffers] = useState<VendorOffer[]>(() => seedVendorOffers());
+  const [appointments, setAppointments] = useState<VendorAppointment[]>(() => seedVendorAppointments());
   const [reviews, setReviews] = useState<VendorReview[]>(initialVendorReviews);
   const [drawerOpen, setDrawerOpen] = useState(false);
   /** Offre en cours de modification (bouton « Modifier » de Mes offres). */
@@ -210,7 +210,7 @@ export function VendorDashboard() {
         {editing && (
           <OfferFormModal
             mode="edit"
-            day={editing.day}
+            date={editing.date}
             initial={editing}
             {...scope}
             onClose={() => setEditing(null)}

@@ -84,15 +84,21 @@ export function OffersTab({
             key={o.id}
             className="grid grid-cols-2 items-center gap-4 border-b border-line px-5 py-4 last:border-0 sm:grid-cols-[2fr_0.8fr_1.4fr_0.9fr]"
           >
-            <span className={cn("font-medium", soldOut ? "text-ink-soft" : "text-ink")}>
-              {o.title}
-              <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-normal text-ink-soft">{o.cat}</span>
-              {showCentre && (
-                <span className="mt-0.5 flex items-center gap-1.5 text-sm font-normal text-ink-soft">
-                  <Building2 className="h-3.5 w-3.5 shrink-0" /> {o.centre}
+            {/* Administration : le centre d'abord, le cours en dessous, pas de
+                catégorie. Un centre garde son cours et sa catégorie. */}
+            {showCentre ? (
+              <span className={cn("font-medium", soldOut ? "text-ink-soft" : "text-ink")}>
+                <span className="flex items-center gap-1.5">
+                  <Building2 className="h-4 w-4 shrink-0 text-pro-accent" /> {o.centre}
                 </span>
-              )}
-            </span>
+                <span className="mt-0.5 block text-sm font-normal text-ink-soft">{o.title}</span>
+              </span>
+            ) : (
+              <span className={cn("font-medium", soldOut ? "text-ink-soft" : "text-ink")}>
+                {o.title}
+                <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-normal text-ink-soft">{o.cat}</span>
+              </span>
+            )}
 
             <span className="text-sm tabular-nums text-ink-soft">
               {sold} / {o.capacity} {t("vendues", "sold")}

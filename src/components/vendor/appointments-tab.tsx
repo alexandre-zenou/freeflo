@@ -1,17 +1,17 @@
 "use client";
 
 import { useState } from "react";
-import { Building2, CalendarClock, Plus, Trash2, User } from "lucide-react";
+import { CalendarClock, Plus, Trash2, User } from "lucide-react";
 import { formatEuro } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   APPOINTMENT_DURATIONS,
   APPOINTMENT_TYPES,
-  weekDays,
+  isoOf,
   type CentreScope,
   type VendorAppointment,
 } from "@/components/vendor/vendor-data";
-import { useT } from "@/lib/i18n";
+import { useLocale, useT } from "@/lib/i18n";
 
 /**
  * Onglet « Rendez-vous » de l'espace pro.
@@ -28,8 +28,6 @@ import { useT } from "@/lib/i18n";
  *
  * Phase 1 : la liste vit dans l'état de la démo, comme les offres.
  */
-const JOURS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
-const JOURS_EN = ["Monday", "Tuesday", "Wednesday", "Thursday", "Friday", "Saturday", "Sunday"];
 
 const fieldCls =
   "w-full rounded-xl border border-line bg-white px-3.5 py-2.5 text-sm text-ink outline-none transition-colors focus:border-pro-accent";
@@ -49,7 +47,10 @@ export function AppointmentsTab({
   const [centre, setCentre] = useState(defaultCentre);
   const [kind, setKind] = useState(0);
   const [coach, setCoach] = useState("");
-  const [day, setDay] = useState(2);
+  const { locale } = useLocale();
+  /* Vraie date du jour : l'espace pro n'a pas de rendu serveur connecté. */
+  const [today] = useState(() => isoOf(new Date()));
+  const [date, setDate] = useState(today);
   const [time, setTime] = useState("09:00");
   const [durationMin, setDurationMin] = useState(60);
   const [price, setPrice] = useState(45);
@@ -58,20 +59,21 @@ export function AppointmentsTab({
   /* Tri à l'affichage seulement : la liste garde son ordre d'ajout, mais le
      centre lit sa semaine dans l'ordre où il la vit. */
   const listeTriee = [...appointments].sort((a, b) =>
-    a.day === b.day ? a.time.localeCompare(b.time) : a.day - b.day,
+    a.date === b.date ? a.time.localeCompare(b.time) : a.date.localeCompare(b.date),
   );
 
   const ajouter = () => {
+    if (!date || date < today) return setError(t("Choisissez un jour à venir.", "Choose an upcoming day."));
     if (price <= 0) return setError(t("Le tarif doit être positif.", "The price must be positive."));
     const type = APPOINTMENT_TYPES[kind];
     setError(null);
     onAdd({
-      id: `rdv-${day}-${time}-${appointments.length}`,
+      id: `rdv-${date}-${time}-${appointments.length}`,
       centre: centres ? centre : defaultCentre,
       kind: type.fr,
       kindEn: type.en,
       coach: coach.trim() || undefined,
-      day,
+      date,
       time,
       durationMin,
       price,
@@ -110,14 +112,24 @@ export function AppointmentsTab({
               </span>
 
               <span className="min-w-0 flex-1">
-                <span className="block font-medium text-ink">{t(r.kind, r.kindEn)}</span>
-                {centres && (
-                  <span className="flex items-center gap-1.5 text-sm text-ink-soft">
-                    <Building2 className="h-3.5 w-3.5 shrink-0" /> {r.centre}
-                  </span>
+                {/* Administration : le centre d'abord, le type en second. */}
+                {centres ? (
+                  <>
+                    <span className="block font-medium text-ink">{r.centre}</span>
+                    <span className="block text-sm text-ink-soft">{t(r.kind, r.kindEn)}</span>
+                  </>
+                ) : (
+                  <span className="block font-medium text-ink">{t(r.kind, r.kindEn)}</span>
                 )}
                 <span className="block text-sm tabular-nums text-ink-soft">
-                  {t(JOURS_FR[r.day], JOURS_EN[r.day])} {weekDays[r.day].date}, {r.time}, {r.durationMin} min
+                  <span className="first-letter:uppercase inline-block">
+                    {new Date(`${r.date}T12:00`).toLocaleDateString(locale === "en" ? "en-GB" : "fr-FR", {
+                      weekday: "long",
+                      day: "numeric",
+                      month: "long",
+                    })}
+                  </span>
+                  , {r.time}, {r.durationMin} min
                   {r.coach ? `, ${r.coach}` : ""}
                 </span>
               </span>
@@ -184,13 +196,9 @@ export function AppointmentsTab({
 
           <label className="block text-sm">
             <span className="mb-1.5 block font-medium text-ink">{t("Jour", "Day")}</span>
-            <select value={day} onChange={(e) => setDay(Number(e.target.value))} className={fieldCls}>
-              {weekDays.map((d, i) => (
-                <option key={d.short} value={i}>
-                  {t(JOURS_FR[i], JOURS_EN[i])} {d.date}
-                </option>
-              ))}
-            </select>
+            {/* Un vrai calendrier : n'importe quel jour à venir, pas seulement
+                la semaine en cours. */}
+            <input type="date" value={date} min={today} onChange={(e) => setDate(e.target.value)} className={fieldCls} />
           </label>
 
           <label className="block text-sm">

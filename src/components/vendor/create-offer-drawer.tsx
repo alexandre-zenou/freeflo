@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { categories } from "@/lib/site";
-import type { CentreScope, VendorOffer } from "@/components/vendor/vendor-data";
+import { addDays, hoursUntilSlot, isoOf, type CentreScope, type VendorOffer } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -11,12 +11,14 @@ import { useT } from "@/lib/i18n";
  * commission ont été retirées du tiroir (information privée). Le tiroir ne fait
  * plus que créer l'offre.
  */
+/* Le jour se calcule à l'envoi depuis `inDays`, et l'échéance depuis le jour
+   et l'heure : plus de jour de semaine écrit en dur. */
 const SLOTS = [
-  { label: "Aujourd'hui, 18h30", labelEn: "Today, 18:30", startsInHours: 2.5, day: 3 },
-  { label: "Aujourd'hui, 20h00", labelEn: "Today, 20:00", startsInHours: 4, day: 3 },
-  { label: "Demain, 7h30", labelEn: "Tomorrow, 07:30", startsInHours: 15, day: 4 },
-  { label: "Demain, 12h00", labelEn: "Tomorrow, 12:00", startsInHours: 20, day: 4 },
-  { label: "Après-demain, 18h30", labelEn: "In two days, 18:30", startsInHours: 44, day: 5 },
+  { label: "Aujourd'hui, 18h30", labelEn: "Today, 18:30", inDays: 0, time: "18:30" },
+  { label: "Aujourd'hui, 20h00", labelEn: "Today, 20:00", inDays: 0, time: "20:00" },
+  { label: "Demain, 7h30", labelEn: "Tomorrow, 07:30", inDays: 1, time: "07:30" },
+  { label: "Demain, 12h00", labelEn: "Tomorrow, 12:00", inDays: 1, time: "12:00" },
+  { label: "Après-demain, 18h30", labelEn: "In two days, 18:30", inDays: 2, time: "18:30" },
 ];
 
 const inputCls =
@@ -56,6 +58,8 @@ export function CreateOfferDrawer({
   const submit = () => {
     if (!title.trim()) return setError(t("Donnez un titre à l'offre : c'est ce que voient les sportifs.", "Give the offer a title: it is what people see."));
     if (basePrice <= 0 || capacity < 1) return setError(t("Tarif plein et places doivent être positifs.", "Full price and places must be positive."));
+    const { time } = SLOTS[slot];
+    const date = addDays(isoOf(new Date()), SLOTS[slot].inDays);
     onCreate({
       id: `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
       /* `centres` absent : c'est un centre qui publie, le cours est le sien. */
@@ -65,9 +69,9 @@ export function CreateOfferDrawer({
       capacity,
       placesLeft: capacity,
       basePrice,
-      startsInHours: SLOTS[slot].startsInHours,
-      day: SLOTS[slot].day,
-      time: SLOTS[slot].label.split(", ")[1].trim(),
+      date,
+      time,
+      startsInHours: hoursUntilSlot(date, time),
     });
     setTitle("");
     setError(null);

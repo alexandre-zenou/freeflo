@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { PhotoDrop } from "@/components/ui/photo-drop";
-import { ACTIVITIES, SOCKS_ACTIVITIES, type CentreScope, type VendorOffer } from "@/components/vendor/vendor-data";
+import { ACTIVITIES, SOCKS_ACTIVITIES, hoursUntilSlot, isoOf, type CentreScope, type VendorOffer } from "@/components/vendor/vendor-data";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -34,7 +34,7 @@ const selectCls = cn(
 
 export function OfferFormModal({
   mode,
-  day,
+  date: dateInitiale,
   initial,
   onClose,
   onSubmit,
@@ -42,7 +42,8 @@ export function OfferFormModal({
   defaultCentre,
 }: CentreScope & {
   mode: "create" | "edit";
-  day: number;
+  /** Jour pré-rempli, `AAAA-MM-JJ` : celui choisi dans le Planning. */
+  date: string;
   initial?: VendorOffer;
   onClose: () => void;
   onSubmit: (o: VendorOffer) => void;
@@ -51,6 +52,7 @@ export function OfferFormModal({
   const [centre, setCentre] = useState(initial?.centre ?? defaultCentre);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [cat, setCat] = useState(initial?.cat ?? ACTIVITIES[0]);
+  const [date, setDate] = useState(initial?.date ?? dateInitiale);
   const [time, setTime] = useState(initial?.time ?? "18:30");
   const [capacity, setCapacity] = useState(initial?.capacity ?? 12);
   const [price, setPrice] = useState(initial?.basePrice ?? 24);
@@ -70,6 +72,7 @@ export function OfferFormModal({
   const submit = () => {
     if (!title.trim()) return setError(t("Le nom du cours est obligatoire.", "The class name is required."));
     if (capacity < 1 || price <= 0) return setError(t("Places libres et tarif plein doivent être positifs.", "Free places and full price must be positive."));
+    if (!date) return setError(t("Choisissez le jour du cours.", "Choose the day of the class."));
     onSubmit({
       ...(initial ?? {}),
       id: initial?.id ?? `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${time}`,
@@ -79,8 +82,10 @@ export function OfferFormModal({
       capacity,
       placesLeft: initial ? Math.min(initial.placesLeft, capacity) : capacity,
       basePrice: price,
-      startsInHours: initial?.startsInHours ?? 24,
-      day: initial?.day ?? day,
+      /* L'échéance suit le jour et l'heure choisis : c'est elle qui fait
+         fondre le prix. */
+      startsInHours: hoursUntilSlot(date, time),
+      date,
       time,
       description: description.trim() || undefined,
       nonSlipSocks: asksSocks ? socks : undefined,
@@ -137,6 +142,17 @@ export function OfferFormModal({
               <input type="time" value={time} onChange={(e) => setTime(e.target.value)} className={fieldCls} />
             </label>
           </div>
+
+          <label className="block text-sm">
+            <span className="mb-1.5 block font-medium">{t("Jour", "Day")}<Required /></span>
+            <input
+              type="date"
+              value={date}
+              min={isoOf(new Date())}
+              onChange={(e) => setDate(e.target.value)}
+              className={cn(fieldCls, "[color-scheme:dark]")}
+            />
+          </label>
 
           <div className="grid grid-cols-2 gap-3">
             <label className="block text-sm">

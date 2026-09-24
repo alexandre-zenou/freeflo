@@ -1,4 +1,5 @@
 import { offers } from "@/lib/site";
+import { dayIso, timeLabel } from "@/lib/format";
 
 /**
  * Données de démo de l'espace pro (Studio Bloom).
@@ -16,8 +17,8 @@ export interface VendorOffer {
   placesLeft: number;
   basePrice: number;
   startsInHours: number;
-  /** Jour de la semaine, 0 = lundi (pour l'onglet Planning). */
-  day: number;
+  /** Jour du cours, `AAAA-MM-JJ` (onglet Planning). */
+  date: string;
   time: string;
   paused?: boolean;
   /** Champ facultatif ajouté à la demande de la cliente. */
@@ -51,25 +52,64 @@ export const SOCKS_ACTIVITIES = ["Pilates", "Yoga"];
 
 export const ACTIVITIES = ["Yoga", "Pilates", "Boxe", "HIIT", "Cycling"];
 
-/** Semaine affichée dans le Planning, comme la maquette (lun → dim). */
-export const weekDays = [
-  { short: "LUN", date: 14 },
-  { short: "MAR", date: 15 },
-  { short: "MER", date: 16 },
-  { short: "JEU", date: 17 },
-  { short: "VEN", date: 18 },
-  { short: "SAM", date: 19 },
-  { short: "DIM", date: 20 },
-] as const;
-
-export const initialVendorOffers: VendorOffer[] = [
-  { id: "v-reformer", centre: "The New Me", title: "Reformer intensif", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5, day: 3, time: "07:30" },
-  { id: "v-doux", centre: "Studio Bloom", title: "Pilates doux", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0, day: 3, time: "12:00" },
-  { id: "v-vinyasa", centre: "Yoga Room Batignolles", title: "Vinyasa Flow", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4, day: 3, time: "18:30" },
-  { id: "v-debutant", centre: "Studio Bloom", title: "Yoga débutant", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52, day: 3, time: "20:00" },
-  { id: "v-hiit", centre: "Forge Athletic", title: "HIIT express", cat: "HIIT", capacity: 14, placesLeft: 5, basePrice: 20, startsInHours: 30, day: 1, time: "09:00" },
-  { id: "v-boxe", centre: "Ring 11", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44, day: 4, time: "19:00" },
+/*
+  Les cours de démo n'ont pas de date écrite en dur : la semaine du 14 au 20
+  restait affichée quand on était le 24. Chaque cours porte son échéance
+  relative (`startsInHours`, celle qui fait fondre le prix), et son jour comme
+  son heure en sont DÉDUITS au chargement. Planning, prix live et « Créneaux
+  du jour » disent donc toujours la même chose.
+  À n'appeler que côté navigateur : l'espace pro n'a pas de rendu serveur
+  connecté (`pro-guard.tsx`), l'heure n'y existe donc qu'après hydratation.
+*/
+const offerSeeds: Omit<VendorOffer, "date" | "time">[] = [
+  { id: "v-reformer", centre: "The New Me", title: "Reformer intensif", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5 },
+  { id: "v-doux", centre: "Studio Bloom", title: "Pilates doux", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0 },
+  { id: "v-vinyasa", centre: "Yoga Room Batignolles", title: "Vinyasa Flow", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4 },
+  { id: "v-debutant", centre: "Studio Bloom", title: "Yoga débutant", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52 },
+  { id: "v-hiit", centre: "Forge Athletic", title: "HIIT express", cat: "HIIT", capacity: 14, placesLeft: 5, basePrice: 20, startsInHours: 30 },
+  { id: "v-boxe", centre: "Ring 11", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44 },
 ];
+
+export function seedVendorOffers(now: number = Date.now()): VendorOffer[] {
+  return offerSeeds.map((o) => {
+    /* Calé sur la demi-heure : un cours ne commence pas à 04:12. L'échéance
+       est recalculée sur l'heure arrondie, pour que le prix suive l'affichage. */
+    const demiHeure = 1_800_000;
+    const debut = Math.round((now + o.startsInHours * 3_600_000) / demiHeure) * demiHeure;
+    const ecart = (debut - now) / 3_600_000;
+    return {
+      ...o,
+      startsInHours: Math.max(0, ecart),
+      date: dayIso(ecart, now),
+      time: timeLabel(ecart, "fr", now),
+    };
+  });
+}
+
+/* ——— Dates du calendrier ———
+   Tout le Planning et les rendez-vous parlent en jours `AAAA-MM-JJ` : ça se
+   compare et se trie tel quel, et ça ne dépend pas d'un fuseau à midi. */
+
+export function isoOf(d: Date): string {
+  return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+}
+
+export function addDays(iso: string, n: number): string {
+  const d = new Date(`${iso}T12:00`);
+  d.setDate(d.getDate() + n);
+  return isoOf(d);
+}
+
+/** Lundi de la semaine qui contient ce jour (convention française). */
+export function mondayOf(iso: string): string {
+  const d = new Date(`${iso}T12:00`);
+  return addDays(iso, -((d.getDay() + 6) % 7));
+}
+
+/** Heures entre maintenant et un créneau, pour la dégressivité d'un cours créé. */
+export function hoursUntilSlot(date: string, time: string, now: number = Date.now()): number {
+  return Math.max(0, (new Date(`${date}T${time}`).getTime() - now) / 3_600_000);
+}
 
 /* ——— Rendez-vous individuels ———
    Un centre ne vend pas que des places de cours collectif : il vend aussi du
@@ -86,8 +126,8 @@ export interface VendorAppointment {
   kindEn: string;
   /** Coach ou praticien qui reçoit, facultatif. */
   coach?: string;
-  /** Jour de la semaine affichée, 0 = lundi (même repère que `weekDays`). */
-  day: number;
+  /** Jour du rendez-vous, `AAAA-MM-JJ`. */
+  date: string;
   time: string;
   durationMin: number;
   price: number;
@@ -104,11 +144,16 @@ export const APPOINTMENT_TYPES = [
 
 export const APPOINTMENT_DURATIONS = [30, 45, 60, 90] as const;
 
-export const initialVendorAppointments: VendorAppointment[] = [
-  { id: "rdv-1", centre: "Studio Bloom", kind: "Coaching individuel", kindEn: "One-to-one coaching", coach: "Camille", day: 2, time: "08:00", durationMin: 60, price: 45 },
-  { id: "rdv-2", centre: "Studio Bloom", kind: "Séance d'essai", kindEn: "Trial session", coach: "Camille", day: 2, time: "17:00", durationMin: 30, price: 15, bookedBy: "Sofia M." },
-  { id: "rdv-3", centre: "Core Lab", kind: "Bilan et objectifs", kindEn: "Assessment and goals", coach: "Nadia", day: 4, time: "13:30", durationMin: 45, price: 35 },
+/* Même principe que les cours : décalés d'aujourd'hui, jamais datés en dur. */
+const appointmentSeeds: (Omit<VendorAppointment, "date"> & { inDays: number })[] = [
+  { id: "rdv-1", centre: "Studio Bloom", kind: "Coaching individuel", kindEn: "One-to-one coaching", coach: "Camille", inDays: 1, time: "08:00", durationMin: 60, price: 45 },
+  { id: "rdv-2", centre: "Studio Bloom", kind: "Séance d'essai", kindEn: "Trial session", coach: "Camille", inDays: 1, time: "17:00", durationMin: 30, price: 15, bookedBy: "Sofia M." },
+  { id: "rdv-3", centre: "Core Lab", kind: "Bilan et objectifs", kindEn: "Assessment and goals", coach: "Nadia", inDays: 3, time: "13:30", durationMin: 45, price: 35 },
 ];
+
+export function seedVendorAppointments(now: number = Date.now()): VendorAppointment[] {
+  return appointmentSeeds.map(({ inDays, ...r }) => ({ ...r, date: dayIso(inDays * 24, now) }));
+}
 
 /** Colonnes et statuts repris de la maquette : client · cours · créneau · statut. */
 export interface VendorOrder {
@@ -130,7 +175,7 @@ export const vendorOrders: VendorOrder[] = [
 
 /* ——— Avis ———
    Un avis porte sur UN cours : `offerId` pointe une offre de
-   `initialVendorOffers`, comme le Planning et Mes offres. Le nom du cours n'est
+   `seedVendorOffers`, comme le Planning et Mes offres. Le nom du cours n'est
    donc plus recopié dans l'avis, il est relu depuis l'offre.
 
    Deux niveaux, pour la même raison que partout ailleurs dans la démo : les
@@ -141,7 +186,7 @@ export const vendorOrders: VendorOrder[] = [
 
 export interface VendorReview {
   id: string;
-  /** Cours noté : identifiant d'une offre de `initialVendorOffers`. */
+  /** Cours noté : identifiant d'une offre de `seedVendorOffers`. */
   offerId: string;
   name: string;
   rating: 1 | 2 | 3 | 4 | 5;
