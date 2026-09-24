@@ -52,7 +52,10 @@ export function OverviewTab({ offers }: { offers: VendorOffer[] }) {
                   <li key={o.id}>
                     <div className="flex items-baseline justify-between gap-3 text-sm">
                       <span className={cn("truncate font-medium", pct === 100 ? "text-ink-soft" : "text-ink")}>
-                        {o.title}
+                        {/* Vue d'administration : ce qui compte est QUEL centre
+                            remplit, pas le cours. L'heure départage deux
+                            créneaux d'un même centre. */}
+                        {o.centre} <span className="font-normal tabular-nums text-ink-soft">{o.time}</span>
                       </span>
                       <span className="shrink-0 tabular-nums text-xs text-ink-soft">
                         {sold}/{o.capacity} {t("vendues", "sold")}{o.paused ? t(" (en pause)", " (paused)") : ""}

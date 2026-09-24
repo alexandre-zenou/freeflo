@@ -1,3 +1,5 @@
+import { offers } from "@/lib/site";
+
 /**
  * Données de démo de l'espace pro (Studio Bloom).
  * Les offres portent des heures relatives (`startsInHours`) comme côté client,
@@ -6,6 +8,8 @@
 
 export interface VendorOffer {
   id: string;
+  /** Centre qui donne le cours : un nom de `CENTRES`. */
+  centre: string;
   title: string;
   cat: string;
   capacity: number;
@@ -20,6 +24,26 @@ export interface VendorOffer {
   description?: string;
   /** Uniquement proposé pour le Pilates et le Yoga (annotation cliente). */
   nonSlipSocks?: boolean;
+}
+
+/**
+ * Les centres de la plateforme, repris des offres publiques de `site.ts` pour
+ * que l'espace admin et le site parlent des mêmes studios. Phase 2 : la table
+ * `centres` de Supabase.
+ */
+export const CENTRES: readonly string[] = [...new Set(offers.map((o) => o.gym))].sort((a, b) =>
+  a.localeCompare(b, "fr"),
+);
+
+/**
+ * Ce qu'un écran sait des centres. `centres` n'est fourni qu'à
+ * l'administration, qui voit tous les centres : les écrans affichent alors le
+ * centre de chaque cours et proposent de le choisir. Un centre, lui, n'a que
+ * `defaultCentre`, le sien, posé sans qu'il ait à le dire.
+ */
+export interface CentreScope {
+  centres?: readonly string[];
+  defaultCentre: string;
 }
 
 /** Activités pour lesquelles la question des chaussettes antidérapantes se pose. */
@@ -39,12 +63,12 @@ export const weekDays = [
 ] as const;
 
 export const initialVendorOffers: VendorOffer[] = [
-  { id: "v-reformer", title: "Reformer intensif", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5, day: 3, time: "07:30" },
-  { id: "v-doux", title: "Pilates doux", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0, day: 3, time: "12:00" },
-  { id: "v-vinyasa", title: "Vinyasa Flow", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4, day: 3, time: "18:30" },
-  { id: "v-debutant", title: "Yoga débutant", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52, day: 3, time: "20:00" },
-  { id: "v-hiit", title: "HIIT express", cat: "HIIT", capacity: 14, placesLeft: 5, basePrice: 20, startsInHours: 30, day: 1, time: "09:00" },
-  { id: "v-boxe", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44, day: 4, time: "19:00" },
+  { id: "v-reformer", centre: "The New Me", title: "Reformer intensif", cat: "Pilates", capacity: 8, placesLeft: 3, basePrice: 26, startsInHours: 9.5, day: 3, time: "07:30" },
+  { id: "v-doux", centre: "Studio Bloom", title: "Pilates doux", cat: "Pilates", capacity: 8, placesLeft: 0, basePrice: 22, startsInHours: 0, day: 3, time: "12:00" },
+  { id: "v-vinyasa", centre: "Yoga Room Batignolles", title: "Vinyasa Flow", cat: "Yoga", capacity: 12, placesLeft: 6, basePrice: 24, startsInHours: 1.4, day: 3, time: "18:30" },
+  { id: "v-debutant", centre: "Studio Bloom", title: "Yoga débutant", cat: "Yoga", capacity: 10, placesLeft: 9, basePrice: 24, startsInHours: 52, day: 3, time: "20:00" },
+  { id: "v-hiit", centre: "Forge Athletic", title: "HIIT express", cat: "HIIT", capacity: 14, placesLeft: 5, basePrice: 20, startsInHours: 30, day: 1, time: "09:00" },
+  { id: "v-boxe", centre: "Ring 11", title: "Boxe cardio", cat: "Boxe", capacity: 16, placesLeft: 0, basePrice: 25, startsInHours: 44, day: 4, time: "19:00" },
 ];
 
 /* ——— Rendez-vous individuels ———
@@ -55,6 +79,8 @@ export const initialVendorOffers: VendorOffer[] = [
 
 export interface VendorAppointment {
   id: string;
+  /** Centre où a lieu le rendez-vous : un nom de `CENTRES`. */
+  centre: string;
   /** Type de rendez-vous, choisi dans `APPOINTMENT_TYPES`. */
   kind: string;
   kindEn: string;
@@ -79,9 +105,9 @@ export const APPOINTMENT_TYPES = [
 export const APPOINTMENT_DURATIONS = [30, 45, 60, 90] as const;
 
 export const initialVendorAppointments: VendorAppointment[] = [
-  { id: "rdv-1", kind: "Coaching individuel", kindEn: "One-to-one coaching", coach: "Camille", day: 2, time: "08:00", durationMin: 60, price: 45 },
-  { id: "rdv-2", kind: "Séance d'essai", kindEn: "Trial session", coach: "Camille", day: 2, time: "17:00", durationMin: 30, price: 15, bookedBy: "Sofia M." },
-  { id: "rdv-3", kind: "Bilan et objectifs", kindEn: "Assessment and goals", coach: "Nadia", day: 4, time: "13:30", durationMin: 45, price: 35 },
+  { id: "rdv-1", centre: "Studio Bloom", kind: "Coaching individuel", kindEn: "One-to-one coaching", coach: "Camille", day: 2, time: "08:00", durationMin: 60, price: 45 },
+  { id: "rdv-2", centre: "Studio Bloom", kind: "Séance d'essai", kindEn: "Trial session", coach: "Camille", day: 2, time: "17:00", durationMin: 30, price: 15, bookedBy: "Sofia M." },
+  { id: "rdv-3", centre: "Core Lab", kind: "Bilan et objectifs", kindEn: "Assessment and goals", coach: "Nadia", day: 4, time: "13:30", durationMin: 45, price: 35 },
 ];
 
 /** Colonnes et statuts repris de la maquette : client · cours · créneau · statut. */

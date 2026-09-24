@@ -1,13 +1,14 @@
 "use client";
 
 import { useState } from "react";
-import { CalendarClock, Plus, Trash2, User } from "lucide-react";
+import { Building2, CalendarClock, Plus, Trash2, User } from "lucide-react";
 import { formatEuro } from "@/lib/format";
 import { cn } from "@/lib/utils";
 import {
   APPOINTMENT_DURATIONS,
   APPOINTMENT_TYPES,
   weekDays,
+  type CentreScope,
   type VendorAppointment,
 } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
@@ -21,6 +22,10 @@ import { useT } from "@/lib/i18n";
  * fond. Une fois pris, le créneau porte le nom du client et ne peut plus être
  * retiré : c'est un engagement, pas une case à décocher.
  *
+ * L'administration pose aussi des rendez-vous, pour le compte d'un centre
+ * (un studio qui appelle, un créneau négocié par l'équipe) : elle choisit
+ * donc le centre, et la liste dit à qui est chaque créneau.
+ *
  * Phase 1 : la liste vit dans l'état de la démo, comme les offres.
  */
 const JOURS_FR = ["Lundi", "Mardi", "Mercredi", "Jeudi", "Vendredi", "Samedi", "Dimanche"];
@@ -33,12 +38,15 @@ export function AppointmentsTab({
   appointments,
   onAdd,
   onRemove,
-}: {
+  centres,
+  defaultCentre,
+}: CentreScope & {
   appointments: VendorAppointment[];
   onAdd: (rdv: VendorAppointment) => void;
   onRemove: (id: string) => void;
 }) {
   const t = useT();
+  const [centre, setCentre] = useState(defaultCentre);
   const [kind, setKind] = useState(0);
   const [coach, setCoach] = useState("");
   const [day, setDay] = useState(2);
@@ -59,6 +67,7 @@ export function AppointmentsTab({
     setError(null);
     onAdd({
       id: `rdv-${day}-${time}-${appointments.length}`,
+      centre: centres ? centre : defaultCentre,
       kind: type.fr,
       kindEn: type.en,
       coach: coach.trim() || undefined,
@@ -102,6 +111,11 @@ export function AppointmentsTab({
 
               <span className="min-w-0 flex-1">
                 <span className="block font-medium text-ink">{t(r.kind, r.kindEn)}</span>
+                {centres && (
+                  <span className="flex items-center gap-1.5 text-sm text-ink-soft">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" /> {r.centre}
+                  </span>
+                )}
                 <span className="block text-sm tabular-nums text-ink-soft">
                   {t(JOURS_FR[r.day], JOURS_EN[r.day])} {weekDays[r.day].date}, {r.time}, {r.durationMin} min
                   {r.coach ? `, ${r.coach}` : ""}
@@ -146,6 +160,17 @@ export function AppointmentsTab({
         <h3 className="pro-display text-lg text-ink">{t("Mettre un rendez-vous", "Add an appointment")}</h3>
 
         <div className="mt-4 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          {centres && (
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-medium text-ink">{t("Centre", "Centre")}</span>
+              <select value={centre} onChange={(e) => setCentre(e.target.value)} className={fieldCls}>
+                {centres.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="block text-sm">
             <span className="mb-1.5 block font-medium text-ink">{t("Type", "Type")}</span>
             <select value={kind} onChange={(e) => setKind(Number(e.target.value))} className={fieldCls}>

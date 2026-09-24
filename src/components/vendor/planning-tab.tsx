@@ -1,9 +1,10 @@
 "use client";
 
 import { useState } from "react";
+import { Building2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OfferFormModal } from "@/components/vendor/offer-form-modal";
-import { weekDays, type VendorOffer } from "@/components/vendor/vendor-data";
+import { weekDays, type CentreScope, type VendorOffer } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -18,10 +19,12 @@ import { useT } from "@/lib/i18n";
 export function PlanningTab({
   offers,
   onPublish,
+  centres,
+  defaultCentre,
 }: {
   offers: VendorOffer[];
   onPublish: (o: VendorOffer) => void;
-}) {
+} & CentreScope) {
   const t = useT();
   const [day, setDay] = useState(3); // jeudi, comme la maquette
   const [modal, setModal] = useState(false);
@@ -69,6 +72,13 @@ export function PlanningTab({
               <span className="w-16 shrink-0 font-medium tabular-nums text-pro-accent">{o.time}</span>
               <div className="min-w-[10rem] flex-1">
                 <p className="font-medium text-ink">{o.title}</p>
+                {/* Vue d'administration : plusieurs centres se partagent la
+                    même heure, il faut savoir lequel donne le cours. */}
+                {centres && (
+                  <p className="mt-0.5 flex items-center gap-1.5 text-sm text-ink-soft">
+                    <Building2 className="h-3.5 w-3.5 shrink-0" /> {o.centre}
+                  </p>
+                )}
                 <span className="mt-1 inline-block rounded-full bg-pro-surface px-2 py-0.5 text-xs text-ink-soft">
                   {o.cat}
                 </span>
@@ -105,6 +115,8 @@ export function PlanningTab({
         <OfferFormModal
           mode="create"
           day={day}
+          centres={centres}
+          defaultCentre={defaultCentre}
           onClose={() => setModal(false)}
           onSubmit={(o) => {
             onPublish(o);

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { PhotoDrop } from "@/components/ui/photo-drop";
-import { ACTIVITIES, SOCKS_ACTIVITIES, type VendorOffer } from "@/components/vendor/vendor-data";
+import { ACTIVITIES, SOCKS_ACTIVITIES, type CentreScope, type VendorOffer } from "@/components/vendor/vendor-data";
 import { cn } from "@/lib/utils";
 import { useT } from "@/lib/i18n";
 
@@ -38,7 +38,9 @@ export function OfferFormModal({
   initial,
   onClose,
   onSubmit,
-}: {
+  centres,
+  defaultCentre,
+}: CentreScope & {
   mode: "create" | "edit";
   day: number;
   initial?: VendorOffer;
@@ -46,6 +48,7 @@ export function OfferFormModal({
   onSubmit: (o: VendorOffer) => void;
 }) {
   const t = useT();
+  const [centre, setCentre] = useState(initial?.centre ?? defaultCentre);
   const [title, setTitle] = useState(initial?.title ?? "");
   const [cat, setCat] = useState(initial?.cat ?? ACTIVITIES[0]);
   const [time, setTime] = useState(initial?.time ?? "18:30");
@@ -70,6 +73,7 @@ export function OfferFormModal({
     onSubmit({
       ...(initial ?? {}),
       id: initial?.id ?? `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}-${time}`,
+      centre,
       title: title.trim(),
       cat,
       capacity,
@@ -103,6 +107,17 @@ export function OfferFormModal({
         </div>
 
         <div className="mt-6 space-y-4">
+          {centres && (
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-medium">{t("Centre", "Centre")}<Required /></span>
+              <select value={centre} onChange={(e) => setCentre(e.target.value)} className={selectCls}>
+                {centres.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="block text-sm">
             <span className="mb-1.5 block font-medium">{t("Nom du cours", "Class name")}<Required /></span>
             <input value={title} onChange={(e) => setTitle(e.target.value)} placeholder="Vinyasa Flow" className={fieldCls} />

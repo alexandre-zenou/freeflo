@@ -11,7 +11,6 @@ import {
   Plus,
   Star,
   TrendingUp,
-  UserCheck,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { OverviewTab } from "@/components/vendor/overview-tab";
@@ -22,13 +21,14 @@ import { StatsTab } from "@/components/vendor/stats-tab";
 import { OrdersTab } from "@/components/vendor/orders-tab";
 import { ReviewsTab } from "@/components/vendor/reviews-tab";
 import { SettingsTab } from "@/components/vendor/settings-tab";
-import { CandidaturesTab } from "@/components/vendor/candidatures-tab";
 import { CreateOfferDrawer } from "@/components/vendor/create-offer-drawer";
 import { OfferFormModal } from "@/components/vendor/offer-form-modal";
 import {
   initialVendorAppointments,
   initialVendorOffers,
   initialVendorReviews,
+  CENTRES,
+  type CentreScope,
   type VendorAppointment,
   type VendorOffer,
   type VendorReview,
@@ -48,10 +48,6 @@ const tabs = [
   { key: "stats", label: "Statistiques", labelEn: "Statistics", icon: <TrendingUp className="h-4 w-4" /> },
   { key: "orders", label: "Réservations", labelEn: "Bookings", icon: <ClipboardList className="h-4 w-4" /> },
   { key: "reviews", label: "Avis", labelEn: "Reviews", icon: <Star className="h-4 w-4" /> },
-  /* Administration seule : absent de ONGLETS_CENTRE, donc jamais proposé à
-     un centre. Et même s'il l'était, la RLS ne lui montrerait que son propre
-     dossier, et la fonction de décision le refuserait. */
-  { key: "candidatures", label: "Candidatures", labelEn: "Applications", icon: <UserCheck className="h-4 w-4" /> },
   { key: "settings", label: "Paramètres", labelEn: "Settings", icon: <Settings className="h-4 w-4" /> },
 ] as const;
 
@@ -84,6 +80,11 @@ export function VendorDashboard() {
     que soit son rôle, et le repli ne sert plus qu'au rendu sans session.
   */
   const nomAffiche = member?.firstName || "Studio Bloom";
+  /* L'administration travaille pour tous les centres : elle voit à qui est
+     chaque créneau et choisit le centre quand elle en crée un. */
+  const scope: CentreScope = estCentre
+    ? { defaultCentre: nomAffiche }
+    : { centres: CENTRES, defaultCentre: CENTRES[0] };
   const onglets = estCentre
     ? tabs.filter((o) => (ONGLETS_CENTRE as readonly string[]).includes(o.key))
     : tabs;
@@ -177,13 +178,14 @@ export function VendorDashboard() {
           {/* content */}
           <div className="min-w-0">
             {ongletActif === "overview" && <OverviewTab offers={offers} />}
-            {ongletActif === "planning" && <PlanningTab offers={offers} onPublish={addOffer} />}
+            {ongletActif === "planning" && <PlanningTab offers={offers} onPublish={addOffer} {...scope} />}
             {ongletActif === "offers" && (
               <OffersTab
                 offers={offers}
                 onDuplicate={duplicate}
                 onEdit={setEditing}
                 onCreate={() => setDrawerOpen(true)}
+                showCentre={Boolean(scope.centres)}
               />
             )}
             {ongletActif === "appointments" && (
@@ -191,6 +193,7 @@ export function VendorDashboard() {
                 appointments={appointments}
                 onAdd={(rdv) => setAppointments((prev) => [...prev, rdv])}
                 onRemove={(id) => setAppointments((prev) => prev.filter((r) => r.id !== id))}
+                {...scope}
               />
             )}
             {ongletActif === "stats" && <StatsTab />}
@@ -198,18 +201,18 @@ export function VendorDashboard() {
             {ongletActif === "reviews" && (
               <ReviewsTab reviews={reviews} offers={offers} onReply={replyToReview} />
             )}
-            {ongletActif === "candidatures" && <CandidaturesTab />}
             {ongletActif === "settings" && <SettingsTab />}
           </div>
         </div>
 
-        <CreateOfferDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onCreate={createOffer} />
+        <CreateOfferDrawer open={drawerOpen} onClose={() => setDrawerOpen(false)} onCreate={createOffer} {...scope} />
 
         {editing && (
           <OfferFormModal
             mode="edit"
             day={editing.day}
             initial={editing}
+            {...scope}
             onClose={() => setEditing(null)}
             onSubmit={(updated) => {
               setOffers((prev) => prev.map((o) => (o.id === editing.id ? { ...o, ...updated } : o)));

@@ -3,7 +3,7 @@
 import { useEffect, useState } from "react";
 import { X } from "lucide-react";
 import { categories } from "@/lib/site";
-import type { VendorOffer } from "@/components/vendor/vendor-data";
+import type { CentreScope, VendorOffer } from "@/components/vendor/vendor-data";
 import { useT } from "@/lib/i18n";
 
 /**
@@ -30,12 +30,15 @@ export function CreateOfferDrawer({
   open,
   onClose,
   onCreate,
-}: {
+  centres,
+  defaultCentre,
+}: CentreScope & {
   open: boolean;
   onClose: () => void;
   onCreate: (offer: VendorOffer) => void;
 }) {
   const t = useT();
+  const [centre, setCentre] = useState(defaultCentre);
   const [title, setTitle] = useState("");
   const [cat, setCat] = useState(categories[0].label);
   const [slot, setSlot] = useState(0);
@@ -55,6 +58,8 @@ export function CreateOfferDrawer({
     if (basePrice <= 0 || capacity < 1) return setError(t("Tarif plein et places doivent être positifs.", "Full price and places must be positive."));
     onCreate({
       id: `v-${title.trim().toLowerCase().replace(/[^a-z0-9]+/g, "-")}`,
+      /* `centres` absent : c'est un centre qui publie, le cours est le sien. */
+      centre: centres ? centre : defaultCentre,
       title: title.trim(),
       cat,
       capacity,
@@ -89,6 +94,17 @@ export function CreateOfferDrawer({
         </div>
 
         <div className="mt-7 space-y-4">
+          {centres && (
+            <label className="block text-sm">
+              <span className="mb-1.5 block font-medium text-ink">{t("Centre", "Centre")}</span>
+              <select value={centre} onChange={(e) => setCentre(e.target.value)} className={selectCls}>
+                {centres.map((c) => (
+                  <option key={c}>{c}</option>
+                ))}
+              </select>
+            </label>
+          )}
+
           <label className="block text-sm">
             <span className="mb-1.5 block font-medium text-ink">{t("Titre du cours", "Class title")}</span>
             <input

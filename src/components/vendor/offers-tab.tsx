@@ -1,6 +1,6 @@
 "use client";
 
-import { Copy, Pencil, Plus } from "lucide-react";
+import { Building2, Copy, Pencil, Plus } from "lucide-react";
 import { useLivePrice } from "@/components/use-live-price";
 import { UrgencyMeter } from "@/components/urgency-meter";
 import { formatEuro } from "@/lib/format";
@@ -57,11 +57,14 @@ export function OffersTab({
   onDuplicate,
   onEdit,
   onCreate,
+  showCentre = false,
 }: {
   offers: VendorOffer[];
   onDuplicate: (id: string) => void;
   onEdit: (offer: VendorOffer) => void;
   onCreate: () => void;
+  /** Administration seule : le centre qui donne chaque cours. */
+  showCentre?: boolean;
 }) {
   const t = useT();
   return (
@@ -84,6 +87,11 @@ export function OffersTab({
             <span className={cn("font-medium", soldOut ? "text-ink-soft" : "text-ink")}>
               {o.title}
               <span className="ml-2 rounded-full bg-secondary px-2 py-0.5 text-xs font-normal text-ink-soft">{o.cat}</span>
+              {showCentre && (
+                <span className="mt-0.5 flex items-center gap-1.5 text-sm font-normal text-ink-soft">
+                  <Building2 className="h-3.5 w-3.5 shrink-0" /> {o.centre}
+                </span>
+              )}
             </span>
 
             <span className="text-sm tabular-nums text-ink-soft">
